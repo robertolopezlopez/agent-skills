@@ -19,7 +19,7 @@ Use this skill for investigation-first work in this repository.
 Use this loop for technical analysis tasks:
 
 1. Start from the user's task description and gather any repositories, documents, tickets, URLs, or other resources they provided.
-2. For git repositories used as references, clone them into `~/workspace`. If a repository already exists there, update it with `git pull` instead of creating a duplicate copy.
+2. For git repositories used as references, clone them into `~/workspace`. If a repository already exists there, switch it to `main` and pull the latest changes before using it. If the repository uses `master` instead, switch to `master` and pull there.
 3. Use any relevant material in `~/workspace` as research input, including local repositories, notes, artifacts, and previously generated analysis files.
 4. Fetch online material when needed, including `curl` requests for documentation, APIs, or other reference resources.
 5. Run any unit or integration tests that are relevant to the investigation. Prefer the narrowest command that reproduces the issue, but expand to broader coverage when the failure surface is unclear. When using pytest, prefer `-n 10` unless there is a reason to use fewer workers.
