@@ -4,9 +4,13 @@ Custom Codex skills tracked in git.
 
 ## Layout
 
+- `python-fastapi-contributor/`: reusable contributor workflow for Python and FastAPI repositories
+- `repository-technical-analysis/`: reusable investigation-first workflow for code repositories
 - `private-service-contributor/`: repo workflow skill for private-service
 - `private-service-technical-analysis/`: investigation and analysis skill for private-service
 - `git-hooks/post-commit`: copies committed skills into `~/.codex/skills`
+
+The private-service skills are overlays. Use them with the generic skills when working in that repository.
 
 ## Install
 

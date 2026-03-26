@@ -1,41 +1,29 @@
 ---
 name: private-service-contributor
-description: Use this when working in the private-service repository on Python or FastAPI code, contributor workflows, validation, or merge request summaries. Covers repo-specific rules for uv usage, lint and format commands, selective test execution, optional Weaviate environment setup, and how to prepare MR descriptions against origin/main.
+description: Use this with python-fastapi-contributor when working in the private-service repository. Adds repo-specific uv usage, lint and format commands, pytest commands, optional Weaviate setup, and merge request summary rules against origin/main.
 ---
 
 # Guided Experience Service Contributor
 
-Use this skill for routine engineering work in this repository.
+Use this skill as a repo-specific overlay for `python-fastapi-contributor`.
 
 ## First Read
 
 - Read `AGENTS.md` before making changes.
 - Use `uv` for Python commands and scripts.
-- Keep comments minimal and only explain non-standard patterns or constraints.
-- Do not revert unrelated user changes in the worktree.
+- Load `python-fastapi-contributor` for the general workflow and validation loop. Keep this skill focused on repo-local rules.
 
-## Workflow
+## Repo Workflow
 
-Use this loop for broad debugging or stabilization work:
+- For broad debugging or stabilization, start with `uv run pytest -v -m "not integration and not functional" -n 10` and `uv run pytest -v -m "integration and not skip_ci" -n 10` because the current `Makefile` targets do not expose worker count.
+- If the repo targets are updated to support parallelism, prefer `make test-unit` and `make test-integration` with 10 workers instead.
+- For targeted validation, prefer `uv run pytest -v tests/<target>`.
 
-1. Run unit and integration tests with 10 workers to surface failures quickly. Prefer `uv run pytest -v -m "not integration and not functional" -n 10` and `uv run pytest -v -m "integration and not skip_ci" -n 10` because the current `Makefile` targets do not expose worker count. If the repo targets are updated to support parallelism, use `make test-unit` and `make test-integration` with 10 workers instead.
-2. Analyze the failing tests and group errors by root cause before proposing code changes.
-3. Propose the intended fix and ask for approval before editing code when the task is framed as investigation, failure analysis, or change planning.
-4. Iterate until the failure set is resolved or reduced to a clearly explained blocker.
-
-## Validation
+## Repo Validation
 
 - After modifying files, run `make lint`.
 - Run `make format` when formatting is needed or when lint indicates formatting drift.
-- Run tests manually only when they are relevant to the task. Do not treat full test execution as part of the default commit flow.
-
-Prefer these commands:
-
-- `make lint`
-- `make format`
-- `uv run pytest -v -m "not integration and not functional" -n 10`
-- `uv run pytest -v -m "integration and not skip_ci" -n 10`
-- `uv run pytest -v tests/<target>`
+- Use the pytest commands above when repo targets are too broad.
 
 ## Environment Notes
 
@@ -59,6 +47,7 @@ When asked to prepare an MR description:
 
 ## Useful Repo Anchors
 
+- `python-fastapi-contributor` for the generic implementation workflow
 - `AGENTS.md` for local contributor rules
 - `Makefile` for lint, format, and test targets
 - `pyproject.toml` for Python, pytest, and ruff configuration
