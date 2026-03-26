@@ -42,6 +42,7 @@ Prefer these commands:
 - If the task needs production Weaviate settings, source `cicd/scripts/set_weaviate_config.sh` before running the relevant commands.
 - The primary Python version is defined in `pyproject.toml`.
 - Repo automation is exposed through `Makefile`; prefer those targets over ad hoc command variants when they exist.
+- If `git` or `curl` fails because of authentication or authorization problems, stop immediately and inform the user instead of continuing with incomplete inputs.
 
 ## Merge Request Summaries
 
