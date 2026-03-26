@@ -25,4 +25,4 @@ After each commit in this repository, the `post-commit` hook:
 - removes the matching directory in `~/.codex/skills`
 - copies the committed skill directory into `~/.codex/skills`
 
-This keeps `/Users/rlopezlopez/workspace/agent-skills` as the source of truth while installing real copied directories for Codex discovery.
+This keeps this repository as the source of truth while installing real copied directories for Codex discovery.
