@@ -35,6 +35,7 @@ Use this loop for technical analysis tasks:
 - When multiple failures share one cause, report the shared cause once and list the impact clearly.
 - Keep recommendations concrete: what should change, why, and how confident the evidence is.
 - If `git` or `curl` fails because of authentication or authorization problems, stop immediately and inform the user instead of continuing with incomplete inputs.
+- If `git` times out while fetching or pushing resources, stop immediately and inform the user instead of continuing with incomplete inputs.
 
 ## Validation
 
