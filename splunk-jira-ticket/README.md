@@ -17,7 +17,7 @@ Use a small wrapper command so Codex can request a narrow persistent approval li
 
 ### 1. Shell auth config
 
-Set the Jira base URL, email, token, and make sure `~/.local/bin` is on `PATH`.
+Set the Jira base URL and token, and make sure `~/.local/bin` is on `PATH`.
 
 #### Fish
 
@@ -25,7 +25,6 @@ Create `~/.config/fish/conf.d/jira.fish`:
 
 ```fish
 set -gx ATLASSIAN_API_BASE_URL https://splunk.atlassian.net
-set -gx ATLASSIAN_EMAIL your-email@example.com
 set -gx ATLASSIAN_API_TOKEN '...'
 
 if test -d $HOME/.local/bin
@@ -46,7 +45,6 @@ Add this to `~/.bashrc`:
 
 ```bash
 export ATLASSIAN_API_BASE_URL=https://splunk.atlassian.net
-export ATLASSIAN_EMAIL=your-email@example.com
 export ATLASSIAN_API_TOKEN='...'
 
 case ":$PATH:" in
@@ -67,7 +65,6 @@ Add this to `~/.zshrc`:
 
 ```zsh
 export ATLASSIAN_API_BASE_URL=https://splunk.atlassian.net
-export ATLASSIAN_EMAIL=your-email@example.com
 export ATLASSIAN_API_TOKEN='...'
 
 case ":$PATH:" in
@@ -98,11 +95,15 @@ fi
 issue_key=$1
 fields=${2:-summary,status,issuetype,priority,assignee,reporter,created,updated,description,comment,labels}
 base_url=${ATLASSIAN_API_BASE_URL:-https://splunk.atlassian.net}
-email=${ATLASSIAN_EMAIL:-}
 token=${ATLASSIAN_API_TOKEN:-}
 
+if ! email=$(git config user.email); then
+  echo "git config user.email is not set" >&2
+  exit 1
+fi
+
 if [ -z "$email" ] || [ -z "$token" ]; then
-  echo "ATLASSIAN_EMAIL and ATLASSIAN_API_TOKEN must be set" >&2
+  echo "git config user.email and ATLASSIAN_API_TOKEN must be set" >&2
   exit 1
 fi
 
