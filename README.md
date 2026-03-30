@@ -8,6 +8,7 @@ Custom Codex skills tracked in git.
 - `repository-technical-analysis/`: reusable investigation-first workflow for code repositories
 - `private-service-contributor/`: repo workflow skill for private-service
 - `private-service-technical-analysis/`: investigation and analysis skill for private-service
+- `splunk-jira-ticket/`: fetch and summarize Splunk Jira or Atlassian tickets through the Jira REST API
 - `git-hooks/post-commit`: copies committed skills into `~/.codex/skills`
 
 The private-service skills are overlays. Use them with the generic skills when working in that repository.
