@@ -1,0 +1,4 @@
+interface:
+  display_name: "Rebase Conflict Resolver"
+  short_description: "Rebase onto a target branch and validate the result."
+  default_prompt: "Use $git-rebase-conflict-resolver to rebase the current branch onto the target branch I provide, or origin/main if I do not provide one. Resolve conflicts by preserving compatible changes from both the target branch and local commits, complete the rebase, and run the repository's relevant lint, format, and tests before finishing."
