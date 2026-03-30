@@ -29,7 +29,19 @@ summary,status,issuetype,priority,assignee,reporter,created,updated,description,
 
 ## Command Pattern
 
-Use `curl` with basic auth:
+Preferred wrapper shape:
+
+```bash
+jira-api {ISSUE_KEY}
+```
+
+Optional fields parameter:
+
+```bash
+jira-api {ISSUE_KEY} summary,status,priority,assignee
+```
+
+Fallback direct API call:
 
 ```bash
 curl -sS -u "$(git config user.email):$ATLASSIAN_API_TOKEN" \
