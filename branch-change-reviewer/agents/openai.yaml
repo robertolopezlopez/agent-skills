@@ -1,0 +1,4 @@
+interface:
+  display_name: "Branch Change Reviewer"
+  short_description: "Review branch changes and write findings."
+  default_prompt: "Use $branch-change-reviewer to review my changes against a target branch, defaulting to origin/main. Analyze the diff for code style, architecture, testing issues, and possible regressions, do not write any code, and write all findings to both the screen and the output file."
