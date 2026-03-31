@@ -9,23 +9,24 @@ This skill lets Codex fetch and summarize Splunk Jira tickets through the Jira R
 ## Files
 
 - `SKILL.md`: Codex skill definition and workflow
-- `README.md`: local setup for shell auth and helper command
+- `README.md`: local setup and helper usage
+- `scripts/jira-api`: canonical helper implementation used by the skill
 
 ## Recommended Setup
 
-Use a small wrapper command so Codex can request a narrow persistent approval like `["jira-api"]` instead of trying to auto-approve a raw `curl` command that contains shell expansion. The skill now bootstraps `~/.local/bin/jira-api` automatically when it is missing.
+The skill uses the bundled `scripts/jira-api` helper directly.
 
-### 1. Shell auth config
+### 1. Auth config
 
-Set the Jira base URL and token, and make sure `~/.local/bin` is on `PATH`. When Codex needs to choose shell syntax, it should infer the user's interactive shell from `$SHELL`.
+Set the Jira base URL and token.
 
-### Shell detection rule
+For skill/runtime use, resolve `scripts/jira-api` relative to the skill directory and invoke that resolved path.
 
-Use `$SHELL` to infer the interpreter for shell-specific commands:
+```text
+<skill-dir>/scripts/jira-api ...
+```
 
-- `fish` -> fish syntax
-- `bash`, `zsh`, `sh`, `dash`, `ksh` -> sh-compatible syntax
-- unknown or unset `$SHELL` -> avoid shell-specific PATH edits and call `~/.local/bin/jira-api` directly
+If you want a standalone convenience command outside the skill directory, you can optionally copy it into `~/.local/bin`.
 
 #### Fish
 
@@ -87,89 +88,21 @@ Reload with:
 source ~/.zshrc
 ```
 
-### 2. Helper command bootstrap
+### 2. Helper usage
 
-On first use, the skill checks whether `~/.local/bin/jira-api` exists. If it does not, it copies `scripts/jira-api` from the skill into place, runs `chmod +x ~/.local/bin/jira-api`, and then continues with the helper-based flow.
+The bundled helper is `scripts/jira-api`.
+For normal skill use, no extra install step is required.
 
-If you want to pre-create the helper yourself, use this content for `~/.local/bin/jira-api`:
-
-```sh
-#!/bin/sh
-set -eu
-
-if [ "$#" -lt 1 ] || [ "$#" -gt 3 ]; then
-  echo "usage: jira-api [ISSUE_API_BASE] ISSUE_KEY [FIELDS]" >&2
-  exit 2
-fi
-
-normalize_issue_api_base() {
-  case "$1" in
-    */rest/api/3/issue)
-      printf '%s/\n' "$1"
-      ;;
-    */rest/api/3/issue/)
-      printf '%s\n' "$1"
-      ;;
-    http://*|https://*)
-      printf '%s/rest/api/3/issue/\n' "${1%/}"
-      ;;
-    *)
-      printf '%s\n' "$1"
-      ;;
-  esac
-}
-
-default_base=$(normalize_issue_api_base "${ATLASSIAN_API_BASE_URL:-https://splunk.atlassian.net/rest/api/3/issue/}")
-fields_default=summary,status,issuetype,priority,assignee,reporter,created,updated,description,comment,labels
-
-case "$#" in
-  1)
-    issue_api_base=$default_base
-    issue_key=$1
-    fields=$fields_default
-    ;;
-  2)
-    case "$1" in
-      http://*|https://*)
-        issue_api_base=$(normalize_issue_api_base "$1")
-        issue_key=$2
-        fields=$fields_default
-        ;;
-      *)
-        issue_api_base=$default_base
-        issue_key=$1
-        fields=$2
-        ;;
-    esac
-    ;;
-  3)
-    issue_api_base=$(normalize_issue_api_base "$1")
-    issue_key=$2
-    fields=$3
-    ;;
-esac
-
-token=${ATLASSIAN_API_TOKEN:-}
-
-if ! email=$(git config user.email); then
-  echo "git config user.email is not set" >&2
-  exit 1
-fi
-
-if [ -z "$email" ] || [ -z "$token" ]; then
-  echo "git config user.email and ATLASSIAN_API_TOKEN must be set" >&2
-  exit 1
-fi
-
-exec curl -sS \
-  -u "$email:$token" \
-  -H 'Accept: application/json' \
-  "${issue_api_base}${issue_key}?fields=$fields"
-```
-
-Then make it executable:
+If needed, make sure it is executable:
 
 ```bash
+chmod +x scripts/jira-api
+```
+
+If you want to install a standalone copy:
+
+```bash
+cp scripts/jira-api ~/.local/bin/jira-api
 chmod +x ~/.local/bin/jira-api
 ```
 
@@ -178,20 +111,22 @@ chmod +x ~/.local/bin/jira-api
 Examples:
 
 ```bash
-jira-api DAT-2921
-jira-api DAT-2921 summary,status,priority,assignee
-jira-api https://splunk.atlassian.net/rest/api/3/issue/ DAT-2921
-jira-api https://splunk.atlassian.net/rest/api/3/issue/ DAT-2921 summary,status,priority,assignee
+scripts/jira-api DAT-2921
+scripts/jira-api DAT-2921 summary,status,priority,assignee
+scripts/jira-api https://splunk.atlassian.net/rest/api/3/issue/ DAT-2921
+scripts/jira-api https://splunk.atlassian.net/rest/api/3/issue/ DAT-2921 summary,status,priority,assignee
 ```
 
 ## Codex Approval Model
 
-The point of `jira-api` is to give Codex a stable, narrow command prefix. After the helper exists, allow the command with a persistent prefix rule for:
+For Codex, prefer invoking the bundled helper by its resolved path relative to the skill directory so the skill does not depend on `PATH` or shell-specific behavior.
+
+If you want shorter interactive commands for manual use, copy the helper into `~/.local/bin` and add that directory to your shell `PATH`.
+
+If your approval system supports persistent command prefixes, allow the helper command using the narrowest stable prefix available in your environment, for example:
 
 ```text
-["jira-api"]
+["<skill-dir>/scripts/jira-api"]
 ```
-
-That is safer and more compatible with Codex approvals than trying to persist approval for a raw `curl` command with `$(...)`, env vars, or wildcards.
 
 Codex should never issue a direct Jira `curl` request itself; Jira access must go through `jira-api`.
