@@ -11,10 +11,16 @@ This skill lets Codex fetch and summarize Splunk Jira tickets through the Jira R
 - `SKILL.md`: Codex skill definition and workflow
 - `README.md`: local setup and helper usage
 - `scripts/jira-api`: canonical helper implementation used by the skill
+- `scripts/atlassian-auth.sh`: vendored Atlassian auth helper source used to bootstrap the shared installed copy
 
 ## Recommended Setup
 
 The skill uses the bundled `scripts/jira-api` helper directly.
+Before running the Jira helper, the skill refreshes shared Atlassian auth logic under:
+
+```text
+${XDG_DATA_HOME:-$HOME/.local/share}/jira/atlassian-auth.sh
+```
 
 ### 1. Auth config
 
@@ -91,7 +97,20 @@ source ~/.zshrc
 ### 2. Helper usage
 
 The bundled helper is `scripts/jira-api`.
-For normal skill use, no extra install step is required.
+For normal skill use, the skill refreshes the shared auth helper automatically from `scripts/atlassian-auth.sh` before invoking `scripts/jira-api`.
+
+### 2a. Shared auth helper install
+
+If you want to pre-install or refresh the shared Atlassian auth helper yourself:
+
+```bash
+mkdir -p "${XDG_DATA_HOME:-$HOME/.local/share}/jira"
+cp scripts/atlassian-auth.sh "${XDG_DATA_HOME:-$HOME/.local/share}/jira/atlassian-auth.sh"
+```
+
+The shared auth helper is sourced by scripts, so it does not need to be executable.
+
+Future Atlassian-related skills should reuse this shared auth helper instead of duplicating auth checks.
 
 If needed, make sure it is executable:
 
@@ -106,7 +125,15 @@ cp scripts/jira-api ~/.local/bin/jira-api
 chmod +x ~/.local/bin/jira-api
 ```
 
+If you use a standalone `jira-api` copy outside the skill directory, make sure the shared auth helper is also present at:
+
+```text
+${XDG_DATA_HOME:-$HOME/.local/share}/jira/atlassian-auth.sh
+```
+
 ### 3. Usage
+
+The following examples assume you are running commands from the skill directory. Otherwise, replace `scripts/jira-api` with the resolved path to the helper.
 
 Examples:
 
@@ -120,6 +147,7 @@ scripts/jira-api https://splunk.atlassian.net/rest/api/3/issue/ DAT-2921 summary
 ## Codex Approval Model
 
 For Codex, prefer invoking the bundled helper by its resolved path relative to the skill directory so the skill does not depend on `PATH` or shell-specific behavior.
+For shared auth behavior, prefer a stable path under `${XDG_DATA_HOME:-$HOME/.local/share}/jira/`.
 
 If you want shorter interactive commands for manual use, copy the helper into `~/.local/bin` and add that directory to your shell `PATH`.
 

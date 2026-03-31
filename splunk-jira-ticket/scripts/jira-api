@@ -6,6 +6,18 @@ if [ "$#" -lt 1 ] || [ "$#" -gt 3 ]; then
   exit 2
 fi
 
+atlassian_auth_home=${XDG_DATA_HOME:-$HOME/.local/share}/jira
+atlassian_auth_helper=$atlassian_auth_home/atlassian-auth.sh
+
+if [ ! -r "$atlassian_auth_helper" ]; then
+  echo "shared Atlassian auth helper is missing: $atlassian_auth_helper" >&2
+  echo "refresh it from the skill copy before invoking jira-api" >&2
+  exit 1
+fi
+
+# shellcheck source=/dev/null
+. "$atlassian_auth_helper"
+
 normalize_issue_api_base() {
   case "$1" in
     */rest/api/3/issue)
@@ -53,19 +65,9 @@ case "$#" in
     ;;
 esac
 
-token=${ATLASSIAN_API_TOKEN:-}
-
-if ! email=$(git config user.email); then
-  echo "git config user.email is not set" >&2
-  exit 1
-fi
-
-if [ -z "$email" ] || [ -z "$token" ]; then
-  echo "git config user.email and ATLASSIAN_API_TOKEN must be set" >&2
-  exit 1
-fi
+atlassian_require_auth
 
 exec curl -sS \
-  -u "$email:$token" \
+  -u "$ATLASSIAN_AUTH_USERPASS" \
   -H 'Accept: application/json' \
   "${issue_api_base}${issue_key}?fields=$fields"

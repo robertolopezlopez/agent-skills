@@ -14,36 +14,45 @@ When a Splunk Jira issue is not readable through normal browser access, use the 
 3. Use `git config user.email` as the Atlassian username.
 4. Use `ATLASSIAN_API_TOKEN` from the environment as the password.
 5. Resolve `scripts/jira-api` relative to this skill directory.
-6. Use that resolved file as the canonical helper for this skill.
-7. If the helper is not executable, run `chmod +x` on the resolved helper path.
-8. Invoke the resolved helper path directly:
+6. Resolve `scripts/atlassian-auth.sh` relative to this skill directory.
+7. Ensure the shared Atlassian auth helper exists at `${XDG_DATA_HOME:-$HOME/.local/share}/jira/atlassian-auth.sh`.
+8. Refresh the shared auth helper from the skill copy before invoking `jira-api`:
+   - `mkdir -p "${XDG_DATA_HOME:-$HOME/.local/share}/jira"`
+   - `cp {RESOLVED_ATLASSIAN_AUTH_SOURCE} "${XDG_DATA_HOME:-$HOME/.local/share}/jira/atlassian-auth.sh"`
+   - if the copy fails due to sandbox restrictions, rerun the copy step with escalated permissions
+9. Use the installed shared auth helper from `scripts/jira-api`.
+10. If the Jira helper is not executable, run `chmod +x` on the resolved Jira helper path.
+11. Invoke the resolved Jira helper path directly:
    - default issue API base: `{RESOLVED_JIRA_API} {ISSUE_KEY}`
    - overridden issue API base: `{RESOLVED_JIRA_API} {HOST_AND_PATH} {ISSUE_KEY}`
-9. When the task needs explicit field selection, pass the fields list as the final helper argument.
+12. When the task needs explicit field selection, pass the fields list as the final helper argument.
    - default issue API base: `{RESOLVED_JIRA_API} {ISSUE_KEY} {FIELDS}`
    - overridden issue API base: `{RESOLVED_JIRA_API} {HOST_AND_PATH} {ISSUE_KEY} {FIELDS}`
-10. The helper should normalize the default or overridden host + path into an issue API base ending in `/rest/api/3/issue/`, then fetch:
+13. The helper should normalize the default or overridden host + path into an issue API base ending in `/rest/api/3/issue/`, then fetch:
 
 ```text
 https://splunk.atlassian.net/rest/api/3/issue/{ISSUE_KEY}
 ```
 
-11. Request only the fields needed for the task. For summaries, prefer:
+14. Request only the fields needed for the task. For summaries, prefer:
 
 ```text
 summary,status,issuetype,priority,assignee,reporter,created,updated,description,comment,labels
 ```
 
-12. If the request fails due to sandbox network restrictions, rerun the same helper command with escalated network access.
-13. Summarize the issue from the API response, not from the login page.
-14. Never issue a direct Jira `curl` command from the skill workflow. All Jira HTTP access must go through `jira-api`.
+15. If the request fails due to sandbox network restrictions, rerun the same helper command with escalated network access.
+16. Summarize the issue from the API response, not from the login page.
+17. Never issue a direct Jira `curl` command from the skill workflow. All Jira HTTP access must go through `jira-api`.
 
 ## Helper Source
 
 The canonical helper implementation lives at `scripts/jira-api`, resolved relative to this skill directory.
+The vendored Atlassian auth helper source for this skill lives at `scripts/atlassian-auth.sh`, resolved relative to this skill directory.
+The installed shared Atlassian auth helper should live at `${XDG_DATA_HOME:-$HOME/.local/share}/jira/atlassian-auth.sh`.
 
 Use the resolved helper path in place for normal skill execution.
-Do not duplicate or rewrite the helper inline in this file unless the task is specifically to change the helper itself.
+Refresh the installed shared auth helper from the vendored skill copy before invoking `jira-api`.
+Do not duplicate Atlassian auth logic inline in this file or in `scripts/jira-api`; keep shared auth behavior in `scripts/atlassian-auth.sh` and the installed shared copy.
 
 ## Command Pattern
 
