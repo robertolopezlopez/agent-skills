@@ -4,7 +4,7 @@ Setup and usage notes for the `splunk-jira-ticket` skill.
 
 ## Purpose
 
-This skill lets Codex fetch and summarize Splunk Jira tickets through the Jira REST API when a browser URL redirects to Atlassian login.
+This skill lets Codex fetch and summarize Splunk Jira tickets through the Jira REST API when a browser URL redirects to Atlassian login. It can also take an optional issue API host + path override before the issue key.
 
 ## Files
 
@@ -13,11 +13,19 @@ This skill lets Codex fetch and summarize Splunk Jira tickets through the Jira R
 
 ## Recommended Setup
 
-Use a small wrapper command so Codex can request a narrow persistent approval like `["jira-api"]` instead of trying to auto-approve a raw `curl` command that contains shell expansion.
+Use a small wrapper command so Codex can request a narrow persistent approval like `["jira-api"]` instead of trying to auto-approve a raw `curl` command that contains shell expansion. The skill now bootstraps `~/.local/bin/jira-api` automatically when it is missing.
 
 ### 1. Shell auth config
 
-Set the Jira base URL and token, and make sure `~/.local/bin` is on `PATH`.
+Set the Jira base URL and token, and make sure `~/.local/bin` is on `PATH`. When Codex needs to choose shell syntax, it should infer the user's interactive shell from `$SHELL`.
+
+### Shell detection rule
+
+Use `$SHELL` to infer the interpreter for shell-specific commands:
+
+- `fish` -> fish syntax
+- `bash`, `zsh`, `sh`, `dash`, `ksh` -> sh-compatible syntax
+- unknown or unset `$SHELL` -> avoid shell-specific PATH edits and call `~/.local/bin/jira-api` directly
 
 #### Fish
 
@@ -79,22 +87,68 @@ Reload with:
 source ~/.zshrc
 ```
 
-### 2. Helper command
+### 2. Helper command bootstrap
 
-Create `~/.local/bin/jira-api`:
+On first use, the skill checks whether `~/.local/bin/jira-api` exists. If it does not, it copies `scripts/jira-api` from the skill into place, runs `chmod +x ~/.local/bin/jira-api`, and then continues with the helper-based flow.
+
+If you want to pre-create the helper yourself, use this content for `~/.local/bin/jira-api`:
 
 ```sh
 #!/bin/sh
 set -eu
 
-if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
-  echo "usage: jira-api ISSUE_KEY [FIELDS]" >&2
+if [ "$#" -lt 1 ] || [ "$#" -gt 3 ]; then
+  echo "usage: jira-api [ISSUE_API_BASE] ISSUE_KEY [FIELDS]" >&2
   exit 2
 fi
 
-issue_key=$1
-fields=${2:-summary,status,issuetype,priority,assignee,reporter,created,updated,description,comment,labels}
-base_url=${ATLASSIAN_API_BASE_URL:-https://splunk.atlassian.net}
+normalize_issue_api_base() {
+  case "$1" in
+    */rest/api/3/issue)
+      printf '%s/\n' "$1"
+      ;;
+    */rest/api/3/issue/)
+      printf '%s\n' "$1"
+      ;;
+    http://*|https://*)
+      printf '%s/rest/api/3/issue/\n' "${1%/}"
+      ;;
+    *)
+      printf '%s\n' "$1"
+      ;;
+  esac
+}
+
+default_base=$(normalize_issue_api_base "${ATLASSIAN_API_BASE_URL:-https://splunk.atlassian.net/rest/api/3/issue/}")
+fields_default=summary,status,issuetype,priority,assignee,reporter,created,updated,description,comment,labels
+
+case "$#" in
+  1)
+    issue_api_base=$default_base
+    issue_key=$1
+    fields=$fields_default
+    ;;
+  2)
+    case "$1" in
+      http://*|https://*)
+        issue_api_base=$(normalize_issue_api_base "$1")
+        issue_key=$2
+        fields=$fields_default
+        ;;
+      *)
+        issue_api_base=$default_base
+        issue_key=$1
+        fields=$2
+        ;;
+    esac
+    ;;
+  3)
+    issue_api_base=$(normalize_issue_api_base "$1")
+    issue_key=$2
+    fields=$3
+    ;;
+esac
+
 token=${ATLASSIAN_API_TOKEN:-}
 
 if ! email=$(git config user.email); then
@@ -110,7 +164,7 @@ fi
 exec curl -sS \
   -u "$email:$token" \
   -H 'Accept: application/json' \
-  "$base_url/rest/api/3/issue/$issue_key?fields=$fields"
+  "${issue_api_base}${issue_key}?fields=$fields"
 ```
 
 Then make it executable:
@@ -126,6 +180,8 @@ Examples:
 ```bash
 jira-api DAT-2921
 jira-api DAT-2921 summary,status,priority,assignee
+jira-api https://splunk.atlassian.net/rest/api/3/issue/ DAT-2921
+jira-api https://splunk.atlassian.net/rest/api/3/issue/ DAT-2921 summary,status,priority,assignee
 ```
 
 ## Codex Approval Model
@@ -137,3 +193,5 @@ The point of `jira-api` is to give Codex a stable, narrow command prefix. After 
 ```
 
 That is safer and more compatible with Codex approvals than trying to persist approval for a raw `curl` command with `$(...)`, env vars, or wildcards.
+
+Codex should never issue a direct Jira `curl` request itself; Jira access must go through `jira-api`.

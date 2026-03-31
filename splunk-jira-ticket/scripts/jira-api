@@ -1,0 +1,71 @@
+#!/bin/sh
+set -eu
+
+if [ "$#" -lt 1 ] || [ "$#" -gt 3 ]; then
+  echo "usage: jira-api [ISSUE_API_BASE] ISSUE_KEY [FIELDS]" >&2
+  exit 2
+fi
+
+normalize_issue_api_base() {
+  case "$1" in
+    */rest/api/3/issue)
+      printf '%s/\n' "$1"
+      ;;
+    */rest/api/3/issue/)
+      printf '%s\n' "$1"
+      ;;
+    http://*|https://*)
+      printf '%s/rest/api/3/issue/\n' "${1%/}"
+      ;;
+    *)
+      printf '%s\n' "$1"
+      ;;
+  esac
+}
+
+default_base=$(normalize_issue_api_base "${ATLASSIAN_API_BASE_URL:-https://splunk.atlassian.net/rest/api/3/issue/}")
+fields_default=summary,status,issuetype,priority,assignee,reporter,created,updated,description,comment,labels
+
+case "$#" in
+  1)
+    issue_api_base=$default_base
+    issue_key=$1
+    fields=$fields_default
+    ;;
+  2)
+    case "$1" in
+      http://*|https://*)
+        issue_api_base=$(normalize_issue_api_base "$1")
+        issue_key=$2
+        fields=$fields_default
+        ;;
+      *)
+        issue_api_base=$default_base
+        issue_key=$1
+        fields=$2
+        ;;
+    esac
+    ;;
+  3)
+    issue_api_base=$(normalize_issue_api_base "$1")
+    issue_key=$2
+    fields=$3
+    ;;
+esac
+
+token=${ATLASSIAN_API_TOKEN:-}
+
+if ! email=$(git config user.email); then
+  echo "git config user.email is not set" >&2
+  exit 1
+fi
+
+if [ -z "$email" ] || [ -z "$token" ]; then
+  echo "git config user.email and ATLASSIAN_API_TOKEN must be set" >&2
+  exit 1
+fi
+
+exec curl -sS \
+  -u "$email:$token" \
+  -H 'Accept: application/json' \
+  "${issue_api_base}${issue_key}?fields=$fields"
