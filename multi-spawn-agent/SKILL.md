@@ -1,0 +1,72 @@
+---
+name: multi-spawn-agent
+description: Use when the user explicitly asks for subagents, delegation, or parallel agent work and you want a reusable template for spawning multiple worker agents from a work definition file. Best for parallel implementation or validation tasks where each worker should use named skills, read a shared work definition or plan file, own specific files or directories, avoid overlapping write scopes, and return a summary, files changed, and validation.
+---
+
+# Multi Spawn Agent
+
+Use this skill to structure parallel worker delegation after the user has explicitly authorized subagents.
+
+## Inputs
+
+Require a work definition file path as the primary input. This can be a plan or work-split document such as:
+
+```text
+/Users/rlopezlopez/workspace/private-service/analysis_dat-2486_work.md
+```
+
+Use that file as the shared source of truth for worker scopes, ownership, constraints, and integration order.
+
+## Workflow
+
+1. Read the work definition file first and extract:
+   - worker split
+   - file or directory ownership
+   - non-goals and constraints
+   - dependency or integration order
+2. Make a local plan from that file and identify tasks that are safe to run in parallel.
+3. Spawn only **worker** agents for bounded tasks with disjoint write scopes.
+4. Use `fork_context: true`.
+5. For each worker:
+   - explicitly mention the required skill names
+   - tell the worker to read the shared work definition file
+   - assign exact file or directory ownership
+   - tell the worker which files to avoid when useful
+   - say: `You are not alone in the codebase; do not revert others' changes.`
+   - require: summary, files changed, and validation run
+6. Do not wait immediately after spawning. Continue local integration or other non-overlapping work.
+7. Wait only when a worker result is needed on the critical path.
+8. Review returned changes before integrating them.
+
+## Worker Prompt Template
+
+Use this template when spawning multiple workers:
+
+```text
+Use the work definition file at <work definition file>.
+
+Spawn N parallel worker agents with fork_context: true.
+
+For each worker:
+- explicitly mention the required skill names
+- tell the worker to read <work definition file>
+- give exact file or directory ownership
+- tell the worker to avoid <other files> when needed
+- say: "You are not alone in the codebase; do not revert others' changes."
+- require: summary, files changed, and validation run
+
+Workers:
+1. <file ownership / task 1>
+2. <file ownership / task 2>
+3. <file ownership / task 3>
+
+Keep write scopes disjoint. Do not wait immediately after spawning. Continue local integration work and wait only when a result is needed on the critical path.
+```
+
+## Notes
+
+- Treat the work definition file as authoritative unless the user says otherwise.
+- Prefer workers over explorers when the delegated task includes concrete code changes.
+- Keep ownership boundaries explicit to reduce merge conflicts.
+- If two tasks touch the same files, keep one local or serialize them instead of spawning both.
+- Reuse the same work definition file across workers to maintain coordination.
