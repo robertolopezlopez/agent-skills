@@ -8,6 +8,7 @@ Custom Codex skills tracked in git.
 - `repository-technical-analysis/`: reusable investigation-first workflow for code repositories
 - `private-service-contributor/`: repo workflow skill for private-service
 - `private-service-technical-analysis/`: investigation and analysis skill for private-service
+- `multi-spawn-agent/`: reusable template for spawning parallel worker agents with disjoint ownership
 - `splunk-jira-ticket/`: fetch and summarize Splunk Jira or Atlassian tickets through the Jira REST API
   See `splunk-jira-ticket/README.md` for shell setup and the auto-bootstrapped `jira-api` helper command.
 - `git-hooks/post-commit`: copies committed skills into `~/.codex/skills`
