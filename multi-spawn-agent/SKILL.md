@@ -12,7 +12,7 @@ Use this skill to structure parallel worker delegation after the user has explic
 Require a work definition file path as the primary input. This can be a plan or work-split document such as:
 
 ```text
-/Users/rlopezlopez/workspace/private-service/analysis_dat-2486_work.md
+work_plan.md
 ```
 
 Use that file as the shared source of truth for worker scopes, ownership, constraints, and integration order.
@@ -40,12 +40,12 @@ Use that file as the shared source of truth for worker scopes, ownership, constr
 
 ## Worker Prompt Template
 
-Use this template when spawning multiple workers:
+Use this template when spawning a flexible number of workers:
 
 ```text
 Use the work definition file at <work definition file>.
 
-Spawn N parallel worker agents with fork_context: true.
+Spawn N parallel worker agents, where N is determined by the work definition and the number of disjoint write scopes, with fork_context: true.
 
 For each worker:
 - explicitly mention the required skill names
@@ -58,7 +58,8 @@ For each worker:
 Workers:
 1. <file ownership / task 1>
 2. <file ownership / task 2>
-3. <file ownership / task 3>
+...
+N. <file ownership / task N>
 
 Keep write scopes disjoint. Do not wait immediately after spawning. Continue local integration work and wait only when a result is needed on the critical path.
 ```
@@ -66,6 +67,9 @@ Keep write scopes disjoint. Do not wait immediately after spawning. Continue loc
 ## Notes
 
 - Treat the work definition file as authoritative unless the user says otherwise.
+- Choose the number of workers from the work definition and the number of truly independent write scopes.
+- Do not force parallelism when tasks are tightly coupled.
+- Prefer fewer workers when integration cost is high.
 - Prefer workers over explorers when the delegated task includes concrete code changes.
 - Keep ownership boundaries explicit to reduce merge conflicts.
 - If two tasks touch the same files, keep one local or serialize them instead of spawning both.
