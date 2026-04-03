@@ -1,0 +1,102 @@
+---
+name: private-service-parallel-tests
+description: "Use this when working in the private-service repository and the user wants to run all unit tests and integration tests in parallel. Prefer 2 parallel workers when subagents are explicitly authorized: one worker for the unit suite and one worker for the integration suite, each using 10 pytest workers. Run make install-splunk-app-deps immediately before the integration suite. After the parallel test runs complete, use repository-technical-analysis together with private-service-technical-analysis to review failures, suspicious errors, missing prerequisites, or likely root causes. Covers the repo-specific uv and pytest commands, when to prefer direct pytest over Makefile targets, optional Weaviate setup, and how to report results separately for unit and integration suites."
+---
+
+# Guided Experience Service Parallel Tests
+
+Use this skill for broad test execution in `../private-service` when the goal is to run both the unit and integration suites in parallel. Prefer 2 parallel workers when subagents are available and explicitly authorized by the user, then review any failures or suspicious errors with `repository-technical-analysis` plus `private-service-technical-analysis`.
+
+## First Read
+
+- Read `../private-service/AGENTS.md` before running commands.
+- Run commands from the repository root: `../private-service`.
+- Use `uv` for Python commands and scripts.
+
+## Workflow
+
+1. Start in `../private-service`.
+2. Ensure dependencies are installed with `uv sync` when needed.
+3. If subagents are explicitly authorized, use 2 parallel workers:
+   - Worker 1 owns unit test execution only.
+   - Worker 2 owns integration test execution only.
+4. Run the unit suite with 10 pytest workers:
+
+```bash
+uv run pytest -v -m "not integration and not functional" -n 10
+```
+
+5. Just before the integration suite, run:
+
+```bash
+make install-splunk-app-deps
+```
+
+6. Run the integration suite with 10 pytest workers:
+
+```bash
+uv run pytest -v -m "integration and not skip_ci" -n 10
+```
+
+7. Before running the integration suite, fail fast if `IAC_TOKEN` is not set.
+8. Wait for both suites to finish.
+9. If the integration suite depends on production Weaviate behavior, source `cicd/scripts/set_weaviate_config.sh` before running the relevant commands.
+10. If failures suggest extra local infrastructure is needed, use the repo Makefile helpers such as `make test-db-start` and `make test-db-stop`.
+11. After both suites finish, use `repository-technical-analysis` together with `private-service-technical-analysis` to review any failing tests, suspicious errors, environment gaps, or likely root causes.
+12. Report the raw test outcomes first, then the follow-up technical analysis.
+
+## Parallel Worker Template
+
+When subagents are allowed, use a 2-worker split like this:
+
+```text
+Spawn 2 parallel worker agents with fork_context: true.
+
+Worker 1:
+- own unit test execution only
+- run from ../private-service
+- run: uv run pytest -v -m "not integration and not functional" -n 10
+- return: summary, failing tests, and validation run
+
+Worker 2:
+- own integration test execution only
+- run from ../private-service
+- fail immediately with a clear error if IAC_TOKEN is unset
+- run: make install-splunk-app-deps
+- run: uv run pytest -v -m "integration and not skip_ci" -n 10
+- source cicd/scripts/set_weaviate_config.sh first when needed
+- return: summary, failing tests, and validation run
+
+After both workers finish:
+- use repository-technical-analysis plus private-service-technical-analysis to review failures or suspicious errors
+- report raw test results separately from the follow-up analysis
+
+Do not wait immediately after spawning. Wait after both workers have started or when results are needed.
+```
+
+## Command Selection Rules
+
+- Prefer the direct `uv run pytest ... -n 10` commands above because the current `Makefile` test targets do not expose worker count.
+- Prefer 2 parallel workers over a single sequential run when subagents are explicitly authorized.
+- Prefer repo targets such as `make test-db-start` and `make test-db-stop` for database lifecycle instead of ad hoc docker commands.
+- Run `make install-splunk-app-deps` immediately before the integration suite.
+- For integration execution, check `IAC_TOKEN` first and stop with a clear error if it is missing.
+- After the unit and integration runs complete, use `repository-technical-analysis` with `private-service-technical-analysis` to analyze failures, suspicious stack traces, environment problems, and likely root causes.
+- Do not run functional tests unless the user asks for them; this skill is for unit and integration suites.
+
+## Reporting
+
+When summarizing results:
+
+1. State the exact commands run.
+2. Separate unit and integration outcomes.
+3. List failing tests or modules clearly.
+4. Call out missing environment or auth prerequisites explicitly.
+5. Add a separate technical-analysis section that summarizes likely root causes, failure groupings, and next debugging steps.
+
+## Useful Repo Anchors
+
+- `../private-service/AGENTS.md` for repo workflow rules
+- `../private-service/Makefile` for test and database helper targets
+- `../private-service/pyproject.toml` for pytest markers and dev dependencies
+- `../private-service/cicd/scripts/set_weaviate_config.sh` for production Weaviate settings
