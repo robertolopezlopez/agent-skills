@@ -1,6 +1,6 @@
 ---
 name: private-service-mr-comment-analysis
-description: "Use when working in the private-service repository and the user wants a GitLab merge request reviewed comment-by-comment. Fetch the merge request with glab using the user-provided MR parameter, read the MR comments and discussion threads, skip resolved comments, create a work_plan_mr_<MR>.md file for the unresolved comment split with MR, comment, analysis links, a short proposed solution statement, and whether you have already replied and are waiting for feedback from the comment author, use multi-spawn-agent to analyze comments in parallel when subagents are explicitly authorized, use repository-technical-analysis together with private-service-technical-analysis for each unresolved comment, write one Markdown analysis file per comment including the relevant MR comment link and reply/waiting status, and finish with a short on-screen report summarizing each analysis file."
+description: "Use when working in the private-service repository and the user wants a GitLab merge request reviewed comment-by-comment. Fetch the merge request with glab using the user-provided MR parameter, read the MR comments and discussion threads, skip resolved comments, create a work_plan_mr_<MR>.md file for the unresolved comment split with MR, comment, analysis links, a short proposed solution statement, and whether you have already replied and are waiting for feedback from the comment author, use multi-spawn-agent to analyze comments in parallel when subagents are explicitly authorized, use repository-technical-analysis together with private-service-technical-analysis for each unresolved comment, then use private-service-contributor to update each analysis_mr_<MR>_comment_<NN>.md file with proposed changes, and finish with a short on-screen report summarizing each analysis file."
 ---
 
 # Guided Experience Service MR Comment Analysis
@@ -12,6 +12,7 @@ Use this skill from the `private-service` repository root when the user wants an
 - Read `AGENTS.md` before running commands.
 - Use `glab` to fetch the merge request and its comment threads.
 - Use `repository-technical-analysis` together with `private-service-technical-analysis` for the actual technical analysis.
+- After each technical analysis is complete, use `private-service-contributor` to add concrete proposed changes to the per-comment analysis file.
 - Use `multi-spawn-agent` only when the user has explicitly authorized subagents or parallel agent work.
 
 ## Inputs
@@ -44,8 +45,9 @@ Extract the IID first and use that single value consistently in filenames and re
 8. If subagents are explicitly authorized, use `multi-spawn-agent` and spawn one worker per independent comment or per small disjoint group of comments.
 9. Each worker must use `repository-technical-analysis` plus `private-service-technical-analysis`, read `work_plan_mr_<MR>.md`, own only its assigned comment scope, and write the assigned Markdown analysis file.
 10. If subagents are not authorized, analyze the comments sequentially with the same workflow and output files.
-11. After all workers finish, create a consolidated report file named `mr_<MR>_comment_report.md`.
-12. Show an on-screen report with 2-3 lines per analyzed comment plus the path to its Markdown file.
+11. After its technical analysis, each worker runs `private-service-contributor` sequentially to add proposed changes to its `analysis_mr_<MR>_comment_<NN>.md` file.
+12. After all workers finish, create a consolidated report file named `mr_<MR>_comment_report.md`.
+13. Show an on-screen report with 2-3 lines per analyzed comment plus the path to its Markdown file.
 
 ## Worker Requirements
 
@@ -57,6 +59,7 @@ Each comment analysis must:
 - record whether you have already replied and are waiting for feedback from the comment author
 - only cover unresolved comments assigned in `work_plan_mr_<MR>.md`
 - write one Markdown file per assigned comment
+- after the technical analysis section is complete, use `private-service-contributor` sequentially in the same worker to add a proposed changes section to the same file
 
 Use this per-comment file shape:
 
@@ -74,15 +77,16 @@ Each file should contain:
 6. affected files or modules
 7. technical analysis
 8. verdict
-9. recommended next action
-10. confidence and open questions
+9. proposed changes
+10. recommended next action
+11. confidence and open questions
 
 ## Parallel Worker Template
 
 When subagents are allowed, use a `work_plan_mr_<MR>.md`-driven split like this:
 
 ```text
-Use multi-spawn-agent, repository-technical-analysis, and private-service-technical-analysis.
+Use multi-spawn-agent, repository-technical-analysis, private-service-technical-analysis, and private-service-contributor.
 
 Read work_plan_mr_<MR>.md first.
 
@@ -91,6 +95,7 @@ Spawn N parallel worker agents with fork_context: true, where N is based on the 
 For each worker:
 - read work_plan_mr_<MR>.md
 - use repository-technical-analysis and private-service-technical-analysis
+- after the technical analysis is complete, use private-service-contributor sequentially in the same worker to update the same analysis file with proposed changes
 - own exactly the comments assigned in work_plan_mr_<MR>.md
 - create the assigned analysis_mr_<MR>_comment_<NN>.md files
 - do not modify other workers' analysis files
@@ -126,6 +131,7 @@ For the final on-screen report, list each comment with:
 - comment label
 - 2-3 line summary
 - verdict
+- short proposed changes summary
 - reply/waiting status when relevant
 - Markdown file path
 
