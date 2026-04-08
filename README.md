@@ -6,16 +6,17 @@ Custom Codex skills tracked in git.
 
 - `python-fastapi-contributor/`: reusable contributor workflow for Python and FastAPI repositories
 - `repository-technical-analysis/`: reusable investigation-first workflow for code repositories
+- `gitlab-mr-comment-analysis/`: reusable GitLab merge request comment-analysis workflow for any GitLab repository
 - `private-service-contributor/`: repo workflow skill for private-service
 - `private-service-technical-analysis/`: investigation and analysis skill for private-service
 - `private-service-parallel-tests/`: run private-service unit and integration tests with 10 workers
-- `private-service-mr-comment-analysis/`: fetch a private-service GitLab MR, analyze review comments, and write per-comment reports
+- `private-service-mr-comment-analysis/`: private-service overlay that uses `gitlab-mr-comment-analysis` plus repo-specific technical analysis and proposed changes
 - `multi-spawn-agent/`: reusable template for spawning parallel worker agents with disjoint ownership
 - `splunk-jira-ticket/`: fetch and summarize Splunk Jira or Atlassian tickets through the Jira REST API
   See `splunk-jira-ticket/README.md` for shell setup and the auto-bootstrapped `jira-api` helper command.
 - `git-hooks/post-commit`: copies committed skills into `~/.codex/skills`
 
-The private-service skills are overlays. Use them with the generic skills when working in that repository.
+The private-service skills are overlays. Use them with the matching generic skills when working in that repository.
 
 ## Install
 
