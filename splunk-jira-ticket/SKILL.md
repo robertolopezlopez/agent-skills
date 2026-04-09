@@ -13,6 +13,8 @@ When a Splunk Jira issue is not readable through normal browser access, use the 
 2. Accept an optional host + path parameter before the issue key. Default to `https://splunk.atlassian.net/rest/api/3/issue/`.
 3. Use `git config user.email` as the Atlassian username.
 4. Use `ATLASSIAN_API_TOKEN` from the environment as the password.
+   - If it is unset, the shared auth helper may fall back to `${ATLASSIAN_API_TOKEN_FILE:-$HOME/.config/.jira/.credentials}` and read the first line as the token.
+   - Prefer the environment variable when available.
 5. Resolve `scripts/jira-api` relative to this skill directory.
 6. Resolve `scripts/atlassian-auth.sh` relative to this skill directory.
 7. Ensure the shared Atlassian auth helper exists at `${XDG_DATA_HOME:-$HOME/.local/share}/jira/atlassian-auth.sh`.
@@ -87,5 +89,6 @@ Host + path override with explicit fields:
 - Resolve `scripts/jira-api` relative to this skill directory and invoke that resolved path directly instead of relying on `PATH` or copies in other directories.
 - Accept a host + path override before the issue key, but default to `https://splunk.atlassian.net/rest/api/3/issue/`.
 - Never access Jira with a direct assistant-issued `curl`; only run `jira-api`.
+- If `ATLASSIAN_API_TOKEN` is already set, do not probe `~/.config/.jira/.credentials` just to verify auth.
 - If auth works but the issue is still unavailable, report that the account likely lacks permission to view the ticket.
 - Do not expose the raw token in outputs.

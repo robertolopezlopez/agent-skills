@@ -94,6 +94,14 @@ Reload with:
 source ~/.zshrc
 ```
 
+If `ATLASSIAN_API_TOKEN` is not exported, the shared auth helper can fall back to:
+
+```text
+${ATLASSIAN_API_TOKEN_FILE:-$HOME/.config/.jira/.credentials}
+```
+
+It reads the first line as the token. The environment variable is still preferred.
+
 ### 2. Helper usage
 
 The bundled helper is `scripts/jira-api`.

@@ -20,6 +20,10 @@ atlassian_auth_fail() {
   exit 1
 }
 
+atlassian_token_file() {
+  printf '%s\n' "${ATLASSIAN_API_TOKEN_FILE:-$HOME/.config/.jira/.credentials}"
+}
+
 atlassian_git_email() {
   if ! email=$(git config user.email 2>/dev/null); then
     atlassian_auth_fail "git config user.email is not set"
@@ -35,9 +39,16 @@ atlassian_git_email() {
 
 atlassian_api_token() {
   token=${ATLASSIAN_API_TOKEN:-}
+  token_file=$(atlassian_token_file)
 
   if [ -z "$token" ]; then
-    atlassian_auth_fail "ATLASSIAN_API_TOKEN must be set"
+    if [ -r "$token_file" ]; then
+      token=$(head -n 1 "$token_file" | tr -d '\r')
+    fi
+  fi
+
+  if [ -z "$token" ]; then
+    atlassian_auth_fail "ATLASSIAN_API_TOKEN must be set or first line of $token_file must contain a token"
   fi
 
   ATLASSIAN_AUTH_TOKEN=$token
