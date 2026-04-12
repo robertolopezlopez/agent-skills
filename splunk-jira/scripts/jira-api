@@ -1,0 +1,15 @@
+#!/bin/sh
+set -eu
+
+script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+skill_dir=$(CDPATH= cd -- "$script_dir/../.." && pwd)
+generic_jira_api=$skill_dir/jira/scripts/jira-api
+
+if [ ! -x "$generic_jira_api" ]; then
+  echo "generic jira helper is missing or not executable: $generic_jira_api" >&2
+  exit 1
+fi
+
+export ATLASSIAN_API_BASE_URL=${ATLASSIAN_API_BASE_URL:-https://splunk.atlassian.net}
+
+exec "$generic_jira_api" "$@"

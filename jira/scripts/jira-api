@@ -35,12 +35,22 @@ normalize_issue_api_base() {
   esac
 }
 
-default_base=$(normalize_issue_api_base "${ATLASSIAN_API_BASE_URL:-https://splunk.atlassian.net/rest/api/3/issue/}")
+require_default_base() {
+  default_source=${ATLASSIAN_API_BASE_URL:-}
+
+  if [ -z "$default_source" ]; then
+    echo "ATLASSIAN_API_BASE_URL must be set when ISSUE_API_BASE is not provided" >&2
+    exit 2
+  fi
+
+  normalize_issue_api_base "$default_source"
+}
+
 fields_default=summary,status,issuetype,priority,assignee,reporter,created,updated,description,comment,labels
 
 case "$#" in
   1)
-    issue_api_base=$default_base
+    issue_api_base=$(require_default_base)
     issue_key=$1
     fields=$fields_default
     ;;
@@ -52,7 +62,7 @@ case "$#" in
         fields=$fields_default
         ;;
       *)
-        issue_api_base=$default_base
+        issue_api_base=$(require_default_base)
         issue_key=$1
         fields=$2
         ;;
