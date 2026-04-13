@@ -1,6 +1,6 @@
 ---
 name: splunk-jira
-description: Fetch, summarize, and create Splunk Jira tickets. Use when the user provides a `splunk.atlassian.net` issue URL or issue key, asks to summarize a Jira ticket, asks to create a Jira ticket, asks to override the Jira issue API host and path, or asks to debug Jira access using `ATLASSIAN_API_TOKEN`.
+description: Fetch, summarize, create, and update Splunk Jira tickets. Use when the user provides a `splunk.atlassian.net` issue URL or issue key, asks to summarize a Jira ticket, asks to create a Jira ticket, asks to change status, move a ticket into a sprint, assign or edit a ticket, comment on a ticket, asks to override the Jira issue API host and path, or asks to debug Jira access using `ATLASSIAN_API_TOKEN`.
 ---
 
 # Splunk Jira Ticket Access
@@ -42,25 +42,25 @@ The generic vendored Atlassian auth helper source lives in the `jira` skill at `
 Preferred helper shape after resolving the path relative to this skill directory:
 
 ```bash
-{RESOLVED_JIRA_API} {ISSUE_KEY}
+<resolved-path-to-scripts/jira-api> {ISSUE_KEY}
 ```
 
 Optional host + path override before the issue key:
 
 ```bash
-{RESOLVED_JIRA_API} https://splunk.atlassian.net/rest/api/3/issue/ {ISSUE_KEY}
+<resolved-path-to-scripts/jira-api> https://splunk.atlassian.net/rest/api/3/issue/ {ISSUE_KEY}
 ```
 
 Optional fields parameter:
 
 ```bash
-{RESOLVED_JIRA_API} {ISSUE_KEY} summary,status,priority,assignee
+<resolved-path-to-scripts/jira-api> {ISSUE_KEY} summary,status,priority,assignee
 ```
 
 Host + path override with explicit fields:
 
 ```bash
-{RESOLVED_JIRA_API} https://splunk.atlassian.net/rest/api/3/issue/ {ISSUE_KEY} summary,status,priority,assignee
+<resolved-path-to-scripts/jira-api> https://splunk.atlassian.net/rest/api/3/issue/ {ISSUE_KEY} summary,status,priority,assignee
 ```
 
 ## Create Workflow
@@ -117,6 +117,19 @@ Keep all Splunk-specific creation logic here.
 2. Use Splunk Jira field mappings and required custom fields.
 3. Create in project `DAT`.
 4. Use Splunk-specific component, mission team, epic, sprint, and story point heuristics.
+
+## Update Workflow
+
+Use this workflow together with the generic `jira` update workflow.
+
+Common Splunk Jira developer actions include:
+
+- move a backlog ticket into the current sprint
+- transition a ticket to In Progress or another workflow status
+- update story points, labels, assignee, epic, or summary
+- add implementation notes as a comment
+
+Keep Splunk-specific sprint and field conventions here, and follow the generic `jira` update mechanics for transitions, edits, comments, and sprint assignment calls.
 
 ## Notes
 

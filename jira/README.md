@@ -4,7 +4,7 @@ Setup and usage notes for the generic `jira` skill.
 
 ## Purpose
 
-This skill lets Codex fetch, summarize, and create Jira or Atlassian tickets through the Jira REST API when browser access redirects to login or when API access is more reliable.
+This skill lets Codex fetch, summarize, create, and update Jira or Atlassian tickets through the Jira REST API when browser access redirects to login or when API access is more reliable.
 
 Use this skill for generic Jira/Atlassian access.
 If the target is Splunk Jira specifically, use `splunk-jira` as the Splunk-flavored overlay on top of this skill.
@@ -14,6 +14,7 @@ If the target is Splunk Jira specifically, use `splunk-jira` as the Splunk-flavo
 - `SKILL.md`: Codex skill definition and workflow
 - `README.md`: local setup and helper usage
 - `scripts/jira-api`: canonical helper implementation used by the skill
+- `scripts/jira-request`: canonical generic request helper for create/update actions
 - `scripts/atlassian-auth.sh`: vendored Atlassian auth helper source used to bootstrap the shared installed copy
 
 ## Recommended Setup
@@ -38,7 +39,7 @@ ${ATLASSIAN_API_TOKEN_FILE:-$HOME/.config/.jira/.credentials}
 
 It reads the first line as the token. The environment variable is still preferred.
 
-The skill uses the bundled `scripts/jira-api` helper directly.
+The skill uses the bundled `scripts/jira-api` and `scripts/jira-request` helpers directly.
 Before running the Jira helper, the skill refreshes shared Atlassian auth logic under:
 
 ```text
@@ -69,6 +70,9 @@ into an issue API base ending in `/rest/api/3/issue/`.
 Examples:
 
 ```bash
+# Example resolved path:
+# ~/.codex/skills/jira/scripts/jira-api
+
 # Use ATLASSIAN_API_BASE_URL from the environment
 scripts/jira-api PROJ-123
 
@@ -80,6 +84,30 @@ scripts/jira-api https://example.atlassian.net/rest/api/3/issue/ PROJ-123
 
 # Override the base and request selected fields
 scripts/jira-api https://example.atlassian.net/rest/api/3/issue/ PROJ-123 summary,status,priority,assignee
+```
+
+The generic request helper accepts either:
+
+- `jira-request METHOD PATH [JSON_BODY_FILE]`, using `ATLASSIAN_API_BASE_URL`, or
+- `jira-request SITE_BASE METHOD PATH [JSON_BODY_FILE]`, overriding the base for one call
+
+Examples:
+
+```bash
+# Example resolved path:
+# ~/.codex/skills/jira/scripts/jira-request
+
+# Create or update using ATLASSIAN_API_BASE_URL
+scripts/jira-request POST /rest/api/3/issue /tmp/create-issue.json
+
+# Change issue status
+scripts/jira-request POST /rest/api/3/issue/PROJ-123/transitions /tmp/transition.json
+
+# Move a ticket into a sprint
+scripts/jira-request POST /rest/agile/1.0/sprint/456/issue /tmp/sprint-issues.json
+
+# Add a comment using an explicit site override
+scripts/jira-request https://example.atlassian.net POST /rest/api/3/issue/PROJ-123/comment /tmp/comment.json
 ```
 
 ## Codex usage examples
@@ -104,7 +132,7 @@ Debug Jira access for PROJ-123 using ATLASSIAN_API_TOKEN
 
 ## Generic create workflow
 
-Use `jira` for the generic parts of ticket creation:
+Use `jira` for the generic parts of ticket creation and update:
 
 - auth
 - base URL handling
@@ -112,6 +140,9 @@ Use `jira` for the generic parts of ticket creation:
 - generic REST creation pattern
 - optional sprint assignment
 - optional post-create transition
+- generic issue edits
+- generic comments
+- generic transition and sprint move mechanics
 
 Overlays such as `splunk-jira` should add:
 
@@ -136,6 +167,24 @@ POST {ATLASSIAN_SITE_URL}/rest/agile/1.0/sprint/{sprintId}/issue
 Body: {"issues": ["PROJ-123"]}
 ```
 
+Generic transition:
+
+```text
+POST {ATLASSIAN_SITE_URL}/rest/api/3/issue/{ISSUE_KEY}/transitions
+```
+
+Generic issue edit:
+
+```text
+PUT {ATLASSIAN_SITE_URL}/rest/api/3/issue/{ISSUE_KEY}
+```
+
+Generic comment:
+
+```text
+POST {ATLASSIAN_SITE_URL}/rest/api/3/issue/{ISSUE_KEY}/comment
+```
+
 ### Codex create examples
 
 ```text
@@ -144,6 +193,18 @@ Create a Jira ticket for adding retries to a flaky API integration, infer sensib
 
 ```text
 Use jira to create a ticket in this Atlassian site and keep the description in ADF format
+```
+
+```text
+Use jira to move PROJ-123 from backlog into the current sprint
+```
+
+```text
+Use jira to change PROJ-123 to In Progress after showing me the available transitions
+```
+
+```text
+Use jira to add a comment to PROJ-123 summarizing the implementation plan
 ```
 
 ## Notes

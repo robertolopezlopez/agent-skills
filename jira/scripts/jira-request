@@ -1,0 +1,89 @@
+#!/bin/sh
+set -eu
+
+if [ "$#" -lt 2 ] || [ "$#" -gt 4 ]; then
+  echo "usage: jira-request [SITE_BASE] METHOD PATH [JSON_BODY_FILE]" >&2
+  exit 2
+fi
+
+atlassian_auth_home=${XDG_DATA_HOME:-$HOME/.local/share}/jira
+atlassian_auth_helper=$atlassian_auth_home/atlassian-auth.sh
+
+if [ ! -r "$atlassian_auth_helper" ]; then
+  echo "shared Atlassian auth helper is missing: $atlassian_auth_helper" >&2
+  echo "refresh it from the skill copy before invoking jira-request" >&2
+  exit 1
+fi
+
+# shellcheck source=/dev/null
+. "$atlassian_auth_helper"
+
+normalize_site_base() {
+  case "$1" in
+    */rest/api/3/issue)
+      printf '%s\n' "${1%/rest/api/3/issue}"
+      ;;
+    */rest/api/3/issue/)
+      printf '%s\n' "${1%/rest/api/3/issue/}"
+      ;;
+    http://*|https://*)
+      printf '%s\n' "${1%/}"
+      ;;
+    *)
+      printf '%s\n' "$1"
+      ;;
+  esac
+}
+
+require_site_base() {
+  base_source=${ATLASSIAN_API_BASE_URL:-}
+
+  if [ -z "$base_source" ]; then
+    echo "ATLASSIAN_API_BASE_URL must be set when SITE_BASE is not provided" >&2
+    exit 2
+  fi
+
+  normalize_site_base "$base_source"
+}
+
+case "$1" in
+  http://*|https://*)
+    site_base=$(normalize_site_base "$1")
+    method=$2
+    path=$3
+    body_file=${4:-}
+    ;;
+  *)
+    site_base=$(require_site_base)
+    method=$1
+    path=$2
+    body_file=${3:-}
+    ;;
+esac
+
+case "$path" in
+  /*)
+    request_url=$site_base$path
+    ;;
+  *)
+    request_url=$site_base/$path
+    ;;
+esac
+
+atlassian_require_auth
+
+if [ -n "$body_file" ]; then
+  exec curl -sS \
+    -X "$method" \
+    -u "$ATLASSIAN_AUTH_USERPASS" \
+    -H 'Accept: application/json' \
+    -H 'Content-Type: application/json' \
+    --data @"$body_file" \
+    "$request_url"
+fi
+
+exec curl -sS \
+  -X "$method" \
+  -u "$ATLASSIAN_AUTH_USERPASS" \
+  -H 'Accept: application/json' \
+  "$request_url"
