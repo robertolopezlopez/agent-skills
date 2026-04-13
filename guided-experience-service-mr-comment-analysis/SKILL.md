@@ -10,7 +10,8 @@ Use this skill from the `private-service` repository root when the user wants an
 ## First Read
 
 - Read `AGENTS.md` before running commands.
-- Read `gitlab-mr-comment-analysis` first for the GitLab-specific MR fetching, discussion grouping, status tracking, stale-file cleanup, and final-report workflow.
+- Read `gitlab` first for the generic GitLab MR fetch, IID extraction, discussion inspection, direct link handling, and resolved-vs-unresolved thread handling.
+- Read `gitlab-mr-comment-analysis` next for grouped unresolved-comment analysis, status tracking, stale-file cleanup, and final-report workflow.
 - Use `repository-technical-analysis` together with `private-service-technical-analysis` for the actual technical analysis.
 - After each technical analysis is complete, use `private-service-contributor` to add concrete proposed changes to the grouped-issue analysis file.
 - Use `multi-spawn-agent` only when the user has explicitly authorized subagents or parallel agent work.
@@ -27,19 +28,24 @@ Extract the IID first and use that single value consistently in filenames and re
 ## Workflow
 
 1. Start in the `private-service` repository root.
-2. Use `gitlab-mr-comment-analysis` to:
+2. Use `gitlab` to:
    - read the MR overview and comment threads with `glab`
    - inspect structured discussion data with `glab api` when needed
+   - extract and reuse the MR IID consistently
+   - preserve MR links and direct comment links
+   - distinguish resolved vs unresolved threads and actionable vs non-actionable comments
+3. Use `gitlab-mr-comment-analysis` to:
+   - read the MR overview and comment threads with `glab`
    - group actionable unresolved comments into `work_plan_mr_<MR>.md`
    - track comment links, statuses, analysis file links, and plan history
    - ignore resolved comments and non-actionable chatter
    - remove stale prior-run `analysis_mr_<MR>_*.md` and `mr_<MR>_comment_report.md` files
    - produce the final consolidated report scaffold
-3. For each grouped issue in `work_plan_mr_<MR>.md`, use `repository-technical-analysis` plus `private-service-technical-analysis` to inspect the relevant local code, tests, and nearby modules before concluding.
-4. After the technical analysis is complete for a grouped issue, run `private-service-contributor` to add concrete proposed changes to the same analysis file.
-5. If subagents are explicitly authorized, use `multi-spawn-agent` and spawn one worker per independent grouped issue or per small disjoint set of grouped issues.
-6. If subagents are not authorized, analyze the grouped issues sequentially with the same file layout.
-7. Finish with the GitLab skill's final report flow and show an on-screen report with 2-3 lines per analyzed grouped issue plus the path to its Markdown file.
+4. For each grouped issue in `work_plan_mr_<MR>.md`, use `repository-technical-analysis` plus `private-service-technical-analysis` to inspect the relevant local code, tests, and nearby modules before concluding.
+5. After the technical analysis is complete for a grouped issue, run `private-service-contributor` to add concrete proposed changes to the same analysis file.
+6. If subagents are explicitly authorized, use `multi-spawn-agent` and spawn one worker per independent grouped issue or per small disjoint set of grouped issues.
+7. If subagents are not authorized, analyze the grouped issues sequentially with the same file layout.
+8. Finish with the `gitlab-mr-comment-analysis` final report flow and show an on-screen report with 2-3 lines per analyzed grouped issue plus the path to its Markdown file.
 
 ## Worker Requirements
 
