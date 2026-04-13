@@ -6,11 +6,12 @@ description: "Analyze GitLab merge requests comment-by-comment. Use when given a
 # GitLab MR Comment Analysis
 
 Use this skill from a GitLab repository root when the user wants an MR analyzed comment-by-comment.
+Use this skill as a workflow-specific overlay for `gitlab`.
 
 ## First Read
 
 - Read the repository `AGENTS.md` before running commands.
-- Use `glab` to fetch the merge request and its comment threads.
+- Use the generic `gitlab` skill for MR fetch, discussion inspection, IID extraction, direct link handling, and resolved-vs-unresolved thread handling.
 - Use `multi-spawn-agent` only when the user has explicitly authorized subagents or parallel agent work.
 - Pair this skill with a repository-specific analysis skill when the user wants code-aware technical conclusions or proposed fixes.
 
@@ -26,9 +27,8 @@ Extract the IID first and use that single value consistently in filenames and re
 ## Workflow
 
 1. Start in the target repository root.
-2. Read the MR overview and comments with `glab mr view <MR> --comments`.
-3. If needed, use `glab api` to inspect structured discussion data for the same MR.
-4. Build `work_plan_mr_<MR>.md` with one section per actionable unresolved review issue. Group similar comments together when they refer to the same underlying issue. For each grouped issue, record:
+2. Follow the generic `gitlab` skill workflow to fetch the MR overview, inspect comments, and inspect structured discussions when needed.
+3. Build `work_plan_mr_<MR>.md` with one section per actionable unresolved review issue. Group similar comments together when they refer to the same underlying issue. For each grouped issue, record:
    - a stable issue label such as `issue_01`
    - one or more comment labels such as `comment_01`, `comment_02`
    - author
@@ -40,15 +40,15 @@ Extract the IID first and use that single value consistently in filenames and re
    - direct MR comment link for each included comment when available
    - analysis file link such as `analysis_mr_<MR>_issue_01.md`
    - a history section that keeps prior plan states instead of replacing them with only the latest snapshot
-5. Do not analyze resolved comments.
-6. Ignore pure system notes or clearly non-actionable chatter unless the user asks for them.
-7. When an unresolved thread already contains your reply after the author's comment and there is no follow-up from the author yet, mark it as `answered_waiting_for_author_feedback`.
-8. If follow-on analysis will run in parallel and subagents are explicitly authorized, split grouped issues into independent worker scopes using `work_plan_mr_<MR>.md` as the source of truth.
-9. Remove stale files from previous runs for the same MR before the final report:
+4. Do not analyze resolved comments.
+5. Ignore pure system notes or clearly non-actionable chatter unless the user asks for them.
+6. When an unresolved thread already contains your reply after the author's comment and there is no follow-up from the author yet, mark it as `answered_waiting_for_author_feedback`.
+7. If follow-on analysis will run in parallel and subagents are explicitly authorized, split grouped issues into independent worker scopes using `work_plan_mr_<MR>.md` as the source of truth.
+8. Remove stale files from previous runs for the same MR before the final report:
    - remove `mr_<MR>_comment_report.md`
    - remove any `analysis_mr_<MR>_*.md` files that are not linked from the current `work_plan_mr_<MR>.md`
-10. Create a consolidated report file named `mr_<MR>_comment_report.md`.
-11. Show an on-screen report with 2-3 lines per analyzed grouped issue plus the path to its Markdown file.
+9. Create a consolidated report file named `mr_<MR>_comment_report.md`.
+10. Show an on-screen report with 2-3 lines per analyzed grouped issue plus the path to its Markdown file.
 
 ## Worker Requirements
 

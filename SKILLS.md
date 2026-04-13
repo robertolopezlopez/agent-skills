@@ -4,6 +4,7 @@ Skills defined in this repository:
 
 - `python-fastapi-contributor`: reusable contributor workflow for Python and FastAPI repositories
 - `repository-technical-analysis`: reusable investigation-first workflow for code repositories
+- `gitlab`: reusable GitLab merge request fetch and discussion-inspection workflow
 - `gitlab-mr-comment-analysis`: reusable GitLab merge-request comment-analysis workflow
 - `jira`: reusable Jira and Atlassian issue access, creation, and update workflow
 - `splunk-jira`: Splunk-specific overlay on top of `jira` for reading, creating, and updating Splunk Jira tickets
@@ -17,6 +18,7 @@ Skill locations:
 
 - `python-fastapi-contributor/SKILL.md`
 - `repository-technical-analysis/SKILL.md`
+- `gitlab/SKILL.md`
 - `gitlab-mr-comment-analysis/SKILL.md`
 - `jira/SKILL.md`
 - `splunk-jira/SKILL.md`
@@ -29,6 +31,7 @@ Skill locations:
 Usage notes:
 
 - The `private-service-*` skills are overlays intended to be used with the corresponding generic workflow skill.
+- `gitlab-mr-comment-analysis` is an overlay intended to be used with `gitlab`.
 - `splunk-jira` is an overlay intended to be used with `jira`.
 - `private-service-mr-comment-analysis` specifically layers private-service analysis on top of `gitlab-mr-comment-analysis`.
 - Codex discovers installed skills from `~/.codex/skills`, not directly from this repository.

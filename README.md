@@ -6,6 +6,7 @@ Custom Codex skills tracked in git.
 
 - `python-fastapi-contributor/`: reusable contributor workflow for Python and FastAPI repositories
 - `repository-technical-analysis/`: reusable investigation-first workflow for code repositories
+- `gitlab/`: generic GitLab merge request fetch and discussion-inspection workflow
 - `gitlab-mr-comment-analysis/`: reusable GitLab merge request comment-analysis workflow for any GitLab repository
 - `jira/`: generic Jira and Atlassian issue access and update workflow through the Jira REST API
   See `jira/README.md` for setup, auth expectations, and `jira-api` usage.
@@ -20,6 +21,7 @@ Custom Codex skills tracked in git.
 
 The private-service skills are overlays. Use them with the matching generic skills when working in that repository.
 Likewise, `splunk-jira` is an overlay on `jira`: use `jira` for generic Atlassian/Jira access and `splunk-jira` when Splunk defaults should apply.
+Likewise, `gitlab-mr-comment-analysis` is an overlay on `gitlab`: use `gitlab` for generic MR fetch/discussion inspection and `gitlab-mr-comment-analysis` for grouped unresolved-comment analysis and reporting.
 
 ## Install
 
