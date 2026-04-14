@@ -11,9 +11,11 @@ When a Jira issue is not readable through normal browser access, use the Jira RE
 
 1. Extract the issue key from the URL or user request.
 2. Accept an optional host + path parameter before the issue key.
-3. If no host + path override is provided, use `ATLASSIAN_API_BASE_URL`.
-   - It may be a site URL like `https://example.atlassian.net`.
-   - It may already be an issue API base like `https://example.atlassian.net/rest/api/3/issue/`.
+3. If no host + path override is provided, resolve defaults in this order: exported environment variable, `~/.codex/jira.env`, then any built-in helper fallback.
+   - Prefer `ATLASSIAN_API_BASE_URL` from the exported environment when present.
+   - Otherwise, if `~/.codex/jira.env` exists, read it for default non-secret Jira settings before invoking the helper.
+   - `ATLASSIAN_API_BASE_URL` in `~/.codex/jira.env` may be a site URL like `https://example.atlassian.net`.
+   - `ATLASSIAN_API_BASE_URL` in `~/.codex/jira.env` may already be an issue API base like `https://example.atlassian.net/rest/api/3/issue/`.
 4. Use `git config user.email` as the Atlassian username.
 5. Use `ATLASSIAN_API_TOKEN` from the environment as the password.
    - If it is unset, the shared auth helper may fall back to `${ATLASSIAN_API_TOKEN_FILE:-$HOME/.config/.jira/.credentials}` and read the first line as the token.
@@ -58,7 +60,25 @@ The installed shared Atlassian auth helper should live at `${XDG_DATA_HOME:-$HOM
 
 Use the resolved helper path in place for normal skill execution.
 Refresh the installed shared auth helper from the vendored skill copy before invoking `jira-api`.
+Use `~/.codex/jira.env` for non-secret defaults such as `ATLASSIAN_API_BASE_URL`; keep tokens out of that file unless the local environment explicitly requires it.
 Do not duplicate Atlassian auth logic inline in this file or in `scripts/jira-api` or `scripts/jira-request`; keep shared auth behavior in `scripts/atlassian-auth.sh` and the installed shared copy.
+
+## Local Defaults File
+
+If `~/.codex/jira.env` exists, read it before invoking the Jira helpers to supply default non-secret settings.
+
+Preferred usage:
+
+```bash
+ATLASSIAN_API_BASE_URL=https://splunk.atlassian.net
+```
+
+Rules:
+
+- treat explicit helper arguments as highest priority
+- treat exported environment variables as higher priority than `~/.codex/jira.env`
+- use `~/.codex/jira.env` for defaults, not for required per-request overrides
+- prefer keeping `ATLASSIAN_API_TOKEN` in the environment or existing credentials flow instead of storing it in `~/.codex/jira.env`
 
 ## Command Pattern
 
@@ -116,7 +136,8 @@ Reuse the same generic Jira auth and base URL conventions:
 - use `git config user.email` as the Atlassian username
 - use `ATLASSIAN_API_TOKEN` from the environment as the password
 - if it is unset, the shared auth helper may fall back to `${ATLASSIAN_API_TOKEN_FILE:-$HOME/.config/.jira/.credentials}` and read the first line as the token
-- use `ATLASSIAN_API_BASE_URL` as the Jira site or API base unless an explicit override is provided
+- read `~/.codex/jira.env` for default non-secret Jira settings when present
+- use `ATLASSIAN_API_BASE_URL` from the exported environment first, then from `~/.codex/jira.env`, unless an explicit override is provided
 
 ### Generic creation flow
 
@@ -206,7 +227,8 @@ Keep those details out of the generic `jira` skill.
 - Prefer the bundled helper over raw `curl`.
 - Resolve `scripts/jira-api` and `scripts/jira-request` relative to this skill directory and invoke those resolved paths directly instead of relying on `PATH` or copies in other directories.
 - Accept a host + path override before the issue key.
-- When no override is provided, require `ATLASSIAN_API_BASE_URL` to identify the Jira site.
+- When no override is provided, prefer exported `ATLASSIAN_API_BASE_URL`, then `~/.codex/jira.env`, to identify the Jira site.
+- Use `~/.codex/jira.env` for defaults like `ATLASSIAN_API_BASE_URL=https://splunk.atlassian.net`.
 - Never access Jira with a direct assistant-issued `curl`; only run `jira-api` or `jira-request`.
 - If `ATLASSIAN_API_TOKEN` is already set, do not probe `~/.config/.jira/.credentials` just to verify auth.
 - If auth works but the issue is still unavailable, report that the account likely lacks permission to view the ticket.
