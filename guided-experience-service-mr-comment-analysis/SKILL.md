@@ -1,63 +1,55 @@
 ---
 name: private-service-mr-comment-analysis
-description: "Analyze private-service merge request comments by combining gitlab-mr-comment-analysis with private-service-specific technical analysis. Use when given an MR IID or URL and asked to analyze unresolved review comments in private-service, using repository-technical-analysis with private-service-technical-analysis for each grouped issue and private-service-contributor to add proposed changes."
+description: "Analyze private-service merge request comments by consuming grouped MR issues and adding private-service-specific technical analysis. Use when given an MR IID or URL and asked to analyze unresolved review comments in private-service, using repository-technical-analysis with private-service-technical-analysis for each grouped issue and private-service-contributor to add proposed changes."
 ---
 
 # Guided Experience Service MR Comment Analysis
 
 Use this skill from the `private-service` repository root when the user wants an MR analyzed comment-by-comment.
+This skill consumes upstream GitLab MR context and grouped issue artifacts, then enriches them with private-service-specific technical analysis, verdicts, and proposed changes.
 
 ## First Read
 
 - Read `AGENTS.md` before running commands.
-- Read `git` first when repository identity must be resolved from local checkout context.
-- Read `gitlab` first for generic GitLab MR URL parsing, IID extraction, project-reference resolution, discussion inspection, direct link handling, and resolved-vs-unresolved thread handling.
-- Read `gitlab-mr-comment-analysis` next for grouped unresolved-comment analysis, status tracking, stale-file cleanup, and final-report workflow.
+- Read `gitlab` first to resolve normalized MR context, including MR identity, links, discussions, and thread status.
+- Read `gitlab-mr-comment-analysis` next to convert that MR context into grouped actionable unresolved issues and reporting scaffolds.
 - Use `repository-technical-analysis` together with `private-service-technical-analysis` for the actual technical analysis.
 - After each technical analysis is complete, use `private-service-contributor` to add concrete proposed changes to the grouped-issue analysis file.
 - Use `multi-spawn-agent` only when the user has explicitly authorized subagents or parallel agent work.
 
 ## Inputs
 
-Accept either:
+Accept, in order of preference:
 
-- MR context already resolved through `gitlab`
-- or a raw MR IID like `123`
-- or an MR URL that contains the IID
+- grouped issue context already prepared by `gitlab-mr-comment-analysis`
+- MR context already resolved by `gitlab`
+- or a raw MR IID / MR URL, which must first be resolved through `gitlab` and then grouped through `gitlab-mr-comment-analysis`
 
-Prefer reusing MR context that is already available from `gitlab`.
-If only a raw MR IID or MR URL is available, perform the `gitlab` resolution flow first and then continue with this skill.
+Prefer consuming existing upstream artifacts instead of repeating GitLab fetch or grouping work locally.
 
 ## Workflow
 
 1. Start in the `private-service` repository root.
-2. Check whether MR context is already available from `gitlab`, including:
-   - MR IID
-   - MR link
+2. Check whether grouped issues are already available from `gitlab-mr-comment-analysis`.
+3. If grouped issues are not available, check whether normalized MR context is already available from `gitlab`.
+4. If only raw MR input is available, run the upstream `gitlab` → `gitlab-mr-comment-analysis` flow first.
+5. Reuse upstream artifacts without recomputing them locally, including:
+   - `mr_iid`
+   - `mr_link`
    - project reference
-   - direct comment links when already available
-3. If MR context is missing or incomplete, use `gitlab` to resolve it first.
-4. Use `git` when needed through the `gitlab` flow to resolve repository identity from the local checkout.
-5. Use `gitlab` to:
-   - parse an MR URL when the input is a link
-   - resolve and reuse the MR IID consistently
-   - resolve the GitLab project reference through the `git` + `gitlab` flow
-   - fetch the MR overview, comments, and discussions
-   - preserve MR links and direct comment links
-   - distinguish resolved vs unresolved threads and actionable vs non-actionable comments
-   - decide whether to use `project_id` or `encoded_project_path`
-6. Use `gitlab-mr-comment-analysis` to:
-   - consume the MR overview and comments already resolved through `gitlab`
-   - group actionable unresolved comments into `work_plan_mr_<MR>.md`
-   - track comment links, statuses, analysis file links, and plan history
-   - ignore resolved comments and non-actionable chatter
-   - remove stale prior-run `analysis_mr_<MR>_*.md` and `mr_<MR>_comment_report.md` files
-   - produce the final consolidated report scaffold
-7. For each grouped issue in `work_plan_mr_<MR>.md`, use `repository-technical-analysis` plus `private-service-technical-analysis` to inspect the relevant local code, tests, and nearby modules before concluding.
-8. After the technical analysis is complete for a grouped issue, run `private-service-contributor` to add concrete proposed changes to the same analysis file.
-9. If subagents are explicitly authorized, use `multi-spawn-agent` and spawn one worker per independent grouped issue or per small disjoint set of grouped issues.
-10. If subagents are not authorized, analyze the grouped issues sequentially with the same file layout.
-11. Finish with the `gitlab-mr-comment-analysis` final report flow and show an on-screen report with 2-3 lines per analyzed grouped issue plus the path to its Markdown file.
+   - direct comment links
+   - actionable unresolved thread classification
+   - reply status such as `answered_waiting_for_author_feedback`
+   - stable grouped issue labels
+   - grouped comment membership
+   - analysis file paths
+   - plan history and status tracking
+6. For each grouped issue in `work_plan_mr_<MR>.md`, use `repository-technical-analysis` plus `private-service-technical-analysis` to inspect the relevant local code, tests, and nearby modules before concluding.
+7. After the technical analysis is complete for a grouped issue, run `private-service-contributor` to add concrete proposed changes to the same analysis file.
+8. If subagents are explicitly authorized, use `multi-spawn-agent` and spawn one worker per independent grouped issue or per small disjoint set of grouped issues.
+9. If subagents are not authorized, analyze the grouped issues sequentially with the same file layout.
+10. Enrich the upstream reporting artifacts with private-service-specific verdicts, repo-specific risks, prerequisites, blockers, and recommended next actions.
+11. Finish with a concise on-screen report with 2-3 lines per analyzed grouped issue plus the path to its Markdown file.
 
 ## Worker Requirements
 
@@ -67,7 +59,7 @@ Each grouped-issue analysis must:
 - inspect the relevant local code, tests, and nearby modules before concluding
 - note missing prerequisites, environment gaps, or follow-up checks when they materially affect the conclusion
 - record whether you have already replied and are waiting for feedback from the comment author
-- only cover unresolved comments assigned in `work_plan_mr_<MR>.md`
+- only cover grouped issues assigned in `work_plan_mr_<MR>.md`
 - write one Markdown file per assigned grouped issue
 - after the technical analysis section is complete, use `private-service-contributor` sequentially in the same worker to add a proposed changes section to the same file
 
@@ -106,33 +98,37 @@ For each worker:
 - read work_plan_mr_<MR>.md
 - use repository-technical-analysis and private-service-technical-analysis
 - after the technical analysis is complete, use private-service-contributor sequentially in the same worker to update the same analysis file with proposed changes
-- own exactly the comments assigned in work_plan_mr_<MR>.md
+- own exactly the grouped issues assigned in `work_plan_mr_<MR>.md`
 - create the assigned analysis_mr_<MR>_issue_<NN>.md files
 - do not modify other workers' analysis files
 - return: summary, files changed, and validation run
 
 After all workers finish:
-- use the GitLab skill's stale-file cleanup flow
-- create or refresh `mr_<MR>_comment_report.md`
-- show a screen summary with 2-3 lines per comment and the corresponding Markdown path
+- refresh the final report using the upstream `gitlab-mr-comment-analysis` reporting scaffold
+- show a screen summary with 2-3 lines per grouped issue and the corresponding Markdown path
 ```
 
 ## Boundaries
 
-- Do not run raw Git commands here for repository identity; consume the `git` skill.
-- Do not run `glab` or `glab api` here; consume the `gitlab` skill.
-- Reuse the MR IID, project reference, MR links, and direct comment links resolved by `gitlab`.
-- Do not ask the user for an MR IID or URL until after attempting the `gitlab` resolution flow.
+- Do not run raw Git commands here for repository identity; consume the `git` skill through the upstream `gitlab` flow when needed.
+- Do not parse MR URLs directly here; consume normalized MR context from `gitlab`.
+- Do not run `glab` or `glab api` here; GitLab transport belongs to `gitlab`.
+- Do not resolve GitLab project identity here; reuse the project reference supplied upstream.
+- Do not regroup raw comments here when grouped issues already exist from `gitlab-mr-comment-analysis`.
+- Do not redefine stale-file cleanup or consolidated report scaffolding here; reuse the upstream `gitlab-mr-comment-analysis` workflow.
+- Reuse upstream MR identity, project reference, MR links, direct comment links, thread classification, reply/waiting status, grouped issue labels, and analysis file paths.
+- Do not ask the user for an MR IID or URL until after attempting the upstream `gitlab` resolution flow.
 - If MR context is still missing after that flow, then ask for the missing MR IID or URL.
 
 ## Reporting
 
-Follow the reporting structure from `gitlab-mr-comment-analysis`, but make sure each per-issue analysis adds:
+Follow and enrich the reporting structure produced by `gitlab-mr-comment-analysis`.
+Make sure each per-issue analysis adds:
 
 - a private-service-specific technical analysis
 - a verdict grounded in local code and test inspection
 - a proposed changes section produced with `private-service-contributor`
-- any repo-specific prerequisites, environment gaps, or follow-up checks that materially affect the conclusion
+- any repo-specific prerequisites, environment gaps, blockers, or follow-up checks that materially affect the conclusion
 
 ## Useful Repo Anchors
 

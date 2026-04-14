@@ -1,6 +1,6 @@
 ---
 name: gitlab-mr-comment-analysis
-description: "Analyze GitLab merge requests comment-by-comment. Use when given an MR IID or URL and asked to fetch comments with glab, skip resolved threads, group related unresolved comments into work_plan_mr_<MR>.md, preserve full plan history, track MR/comment/analysis links plus proposed solution and reply-waiting status, optionally split grouped issues across subagents when explicitly authorized, clean stale prior-run analysis/report files, and produce a short final report."
+description: "Analyze GitLab merge requests comment-by-comment. Consume MR context from `gitlab`, skip resolved threads, group related actionable unresolved comments into `work_plan_mr_<MR>.md`, preserve full plan history, track MR/comment/analysis links plus proposed solution and reply-waiting status, optionally split grouped issues across subagents when explicitly authorized, clean stale prior-run analysis/report files, and produce a short final report."
 ---
 
 # GitLab MR Comment Analysis
@@ -11,24 +11,35 @@ Use this skill as a workflow-specific overlay for `gitlab`.
 ## First Read
 
 - Read the repository `AGENTS.md` before running commands.
-- Use the generic `gitlab` skill for MR fetch, discussion inspection, IID extraction, direct link handling, and resolved-vs-unresolved thread handling.
+- Consume normalized MR context from `gitlab`.
+- Do not duplicate MR parsing, project identity resolution, or GitLab transport logic here.
 - Use `multi-spawn-agent` only when the user has explicitly authorized subagents or parallel agent work.
 - Pair this skill with a repository-specific analysis skill when the user wants code-aware technical conclusions or proposed fixes.
 
 ## Inputs
 
-Require a merge request parameter:
+Accept, in order of preference:
 
-- MR IID like `123`
+- normalized MR context already resolved by `gitlab`
+- or a raw MR IID like `123`
 - or an MR URL that contains the IID
 
-Extract the IID first and use that single value consistently in filenames and reporting.
+If the input is only a raw MR IID or MR URL, resolve it through `gitlab` first and then continue with this skill.
+Extract and reuse the canonical `mr_iid` consistently in filenames and reporting.
 
 ## Workflow
 
 1. Start in the target repository root.
-2. Follow the generic `gitlab` skill workflow to fetch the MR overview, inspect comments, and inspect structured discussions when needed.
-3. Build `work_plan_mr_<MR>.md` with one section per actionable unresolved review issue. Group similar comments together when they refer to the same underlying issue. For each grouped issue, record:
+2. Consume MR context resolved by `gitlab`, including:
+   - `mr_iid`
+   - `mr_link`
+   - project reference
+   - normalized threads and comments
+   - direct comment links when available
+   - thread status such as actionable unresolved thread, resolved thread, and `answered_waiting_for_author_feedback`
+3. Filter the normalized thread set to actionable unresolved review issues.
+4. Group related comments together when they refer to the same underlying issue.
+5. Build `work_plan_mr_<MR>.md` with one section per grouped issue. For each grouped issue, record:
    - a stable issue label such as `issue_01`
    - one or more comment labels such as `comment_01`, `comment_02`
    - author
@@ -40,21 +51,20 @@ Extract the IID first and use that single value consistently in filenames and re
    - direct MR comment link for each included comment when available
    - analysis file link such as `analysis_mr_<MR>_issue_01.md`
    - a history section that keeps prior plan states instead of replacing them with only the latest snapshot
-4. Do not analyze resolved comments.
-5. Ignore pure system notes or clearly non-actionable chatter unless the user asks for them.
-6. When an unresolved thread already contains your reply after the author's comment and there is no follow-up from the author yet, mark it as `answered_waiting_for_author_feedback`.
-7. If follow-on analysis will run in parallel and subagents are explicitly authorized, split grouped issues into independent worker scopes using `work_plan_mr_<MR>.md` as the source of truth.
-8. Remove stale files from previous runs for the same MR before the final report:
+6. Do not analyze resolved comments.
+7. Ignore pure system notes or clearly non-actionable chatter unless the user asks for them.
+8. If follow-on analysis will run in parallel and subagents are explicitly authorized, split grouped issues into independent worker scopes using `work_plan_mr_<MR>.md` as the source of truth.
+9. Remove stale files from previous runs for the same MR before the final report:
    - remove `mr_<MR>_comment_report.md`
    - remove any `analysis_mr_<MR>_*.md` files that are not linked from the current `work_plan_mr_<MR>.md`
-9. Create a consolidated report file named `mr_<MR>_comment_report.md`.
-10. Show an on-screen report with 2-3 lines per analyzed grouped issue plus the path to its Markdown file.
+10. Create a consolidated report file named `mr_<MR>_comment_report.md`.
+11. Show an on-screen report with 2-3 lines per analyzed grouped issue plus the path to its Markdown file.
 
 ## Worker Requirements
 
 Each grouped-issue analysis must:
 
-- only cover unresolved comments assigned in `work_plan_mr_<MR>.md`
+- only cover actionable unresolved comments assigned in `work_plan_mr_<MR>.md`
 - record whether you have already replied and are waiting for feedback from the comment author
 - write one Markdown file per assigned grouped issue
 - leave repository-specific technical analysis and proposed code changes to the companion skill for that repository
@@ -92,7 +102,7 @@ Spawn N parallel worker agents with fork_context: true, where N is based on the 
 
 For each worker:
 - read work_plan_mr_<MR>.md
-- own exactly the comments assigned in work_plan_mr_<MR>.md
+- own exactly the grouped issues assigned in `work_plan_mr_<MR>.md`
 - create the assigned analysis_mr_<MR>_issue_<NN>.md files
 - do not modify other workers' analysis files
 - apply the repository-specific analysis workflow for the assigned issues
@@ -101,7 +111,7 @@ For each worker:
 After all workers finish:
 - remove stale `analysis_mr_<MR>_*.md` and `mr_<MR>_comment_report.md` files from previous runs that are not part of the current plan
 - create `mr_<MR>_comment_report.md`
-- show a screen summary with 2-3 lines per comment and the corresponding Markdown path
+- show a screen summary with 2-3 lines per grouped issue and the corresponding Markdown path
 ```
 
 ## Reporting
