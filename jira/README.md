@@ -17,6 +17,24 @@ For Splunk Jira, set `ATLASSIAN_API_BASE_URL=https://splunk.atlassian.net` in `~
 - `scripts/jira-request`: canonical generic request helper for create/update actions
 - `scripts/atlassian-auth.sh`: vendored Atlassian auth helper source used to bootstrap the shared installed copy
 
+## Local Defaults File
+
+Use `~/.codex/jira.env` for non-secret local defaults for this skill.
+
+Example:
+
+```bash
+ATLASSIAN_API_BASE_URL=https://splunk.atlassian.net
+```
+
+Precedence:
+
+1. explicit helper arguments
+2. exported environment variables
+3. `~/.codex/jira.env`
+
+Do not store `ATLASSIAN_API_TOKEN` in this file.
+
 ## Recommended Setup
 
 Set `ATLASSIAN_API_BASE_URL` to either:

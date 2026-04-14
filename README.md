@@ -43,3 +43,17 @@ This keeps this repository as the source of truth while installing real copied d
 ## Skill Docs
 
 - `jira/README.md`: generic Jira setup, auth expectations, base URL behavior, and `jira-api` examples
+
+## Local Defaults Files
+
+Use home-local env files for non-secret skill defaults when a skill documents that behavior.
+
+See the relevant skill `README.md` for the supported variables and precedence rules:
+
+- `jira/README.md`
+- `private-service-contributor/README.md`
+- `private-service-technical-analysis/README.md`
+- `private-service-parallel-tests/README.md`
+- `private-service-mr-comment-analysis/README.md`
+
+Do not store secrets such as `ATLASSIAN_API_TOKEN` or `IAC_TOKEN` in these files.
