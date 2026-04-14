@@ -35,8 +35,29 @@ normalize_issue_api_base() {
   esac
 }
 
+read_default_base_from_env_file() {
+  env_file=${HOME}/.codex/jira.env
+
+  if [ ! -r "$env_file" ]; then
+    return 0
+  fi
+
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in
+      ATLASSIAN_API_BASE_URL=*)
+        printf '%s\n' "${line#ATLASSIAN_API_BASE_URL=}"
+        return 0
+        ;;
+    esac
+  done < "$env_file"
+}
+
 require_default_base() {
   default_source=${ATLASSIAN_API_BASE_URL:-}
+
+  if [ -z "$default_source" ]; then
+    default_source=$(read_default_base_from_env_file)
+  fi
 
   if [ -z "$default_source" ]; then
     echo "ATLASSIAN_API_BASE_URL must be set when ISSUE_API_BASE is not provided" >&2

@@ -49,12 +49,14 @@ summary,status,issuetype,priority,assignee,reporter,created,updated,description,
 18. For non-read actions, invoke the resolved request helper path directly:
    - env-configured base: `<resolved-path-to-scripts/jira-request> METHOD /rest/api/3/... [JSON_BODY_FILE]`
    - overridden site base: `<resolved-path-to-scripts/jira-request> https://example.atlassian.net METHOD /rest/api/3/... [JSON_BODY_FILE]`
-19. Never issue a direct Jira `curl` command from the skill workflow. All Jira HTTP access must go through `jira-api` or `jira-request`.
+19. When the user asks to bootstrap an artifact from a Jira issue, save the fetched issue JSON to a temporary local file and run `scripts/bootstrap_jira_artifact.py`.
+20. Never issue a direct Jira `curl` command from the skill workflow. All Jira HTTP access must go through `jira-api` or `jira-request`.
 
 ## Helper Source
 
 The canonical helper implementation lives at `scripts/jira-api`, resolved relative to this skill directory.
 The canonical generic request helper implementation lives at `scripts/jira-request`, resolved relative to this skill directory.
+The canonical artifact bootstrap helper implementation lives at `scripts/bootstrap_jira_artifact.py`, resolved relative to this skill directory.
 The vendored Atlassian auth helper source for this skill lives at `scripts/atlassian-auth.sh`, resolved relative to this skill directory.
 The installed shared Atlassian auth helper should live at `${XDG_DATA_HOME:-$HOME/.local/share}/jira/atlassian-auth.sh`.
 
@@ -117,6 +119,33 @@ Generic request helper with explicit site override:
 ```bash
 <resolved-path-to-scripts/jira-request> https://example.atlassian.net POST /rest/api/3/issue /tmp/create-issue.json
 ```
+
+Artifact bootstrap helper:
+
+```bash
+<resolved-path-to-scripts/bootstrap_jira_artifact.py> --issue PROJ-123 --json /tmp/proj-123.json
+```
+
+Artifact bootstrap helper with explicit output:
+
+```bash
+<resolved-path-to-scripts/bootstrap_jira_artifact.py> --issue PROJ-123 --json /tmp/proj-123.json --output task_proj-123.md --overwrite
+```
+
+## Artifact Bootstrap Workflow
+
+Use this workflow when the user asks to bootstrap an artifact, create a task file from a Jira issue, or fill a local `task_<issue>.md` file from Jira.
+
+1. Fetch the issue with `jira-api`, requesting the summary fields set:
+
+```text
+summary,status,issuetype,priority,assignee,reporter,created,updated,description,comment,labels
+```
+
+2. Save the fetched JSON to a temporary local file.
+3. Run `scripts/bootstrap_jira_artifact.py` with the issue key and JSON path.
+4. Report the local artifact path and the most actionable next step.
+5. Do not modify Jira itself during artifact bootstrap.
 
 ## Create Workflow
 

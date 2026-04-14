@@ -15,6 +15,7 @@ For a site-specific Jira instance, set `ATLASSIAN_API_BASE_URL=https://example.a
 - `README.md`: local setup and helper usage
 - `scripts/jira-api`: canonical helper implementation used by the skill
 - `scripts/jira-request`: canonical generic request helper for create/update actions
+- `scripts/bootstrap_jira_artifact.py`: bootstrap a local `task_<issue>.md` artifact from fetched Jira JSON
 - `scripts/atlassian-auth.sh`: vendored Atlassian auth helper source used to bootstrap the shared installed copy
 
 ## Local Defaults File
@@ -128,6 +129,16 @@ scripts/jira-request POST /rest/agile/1.0/sprint/456/issue /tmp/sprint-issues.js
 scripts/jira-request https://example.atlassian.net POST /rest/api/3/issue/PROJ-123/comment /tmp/comment.json
 ```
 
+Artifact bootstrap helper:
+
+```bash
+# Example resolved path:
+# ~/.codex/skills/jira/scripts/bootstrap_jira_artifact.py
+
+scripts/bootstrap_jira_artifact.py --issue PROJ-123 --json /tmp/proj-123.json
+scripts/bootstrap_jira_artifact.py --issue PROJ-123 --json /tmp/proj-123.json --output task_proj-123.md --overwrite
+```
+
 ## Codex usage examples
 
 Example prompts:
@@ -146,6 +157,10 @@ Use jira to fetch PROJ-123 with fields summary,status,priority,assignee
 
 ```text
 Debug Jira access for PROJ-123 using ATLASSIAN_API_TOKEN
+```
+
+```text
+Use jira to bootstrap an artifact for PROJ-123
 ```
 
 ## Generic create workflow
