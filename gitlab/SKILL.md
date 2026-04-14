@@ -1,6 +1,6 @@
 ---
 name: gitlab
-description: Fetch and inspect GitLab merge requests and their discussions. Use when given an MR IID or URL and asked to fetch merge request details with `glab`, read comments or discussion threads, inspect structured discussion data with `glab api`, extract the MR IID from a URL, or prepare GitLab MR context for another companion skill.
+description: Fetch and inspect GitLab merge requests and their discussions. Use when given an MR IID or URL and asked to fetch merge request details with `glab`, read comments or discussion threads, inspect structured discussion data with `glab api`, extract the MR IID from a URL, auto-detect the repository project path or numeric project ID via the `git` skill, or prepare GitLab MR context for another companion skill.
 ---
 
 # GitLab Merge Request Access
@@ -12,6 +12,7 @@ Use this skill from a GitLab repository root when the user wants merge request d
 - Read the repository `AGENTS.md` before running commands.
 - Use `glab` to fetch the merge request overview and its comment threads.
 - Use `glab api` when structured discussion data is needed.
+- Use the `git` skill first when a `glab api` call needs the repository project path or numeric project ID.
 - Pair this skill with a repository-specific or workflow-specific companion skill when the user wants deeper technical analysis, implementation planning, or code changes.
 
 ## Inputs
@@ -23,21 +24,51 @@ Require a merge request parameter:
 
 Extract the IID first and use that single value consistently in commands, filenames, and reporting.
 
+For HTTP MR links, parse these fields from the URL:
+
+- host
+- project path
+- MR IID
+
+Canonical MR URL shape:
+
+```text
+https://<host>/<group>/<subgroup>/<repo>/-/merge_requests/<MR>
+```
+
+Example:
+
+```text
+https://cd.splunkdev.com/guided-experience/private-service/-/merge_requests/123
+```
+
+Resolves to:
+
+- host: `cd.splunkdev.com`
+- project path: `guided-experience/private-service`
+- encoded project path: `guided-experience%2Fprivate-service`
+- MR IID: `123`
+
 ## Workflow
 
 1. Start in the target repository root.
-2. Read the MR overview and comments with `glab mr view <MR> --comments`.
-3. If needed, inspect structured discussion data for the same MR with `glab api`.
-4. Distinguish:
+2. If the input is an MR URL, parse host, project path, and MR IID from the link first.
+3. Extract the MR IID once and reuse it consistently.
+4. If the task needs `glab api` with a project identifier, use the `git` skill to resolve repository identity first:
+   - ask the `git` skill for the repository host, project path, encoded project path, and numeric GitLab project ID when available
+5. When the task started from an MR URL, prefer the parsed host and encoded project path from the URL if there is no reliable local repository context.
+6. Read the MR overview and comments with `glab mr view <MR> --comments`.
+7. If needed, inspect structured discussion data for the same MR with `glab api`.
+8. Distinguish:
    - unresolved vs resolved review threads
    - human comments vs system notes
    - actionable review comments vs non-actionable chatter
-5. Preserve direct MR links and direct comment links when available.
-6. When the follow-on task needs unresolved comments only, exclude resolved threads.
-7. When the follow-on task needs comment status, note whether:
+9. Preserve direct MR links and direct comment links when available.
+10. When the follow-on task needs unresolved comments only, exclude resolved threads.
+11. When the follow-on task needs comment status, note whether:
    - the author is still waiting on a reply
    - you have already replied and are waiting for author feedback
-8. Keep GitLab-specific fetch, discussion, and link-handling logic here. Leave repository-specific technical analysis to companion skills.
+12. Keep GitLab-specific fetch, discussion, and link-handling logic here. Leave repository-specific technical analysis to companion skills.
 
 ## Command Pattern
 
@@ -53,9 +84,44 @@ Structured discussion fetch when needed:
 glab api /projects/:id/merge_requests/<MR>/discussions
 ```
 
+Resolve project identity first through the `git` skill.
+
+When starting from an MR HTTP link and no local repository context is needed, use the parsed URL values directly:
+
+```bash
+glab api --hostname <host> /projects/<encoded_project_path>/merge_requests/<MR>/discussions
+```
+
+Prefer these explicit patterns after resolving identity:
+
+When `project_id` is present:
+
+```bash
+glab api /projects/<project_id>/merge_requests/<MR>/discussions
+glab api /projects/<project_id>/merge_requests/<MR>/notes
+glab api /projects/<project_id>/merge_requests/<MR>
+```
+
+When `project_id` is not present, fall back to `encoded_project_path`:
+
+```bash
+glab api /projects/<encoded_project_path>/merge_requests/<MR>/discussions
+glab api /projects/<encoded_project_path>/merge_requests/<MR>/notes
+glab api /projects/<encoded_project_path>/merge_requests/<MR>
+```
+
+Decision rule:
+
+- if the `git` skill returns `project_id`, use it in `/projects/<project_id>/...`
+- otherwise use `encoded_project_path` in `/projects/<encoded_project_path>/...`
+
+If the repo is not hosted on GitLab, stop and report that the remote host is not a GitLab instance instead of calling `glab api`.
+
 ## Notes
 
 - Prefer `glab mr view` first, then use `glab api` only when structured discussion data is needed.
 - Extract the MR IID once and reuse it consistently.
+- Prefer the `git` skill for repository/project identity instead of manually inferring it from `git remote -v`.
+- Use the numeric project ID when available; otherwise use the resolved project path consistently.
 - Do not assume resolved comments are actionable unless the user asks for them.
 - Keep GitLab transport and discussion inspection logic in this skill; let overlays add workflow-specific outputs and repository-specific conclusions.
