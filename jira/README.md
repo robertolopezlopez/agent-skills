@@ -7,7 +7,7 @@ Setup and usage notes for the generic `jira` skill.
 This skill lets Codex fetch, summarize, create, and update Jira or Atlassian tickets through the Jira REST API when browser access redirects to login or when API access is more reliable.
 
 Use this skill for generic Jira/Atlassian access.
-For Splunk Jira, set `ATLASSIAN_API_BASE_URL=https://splunk.atlassian.net` in `~/.codex/jira.env` or export it in the environment before invoking the helpers.
+For a site-specific Jira instance, set `ATLASSIAN_API_BASE_URL=https://example.atlassian.net` in `~/.codex/jira.env` or export it in the environment before invoking the helpers.
 
 ## Files
 
@@ -24,7 +24,7 @@ Use `~/.codex/jira.env` for non-secret local defaults for this skill.
 Example:
 
 ```bash
-ATLASSIAN_API_BASE_URL=https://splunk.atlassian.net
+ATLASSIAN_API_BASE_URL=https://example.atlassian.net
 ```
 
 Precedence:

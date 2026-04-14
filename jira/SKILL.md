@@ -70,7 +70,7 @@ If `~/.codex/jira.env` exists, read it before invoking the Jira helpers to suppl
 Preferred usage:
 
 ```bash
-ATLASSIAN_API_BASE_URL=https://splunk.atlassian.net
+ATLASSIAN_API_BASE_URL=https://example.atlassian.net
 ```
 
 Rules:
@@ -228,7 +228,7 @@ Keep those details out of the generic `jira` skill.
 - Resolve `scripts/jira-api` and `scripts/jira-request` relative to this skill directory and invoke those resolved paths directly instead of relying on `PATH` or copies in other directories.
 - Accept a host + path override before the issue key.
 - When no override is provided, prefer exported `ATLASSIAN_API_BASE_URL`, then `~/.codex/jira.env`, to identify the Jira site.
-- Use `~/.codex/jira.env` for defaults like `ATLASSIAN_API_BASE_URL=https://splunk.atlassian.net`.
+- Use `~/.codex/jira.env` for defaults like `ATLASSIAN_API_BASE_URL=https://example.atlassian.net`.
 - Never access Jira with a direct assistant-issued `curl`; only run `jira-api` or `jira-request`.
 - If `ATLASSIAN_API_TOKEN` is already set, do not probe `~/.config/.jira/.credentials` just to verify auth.
 - If auth works but the issue is still unavailable, report that the account likely lacks permission to view the ticket.
