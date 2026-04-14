@@ -15,7 +15,7 @@ For a site-specific Jira instance, set `ATLASSIAN_API_BASE_URL=https://example.a
 - `README.md`: local setup and helper usage
 - `scripts/jira-api`: canonical helper implementation used by the skill
 - `scripts/jira-request`: canonical generic request helper for create/update actions
-- `scripts/bootstrap_jira_artifact.py`: bootstrap a local `task_<issue>.md` artifact from fetched Jira JSON
+- `scripts/bootstrap_jira_artifact.py`: bootstrap and validate a local `task_<issue>.md` artifact from fetched Jira JSON
 - `scripts/atlassian-auth.sh`: vendored Atlassian auth helper source used to bootstrap the shared installed copy
 
 ## Local Defaults File
@@ -138,6 +138,8 @@ Artifact bootstrap helper:
 scripts/bootstrap_jira_artifact.py --issue PROJ-123 --json /tmp/proj-123.json
 scripts/bootstrap_jira_artifact.py --issue PROJ-123 --json /tmp/proj-123.json --output task_proj-123.md --overwrite
 ```
+
+The bootstrap helper validates the generated artifact automatically with `../scripts/validate_artifact.py` or the installed copy at `~/.codex/skills/scripts/validate_artifact.py`.
 
 ## Shared Artifact Schema
 

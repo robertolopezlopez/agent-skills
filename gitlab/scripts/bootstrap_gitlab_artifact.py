@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
 from pathlib import Path
 from typing import Any
 
@@ -33,6 +34,25 @@ def repository_text(mr: dict[str, Any]) -> str:
         if len(parts) == 2 and "/" in parts[1]:
             return parts[1].split("/", 1)[1]
     return str(mr.get("target_project_id") or "")
+
+
+def resolve_validator() -> Path | None:
+    candidates = [
+        Path(__file__).resolve().parents[2] / 'scripts' / 'validate_artifact.py',
+        Path(__file__).resolve().parents[1].parent / 'scripts' / 'validate_artifact.py',
+        Path.home() / '.codex' / 'skills' / 'scripts' / 'validate_artifact.py',
+    ]
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    return None
+
+
+def validate_artifact(output: Path) -> None:
+    validator = resolve_validator()
+    if validator is None:
+        raise SystemExit('artifact written but validator not found: expected scripts/validate_artifact.py')
+    subprocess.run(['python3', str(validator), str(output)], check=True)
 
 
 def build_content(mr: dict[str, Any], artifact_type: str, defaults_files: list[str]) -> str:
@@ -143,6 +163,7 @@ def main() -> None:
 
     content = build_content(mr=mr, artifact_type=args.type, defaults_files=args.defaults_file)
     output.write_text(content)
+    validate_artifact(output)
     print(output)
 
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import subprocess
 from pathlib import Path
 
 
@@ -55,6 +56,25 @@ def format_description(fields: dict) -> str:
     if len(description) > 1200:
         return description[:1200] + "..."
     return description
+
+
+def resolve_validator() -> Path | None:
+    candidates = [
+        Path(__file__).resolve().parents[2] / 'scripts' / 'validate_artifact.py',
+        Path(__file__).resolve().parents[1].parent / 'scripts' / 'validate_artifact.py',
+        Path.home() / '.codex' / 'skills' / 'scripts' / 'validate_artifact.py',
+    ]
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    return None
+
+
+def validate_artifact(output: Path) -> None:
+    validator = resolve_validator()
+    if validator is None:
+        raise SystemExit('artifact written but validator not found: expected scripts/validate_artifact.py')
+    subprocess.run(['python3', str(validator), str(output)], check=True)
 
 
 def build_content(issue: str, fields: dict, browse_url: str, defaults_path: str) -> str:
@@ -150,6 +170,7 @@ def main() -> None:
         raise SystemExit(f"refusing to overwrite existing file: {output}")
 
     output.write_text(build_content(issue, fields, browse_url, defaults_path))
+    validate_artifact(output)
     print(output)
 
 

@@ -33,3 +33,5 @@ Recommended use from prompts:
 - `Use gitlab to bootstrap an artifact for MR 123`
 - `Use gitlab to fetch MR 123 and fill review_mr_123.md`
 - `Bootstrap a local review artifact from https://example.com/group/project/-/merge_requests/123`
+
+The bootstrap helper validates the generated artifact automatically with `../scripts/validate_artifact.py` or the installed copy at `~/.codex/skills/scripts/validate_artifact.py`.

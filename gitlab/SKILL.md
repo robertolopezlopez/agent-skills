@@ -187,8 +187,9 @@ Recommended flow:
 1. resolve the MR IID with the normal workflow
 2. fetch MR JSON with `glab api`
 3. run `scripts/bootstrap_gitlab_artifact.py`
-4. write the artifact using the shared section order documented in `../ARTIFACTS.md`
-5. report the artifact path and next suggested action
+4. let the bootstrap helper validate the generated artifact against the shared schema
+5. write the artifact using the shared section order documented in `../ARTIFACTS.md`
+6. report the artifact path and next suggested action
 
 Example requests:
 
