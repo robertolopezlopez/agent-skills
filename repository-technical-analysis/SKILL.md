@@ -11,13 +11,14 @@ Use this skill for investigation-first work across repositories.
 
 - Read local workflow and contributor docs first when they exist: `AGENTS.md`, `README`, `CONTRIBUTING.md`, `Makefile`, and `pyproject.toml`.
 - Prefer evidence collection before proposing fixes.
+- If the user provides a local workflow artifact such as `task_<issue>.md`, `review_mr_<MR>.md`, or `analysis_mr_<MR>.md`, read it first and reuse its links, assumptions, prior plan, and open questions as investigation anchors.
 - Do not edit code until the failure mode or hypothesis is clear enough to defend.
 
 ## Workflow
 
 Use this loop for technical analysis tasks:
 
-1. Start from the user's task and gather the repositories, documents, tickets, URLs, or artifacts they provided.
+1. Start from the user's task and gather the repositories, documents, tickets, URLs, or artifacts they provided. Read any local artifact first.
 2. Identify the narrowest reliable reproduction. Expand to broader coverage only when the failure surface is still unclear.
 3. Use any relevant local material as research input, including repositories, notes, logs, and prior analysis files.
 4. Fetch online material when needed, including documentation or API references.
@@ -55,3 +56,14 @@ Technical analysis output should usually include:
 
 - For reference repositories, switch to the default branch and update them before relying on them.
 - When a project also has a repo-specific overlay skill, use both: keep the generic investigation workflow here and let the overlay provide project-local commands, configs, and anchors.
+
+## Artifact-Aware Behavior
+
+When a local workflow artifact is provided:
+
+- read it first for context, prior assumptions, and open questions
+- reuse its links and previously captured plan as investigation input
+- still treat current code, logs, tests, and reproductions as the source of truth
+- preserve the shared core sections from `../ARTIFACTS.md` when enriching the same artifact
+
+This is additive only and does not replace the normal evidence-first analysis workflow.

@@ -12,13 +12,14 @@ Use this skill for routine engineering work in Python or FastAPI repositories.
 - Read local contributor docs first when they exist: `AGENTS.md`, `README`, `CONTRIBUTING.md`, `Makefile`, and `pyproject.toml`.
 - Prefer repo-native tooling and scripts over ad hoc command variants.
 - Keep comments minimal and only explain non-obvious constraints or patterns.
+- If the user provides a local workflow artifact such as `task_<issue>.md`, `review_mr_<MR>.md`, or `analysis_mr_<MR>.md`, read it first and reuse its repository, links, assumptions, plan, and open questions before changing code.
 - Do not revert unrelated user changes in the worktree.
 
 ## Workflow
 
 Use this loop for routine implementation, debugging, or stabilization work:
 
-1. Start from the user's task and identify the local docs, commands, and test targets that govern the repository.
+1. Start from the user's task and any provided local artifact, then identify the local docs, commands, and test targets that govern the repository.
 2. Prefer the narrowest test or validation command that exercises the changed area. Expand coverage only when the failure surface is unclear.
 3. When debugging broad failures, group them by root cause before changing code.
 4. If the task is framed as investigation, failure analysis, or change planning, propose the intended fix and ask for approval before editing code.
@@ -46,3 +47,14 @@ When asked to prepare a pull request or merge request description:
 - If `git` or `curl` fails because of authentication or authorization problems, stop immediately and inform the user instead of continuing with incomplete inputs.
 - If `git` times out while fetching or pushing resources, stop immediately and inform the user instead of continuing with incomplete inputs.
 - When a project also has a repo-specific overlay skill, use both: keep the generic workflow here and let the overlay supply project-local commands and anchors.
+
+## Artifact-Aware Behavior
+
+When a local workflow artifact is provided:
+
+- read it first for durable context and task framing
+- reuse its repository path, context links, assumptions, initial plan, and open questions
+- still validate decisions against the current code, tests, and repository docs before editing
+- preserve the shared core sections from `../ARTIFACTS.md` when updating the same artifact
+
+This is additive only and does not replace the normal repository-aware contributor workflow.
