@@ -7,7 +7,6 @@ Skills defined in this repository:
 - `gitlab`: reusable GitLab merge request fetch and discussion-inspection workflow
 - `gitlab-mr-comment-analysis`: reusable GitLab merge-request comment-analysis workflow
 - `jira`: reusable Jira and Atlassian issue access, creation, and update workflow
-- `splunk-jira`: Splunk-specific overlay on top of `jira` for reading, creating, and updating Splunk Jira tickets
 - `private-service-contributor`: repo-specific contributor overlay for private-service
 - `private-service-technical-analysis`: repo-specific technical analysis overlay for private-service
 - `private-service-parallel-tests`: run private-service unit and integration tests with 10 workers
@@ -21,7 +20,6 @@ Skill locations:
 - `gitlab/SKILL.md`
 - `gitlab-mr-comment-analysis/SKILL.md`
 - `jira/SKILL.md`
-- `splunk-jira/SKILL.md`
 - `private-service-contributor/SKILL.md`
 - `private-service-technical-analysis/SKILL.md`
 - `private-service-parallel-tests/SKILL.md`
@@ -32,7 +30,6 @@ Usage notes:
 
 - The `private-service-*` skills are overlays intended to be used with the corresponding generic workflow skill.
 - `gitlab-mr-comment-analysis` is an overlay intended to be used with `gitlab`.
-- `splunk-jira` is an overlay intended to be used with `jira`.
 - `private-service-mr-comment-analysis` specifically layers private-service analysis on top of `gitlab-mr-comment-analysis`.
 - Codex discovers installed skills from `~/.codex/skills`, not directly from this repository.
 - This repository installs skills via `git-hooks/post-commit`, which copies each top-level skill directory into `~/.codex/skills` after a commit.

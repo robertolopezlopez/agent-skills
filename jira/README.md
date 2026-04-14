@@ -144,7 +144,7 @@ Use `jira` for the generic parts of ticket creation and update:
 - generic comments
 - generic transition and sprint move mechanics
 
-Overlays such as `splunk-jira` should add:
+Project-specific defaults layered on top of `jira` may add:
 
 - project defaults
 - field mappings
