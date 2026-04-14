@@ -158,3 +158,4 @@ When the user provides a GitLab bootstrap artifact such as `review_mr_<MR>.md` o
 - keep output filenames based on the canonical live `mr_iid`
 
 This keeps artifact reuse additive while preserving the existing `gitlab`-driven contract for MR identity and thread normalization.
+When enriching an existing bootstrap artifact, preserve the shared core sections documented in `../ARTIFACTS.md`.

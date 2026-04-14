@@ -144,8 +144,9 @@ summary,status,issuetype,priority,assignee,reporter,created,updated,description,
 
 2. Save the fetched JSON to a temporary local file.
 3. Run `scripts/bootstrap_jira_artifact.py` with the issue key and JSON path.
-4. Report the local artifact path and the most actionable next step.
-5. Do not modify Jira itself during artifact bootstrap.
+4. Write the artifact using the shared section order documented in `../ARTIFACTS.md`.
+5. Report the local artifact path and the most actionable next step.
+6. Do not modify Jira itself during artifact bootstrap.
 
 ## Create Workflow
 

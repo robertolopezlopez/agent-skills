@@ -30,10 +30,18 @@ cp git-hooks/post-commit .git/hooks/post-commit
 chmod +x .git/hooks/post-commit
 ```
 
+Bootstrap the shared artifact schema into the installed skills root so installed skill references to `../ARTIFACTS.md` resolve correctly:
+
+```bash
+mkdir -p ~/.codex/skills
+cp ARTIFACTS.md ~/.codex/skills/ARTIFACTS.md
+```
+
 ## Behavior
 
 After each commit in this repository, the `post-commit` hook:
 
+- copies `ARTIFACTS.md` to `~/.codex/skills/ARTIFACTS.md`
 - finds each top-level directory that contains `SKILL.md`
 - removes the matching directory in `~/.codex/skills`
 - copies the committed skill directory into `~/.codex/skills`
@@ -43,6 +51,7 @@ This keeps this repository as the source of truth while installing real copied d
 ## Skill Docs
 
 - `jira/README.md`: generic Jira setup, auth expectations, base URL behavior, and `jira-api` examples
+- `ARTIFACTS.md`: shared schema, naming, and section order for local workflow artifacts
 
 ## Local Defaults Files
 
@@ -57,3 +66,7 @@ See the relevant skill `README.md` for the supported variables and precedence ru
 - `private-service-mr-comment-analysis/README.md`
 
 Do not store secrets such as `ATLASSIAN_API_TOKEN` or `IAC_TOKEN` in these files.
+
+## Shared Artifact Schema
+
+Use `ARTIFACTS.md` as the source of truth for local artifact naming, core headings, and content rules shared by Jira, GitLab, and follow-on analysis workflows.

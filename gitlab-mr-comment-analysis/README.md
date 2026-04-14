@@ -16,3 +16,5 @@ When an artifact is provided, the skill:
 - keeps `gitlab` as the source of truth for MR identity, comment state, and normalized threads
 
 This is additive only. Existing workflows that start directly from `gitlab`, an MR IID, or an MR URL continue to work the same way.
+
+Artifacts reused by this skill should follow the shared schema in `../ARTIFACTS.md`.

@@ -2,6 +2,8 @@
 
 The `gitlab` skill fetches and normalizes GitLab merge request context.
 
+Bootstrap artifacts follow the shared schema in `../ARTIFACTS.md`.
+
 ## Optional local artifact bootstrap
 
 This skill can also bootstrap a local markdown artifact from fetched MR JSON without changing its existing context contract for dependent skills.

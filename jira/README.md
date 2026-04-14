@@ -139,6 +139,10 @@ scripts/bootstrap_jira_artifact.py --issue PROJ-123 --json /tmp/proj-123.json
 scripts/bootstrap_jira_artifact.py --issue PROJ-123 --json /tmp/proj-123.json --output task_proj-123.md --overwrite
 ```
 
+## Shared Artifact Schema
+
+Jira bootstrap artifacts follow the shared schema in `../ARTIFACTS.md`, including the core section order from `Summary` through `Actionable Context`.
+
 ## Codex usage examples
 
 Example prompts:
