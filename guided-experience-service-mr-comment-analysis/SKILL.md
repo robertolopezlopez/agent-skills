@@ -10,7 +10,8 @@ Use this skill from the `private-service` repository root when the user wants an
 ## First Read
 
 - Read `AGENTS.md` before running commands.
-- Read `gitlab` first for the generic GitLab MR fetch, IID extraction, discussion inspection, direct link handling, and resolved-vs-unresolved thread handling.
+- Read `git` first when repository identity must be resolved from local checkout context.
+- Read `gitlab` first for generic GitLab MR URL parsing, IID extraction, project-reference resolution, discussion inspection, direct link handling, and resolved-vs-unresolved thread handling.
 - Read `gitlab-mr-comment-analysis` next for grouped unresolved-comment analysis, status tracking, stale-file cleanup, and final-report workflow.
 - Use `repository-technical-analysis` together with `private-service-technical-analysis` for the actual technical analysis.
 - After each technical analysis is complete, use `private-service-contributor` to add concrete proposed changes to the grouped-issue analysis file.
@@ -18,34 +19,45 @@ Use this skill from the `private-service` repository root when the user wants an
 
 ## Inputs
 
-Require a merge request parameter:
+Accept either:
 
-- MR IID like `123`
+- MR context already resolved through `gitlab`
+- or a raw MR IID like `123`
 - or an MR URL that contains the IID
 
-Extract the IID first and use that single value consistently in filenames and reporting.
+Prefer reusing MR context that is already available from `gitlab`.
+If only a raw MR IID or MR URL is available, perform the `gitlab` resolution flow first and then continue with this skill.
 
 ## Workflow
 
 1. Start in the `private-service` repository root.
-2. Use `gitlab` to:
-   - read the MR overview and comment threads with `glab`
-   - inspect structured discussion data with `glab api` when needed
-   - extract and reuse the MR IID consistently
+2. Check whether MR context is already available from `gitlab`, including:
+   - MR IID
+   - MR link
+   - project reference
+   - direct comment links when already available
+3. If MR context is missing or incomplete, use `gitlab` to resolve it first.
+4. Use `git` when needed through the `gitlab` flow to resolve repository identity from the local checkout.
+5. Use `gitlab` to:
+   - parse an MR URL when the input is a link
+   - resolve and reuse the MR IID consistently
+   - resolve the GitLab project reference through the `git` + `gitlab` flow
+   - fetch the MR overview, comments, and discussions
    - preserve MR links and direct comment links
    - distinguish resolved vs unresolved threads and actionable vs non-actionable comments
-3. Use `gitlab-mr-comment-analysis` to:
-   - read the MR overview and comment threads with `glab`
+   - decide whether to use `project_id` or `encoded_project_path`
+6. Use `gitlab-mr-comment-analysis` to:
+   - consume the MR overview and comments already resolved through `gitlab`
    - group actionable unresolved comments into `work_plan_mr_<MR>.md`
    - track comment links, statuses, analysis file links, and plan history
    - ignore resolved comments and non-actionable chatter
    - remove stale prior-run `analysis_mr_<MR>_*.md` and `mr_<MR>_comment_report.md` files
    - produce the final consolidated report scaffold
-4. For each grouped issue in `work_plan_mr_<MR>.md`, use `repository-technical-analysis` plus `private-service-technical-analysis` to inspect the relevant local code, tests, and nearby modules before concluding.
-5. After the technical analysis is complete for a grouped issue, run `private-service-contributor` to add concrete proposed changes to the same analysis file.
-6. If subagents are explicitly authorized, use `multi-spawn-agent` and spawn one worker per independent grouped issue or per small disjoint set of grouped issues.
-7. If subagents are not authorized, analyze the grouped issues sequentially with the same file layout.
-8. Finish with the `gitlab-mr-comment-analysis` final report flow and show an on-screen report with 2-3 lines per analyzed grouped issue plus the path to its Markdown file.
+7. For each grouped issue in `work_plan_mr_<MR>.md`, use `repository-technical-analysis` plus `private-service-technical-analysis` to inspect the relevant local code, tests, and nearby modules before concluding.
+8. After the technical analysis is complete for a grouped issue, run `private-service-contributor` to add concrete proposed changes to the same analysis file.
+9. If subagents are explicitly authorized, use `multi-spawn-agent` and spawn one worker per independent grouped issue or per small disjoint set of grouped issues.
+10. If subagents are not authorized, analyze the grouped issues sequentially with the same file layout.
+11. Finish with the `gitlab-mr-comment-analysis` final report flow and show an on-screen report with 2-3 lines per analyzed grouped issue plus the path to its Markdown file.
 
 ## Worker Requirements
 
@@ -104,6 +116,14 @@ After all workers finish:
 - create or refresh `mr_<MR>_comment_report.md`
 - show a screen summary with 2-3 lines per comment and the corresponding Markdown path
 ```
+
+## Boundaries
+
+- Do not run raw Git commands here for repository identity; consume the `git` skill.
+- Do not run `glab` or `glab api` here; consume the `gitlab` skill.
+- Reuse the MR IID, project reference, MR links, and direct comment links resolved by `gitlab`.
+- Do not ask the user for an MR IID or URL until after attempting the `gitlab` resolution flow.
+- If MR context is still missing after that flow, then ask for the missing MR IID or URL.
 
 ## Reporting
 
