@@ -89,7 +89,13 @@ Resolves to:
    - the author is still waiting on a reply
    - you have already replied and are waiting for author feedback, including `answered_waiting_for_author_feedback`
 15. Keep GitLab-specific fetch, discussion, link-handling, and normalization logic here. Leave grouping, reporting scaffolds, and repository-specific technical analysis to companion skills.
-16. Return normalized MR context for downstream skills.
+
+16. When the user explicitly asks to bootstrap a local artifact for the MR, keep the existing fetch behavior and additionally:
+   - fetch MR JSON with `glab api`
+   - run `scripts/bootstrap_gitlab_artifact.py`
+   - return the local artifact path and suggested next action
+17. Keep artifact bootstrap optional and additive so existing companion skills can keep using the same `gitlab` context contract unchanged.
+18. Return normalized MR context for downstream skills.
 
 ## Command Pattern
 
@@ -137,6 +143,20 @@ glab api /projects/<encoded_project_path>/merge_requests/<MR>/notes
 glab api /projects/<encoded_project_path>/merge_requests/<MR>
 ```
 
+Optional artifact bootstrap after fetching MR JSON:
+
+```bash
+glab api /projects/<project_id>/merge_requests/<MR> > /tmp/mr_<MR>.json
+python3 gitlab/scripts/bootstrap_gitlab_artifact.py --json /tmp/mr_<MR>.json --mr <MR>
+```
+
+When using `encoded_project_path` instead of `project_id`:
+
+```bash
+glab api /projects/<encoded_project_path>/merge_requests/<MR> > /tmp/mr_<MR>.json
+python3 gitlab/scripts/bootstrap_gitlab_artifact.py --json /tmp/mr_<MR>.json --mr <MR>
+```
+
 Decision rule:
 
 - if the `git` skill returns `project_id`, use it in `/projects/<project_id>/...`
@@ -152,4 +172,25 @@ If the repo is not hosted on GitLab, stop and report that the remote host is not
 - Use the numeric project ID when available; otherwise use the resolved project path consistently.
 - Do not assume resolved comments are actionable unless the user asks for them.
 - Companion skills should consume this skill's normalized MR context instead of redoing fetch, identity-resolution, link-handling, or classification logic.
+- Artifact bootstrap is optional and must not change the existing MR context contract consumed by dependent skills.
 - Keep GitLab transport and discussion inspection logic in this skill; let overlays add workflow-specific outputs and repository-specific conclusions.
+
+## Artifact Bootstrap
+
+When the user explicitly asks to create a local artifact from an MR, create either:
+
+- `review_mr_<MR>.md` for normal review work
+- `analysis_mr_<MR>.md` for investigation-heavy work
+
+Recommended flow:
+
+1. resolve the MR IID with the normal workflow
+2. fetch MR JSON with `glab api`
+3. run `scripts/bootstrap_gitlab_artifact.py`
+4. report the artifact path and next suggested action
+
+Example requests:
+
+- `Use gitlab to bootstrap an artifact for MR 123`
+- `Use gitlab to fetch MR 123 and fill review_mr_123.md`
+- `Bootstrap a local review artifact from https://example.com/group/project/-/merge_requests/123`
