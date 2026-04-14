@@ -34,3 +34,14 @@ Precedence:
 
 Do not store `IAC_TOKEN` or other secrets in this file.
 Keep using `cicd/scripts/set_weaviate_config.sh` when production Weaviate settings are required.
+
+## Optional Artifact Input
+
+This skill can also start from a local workflow artifact such as:
+
+- `task_<issue>.md`
+- `review_mr_<MR>.md`
+- `analysis_mr_<MR>.md`
+
+When an artifact is provided, read it first and reuse its links, assumptions, prior plan, and open questions as investigation anchors, then validate findings from current code and test evidence.
+Artifacts reused or updated by this skill should follow the shared schema in `../ARTIFACTS.md`.

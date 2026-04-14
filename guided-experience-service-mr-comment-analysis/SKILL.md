@@ -26,6 +26,7 @@ Accept, in order of preference:
 - or a raw MR IID / MR URL, which must first be resolved through `gitlab` and then grouped through `gitlab-mr-comment-analysis`
 
 Prefer consuming existing upstream artifacts instead of repeating GitLab fetch or grouping work locally.
+If the user provides `review_mr_<MR>.md` or `analysis_mr_<MR>.md`, treat it as preferred bootstrap context before continuing through the normal upstream GitLab analysis flow.
 
 ## Workflow
 
@@ -119,6 +120,17 @@ After all workers finish:
 - Reuse upstream MR identity, project reference, MR links, direct comment links, thread classification, reply/waiting status, grouped issue labels, and analysis file paths.
 - Do not ask the user for an MR IID or URL until after attempting the upstream `gitlab` resolution flow.
 - If MR context is still missing after that flow, then ask for the missing MR IID or URL.
+
+## Artifact-Aware Behavior
+
+When a local workflow artifact is provided:
+
+- read it first for task framing, assumptions, and prior open questions
+- prefer upstream artifacts such as `work_plan_mr_<MR>.md` and `analysis_mr_<MR>.md` when they already exist
+- refresh live MR context through upstream `gitlab` and `gitlab-mr-comment-analysis` flows before concluding
+- preserve the shared core sections from `../ARTIFACTS.md` when enriching an existing bootstrap artifact
+
+This is additive only and does not replace the existing upstream GitLab-driven workflow.
 
 ## Reporting
 

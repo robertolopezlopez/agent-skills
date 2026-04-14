@@ -12,6 +12,7 @@ Use this skill for broad test execution in `../private-service` when the goal is
 - Read `../private-service/AGENTS.md` before running commands.
 - Run commands from the repository root: `../private-service`.
 - Use `uv` for Python commands and scripts.
+- If the user provides a local artifact such as `task_<issue>.md`, `review_mr_<MR>.md`, or `analysis_mr_<MR>.md`, read it first and reuse its repo context, assumptions, validation plan, and open questions before running broad test suites.
 
 ## Workflow
 
@@ -93,6 +94,17 @@ When summarizing results:
 3. List failing tests or modules clearly.
 4. Call out missing environment or auth prerequisites explicitly.
 5. Add a separate technical-analysis section that summarizes likely root causes, failure groupings, and next debugging steps.
+
+## Artifact-Aware Behavior
+
+When a local workflow artifact is provided:
+
+- read it first for scope, validation intent, and known risks
+- reuse its links, assumptions, and open questions when reporting failures
+- still treat current test output as the source of truth for pass/fail state
+- preserve the shared core sections from `../ARTIFACTS.md` when updating the same artifact or reporting back into it
+
+This is additive only and does not replace the existing unit/integration test workflow.
 
 ## Useful Repo Anchors
 

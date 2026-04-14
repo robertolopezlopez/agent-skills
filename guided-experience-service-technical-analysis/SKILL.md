@@ -12,6 +12,7 @@ Use this skill as a repo-specific overlay for `repository-technical-analysis`.
 - Read `AGENTS.md` before starting.
 - Use `uv` for Python commands and scripts.
 - Load `repository-technical-analysis` for the general investigation workflow and reporting structure. Keep this skill focused on repo-local rules.
+- If the user provides a local artifact such as `task_<issue>.md`, `review_mr_<MR>.md`, or `analysis_mr_<MR>.md`, read it first and reuse its links, assumptions, prior plan, and open questions as investigation anchors.
 
 ## Repo Workflow
 
@@ -34,6 +35,17 @@ Use this skill as a repo-specific overlay for `repository-technical-analysis`.
 ## Environment Notes
 
 - Pytest markers and ruff settings are defined in `pyproject.toml`.
+
+## Artifact-Aware Behavior
+
+When a local workflow artifact is provided:
+
+- read it first for context and previously captured assumptions
+- reuse relevant links, repo context, and open questions
+- still reproduce issues from current code and test evidence before concluding
+- preserve the shared core sections from `../ARTIFACTS.md` when enriching the same artifact
+
+This is additive only and does not replace the normal `repository-technical-analysis` workflow.
 
 ## Useful Repo Anchors
 

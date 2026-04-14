@@ -12,6 +12,7 @@ Use this skill as a repo-specific overlay for `python-fastapi-contributor`.
 - Read `AGENTS.md` before making changes.
 - Use `uv` for Python commands and scripts.
 - Load `python-fastapi-contributor` for the general workflow and validation loop. Keep this skill focused on repo-local rules.
+- If the user provides a local artifact such as `task_<issue>.md`, `review_mr_<MR>.md`, or `analysis_mr_<MR>.md`, read it first and reuse its repository, links, assumptions, plan, and open questions before inspecting code.
 
 ## Repo Workflow
 
@@ -44,6 +45,17 @@ When asked to prepare an MR description:
 4. Fill every section with concise engineer-oriented content.
 5. Tick affected subproject checkboxes based on touched files.
 6. Focus on what changed and why, not on repeating obvious file paths.
+
+## Artifact-Aware Behavior
+
+When a local workflow artifact is provided:
+
+- read it first for task framing and durable context
+- reuse its repository path, context links, assumptions, initial plan, and open questions
+- refresh local code and test evidence before making implementation decisions
+- preserve the shared core sections from `../ARTIFACTS.md` when updating the same artifact
+
+This is additive only and does not replace the normal `python-fastapi-contributor` workflow.
 
 ## Useful Repo Anchors
 
