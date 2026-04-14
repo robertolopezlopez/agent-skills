@@ -5,10 +5,15 @@ script_dir="$(cd -- "$(dirname -- "$0")" && pwd)"
 repo_root="$(cd -- "$script_dir/../.." && pwd)"
 dest_root="$HOME/.codex/skills"
 
-mkdir -p "$dest_root"
+mkdir -p "$dest_root" "$dest_root/scripts"
 
 if [[ -f "$repo_root/ARTIFACTS.md" ]]; then
   cp "$repo_root/ARTIFACTS.md" "$dest_root/ARTIFACTS.md"
+fi
+
+if [[ -f "$repo_root/scripts/validate_artifact.py" ]]; then
+  cp "$repo_root/scripts/validate_artifact.py" "$dest_root/scripts/validate_artifact.py"
+  chmod +x "$dest_root/scripts/validate_artifact.py"
 fi
 
 for skill_dir in "$repo_root"/*; do

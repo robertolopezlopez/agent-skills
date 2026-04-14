@@ -30,11 +30,13 @@ cp git-hooks/post-commit .git/hooks/post-commit
 chmod +x .git/hooks/post-commit
 ```
 
-Bootstrap the shared artifact schema into the installed skills root so installed skill references to `../ARTIFACTS.md` resolve correctly:
+Bootstrap the shared artifact schema and validator into the installed skills root so installed skill references and bootstrap validation both work correctly:
 
 ```bash
-mkdir -p ~/.codex/skills
+mkdir -p ~/.codex/skills ~/.codex/skills/scripts
 cp ARTIFACTS.md ~/.codex/skills/ARTIFACTS.md
+cp scripts/validate_artifact.py ~/.codex/skills/scripts/validate_artifact.py
+chmod +x ~/.codex/skills/scripts/validate_artifact.py
 ```
 
 ## Behavior
@@ -42,6 +44,7 @@ cp ARTIFACTS.md ~/.codex/skills/ARTIFACTS.md
 After each commit in this repository, the `post-commit` hook:
 
 - copies `ARTIFACTS.md` to `~/.codex/skills/ARTIFACTS.md`
+- copies `scripts/validate_artifact.py` to `~/.codex/skills/scripts/validate_artifact.py`
 - finds each top-level directory that contains `SKILL.md`
 - removes the matching directory in `~/.codex/skills`
 - copies the committed skill directory into `~/.codex/skills`
@@ -70,3 +73,11 @@ Do not store secrets such as `ATLASSIAN_API_TOKEN` or `IAC_TOKEN` in these files
 ## Shared Artifact Schema
 
 Use `ARTIFACTS.md` as the source of truth for local artifact naming, core headings, and content rules shared by Jira, GitLab, and follow-on analysis workflows.
+
+## Artifact Validation
+
+Use `scripts/validate_artifact.py` to validate local workflow artifacts against the shared schema in `ARTIFACTS.md`.
+
+```bash
+python3 scripts/validate_artifact.py task_proj-123.md
+```
