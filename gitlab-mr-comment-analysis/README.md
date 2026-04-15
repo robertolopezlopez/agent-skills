@@ -18,3 +18,10 @@ When an artifact is provided, the skill:
 This is additive only. Existing workflows that start directly from `gitlab`, an MR IID, or an MR URL continue to work the same way.
 
 Artifacts reused by this skill should follow the shared schema in `../ARTIFACTS.md`.
+
+When rerun on the same MR, this skill may preserve local learned sections such as:
+
+- `## Follow-up Findings`
+- `## Improvement Candidates`
+
+for still-relevant grouped issues while refreshing live MR comment state through `gitlab`.

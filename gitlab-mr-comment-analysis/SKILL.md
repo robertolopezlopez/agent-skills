@@ -43,7 +43,8 @@ Extract and reuse the canonical `mr_iid` consistently in filenames and reporting
    - thread status such as actionable unresolved thread, resolved thread, and `answered_waiting_for_author_feedback`
 4. Filter the normalized thread set to actionable unresolved review issues.
 5. Group related comments together when they refer to the same underlying issue.
-6. Build `work_plan_mr_<MR>.md` with one section per grouped issue. For each grouped issue, record:
+6. If prior `work_plan_mr_<MR>.md` or `analysis_mr_<MR>_issue_<NN>.md` files already exist, preserve local learned sections such as `Follow-up Findings` and `Improvement Candidates` for still-matching unresolved grouped issues.
+7. Build `work_plan_mr_<MR>.md` with one section per grouped issue. For each grouped issue, record:
    - a stable issue label such as `issue_01`
    - one or more comment labels such as `comment_01`, `comment_02`
    - author
@@ -55,14 +56,14 @@ Extract and reuse the canonical `mr_iid` consistently in filenames and reporting
    - direct MR comment link for each included comment when available
    - analysis file link such as `analysis_mr_<MR>_issue_01.md`
    - a history section that keeps prior plan states instead of replacing them with only the latest snapshot
-7. Do not analyze resolved comments.
-8. Ignore pure system notes or clearly non-actionable chatter unless the user asks for them.
-9. If follow-on analysis will run in parallel and subagents are explicitly authorized, split grouped issues into independent worker scopes using `work_plan_mr_<MR>.md` as the source of truth.
-10. Remove stale files from previous runs for the same MR before the final report:
+8. Do not analyze resolved comments.
+9. Ignore pure system notes or clearly non-actionable chatter unless the user asks for them.
+10. If follow-on analysis will run in parallel and subagents are explicitly authorized, split grouped issues into independent worker scopes using `work_plan_mr_<MR>.md` as the source of truth.
+11. Remove stale files from previous runs for the same MR before the final report:
    - remove `mr_<MR>_comment_report.md`
    - remove any `analysis_mr_<MR>_*.md` files that are not linked from the current `work_plan_mr_<MR>.md`
-11. Create a consolidated report file named `mr_<MR>_comment_report.md`.
-12. Show an on-screen report with 2-3 lines per analyzed grouped issue plus the path to its Markdown file.
+12. Create a consolidated report file named `mr_<MR>_comment_report.md`.
+13. Show an on-screen report with 2-3 lines per analyzed grouped issue plus the path to its Markdown file.
 
 ## Worker Requirements
 
@@ -92,6 +93,8 @@ Each file should contain:
 9. proposed changes
 10. recommended next action
 11. confidence and open questions
+12. optional follow-up findings
+13. optional improvement candidates
 
 ## Parallel Worker Template
 
@@ -138,6 +141,8 @@ For `work_plan_mr_<MR>.md`, include:
 6. analysis file link for each grouped issue
 7. status tracking for each analysis
 8. a running history log that preserves previous plan states instead of replacing them
+9. optional follow-up findings for grouped issues that persist across reruns
+10. optional improvement candidates for grouped issues or repeated reviewer themes
 
 For the final on-screen report, list each grouped issue with:
 
@@ -159,3 +164,4 @@ When the user provides a GitLab bootstrap artifact such as `review_mr_<MR>.md` o
 
 This keeps artifact reuse additive while preserving the existing `gitlab`-driven contract for MR identity and thread normalization.
 When enriching an existing bootstrap artifact, preserve the shared core sections documented in `../ARTIFACTS.md`.
+When rerunning analysis for the same MR, preserve local learned sections such as `Follow-up Findings` and `Improvement Candidates` for unresolved grouped issues that still match the refreshed live MR context.
