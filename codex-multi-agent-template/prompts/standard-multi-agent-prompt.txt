@@ -1,0 +1,23 @@
+Use multi-agent mode for the task below. Prefer parallel execution where safe.
+
+## Workflow
+
+1. lead explores the repo and writes a design with acceptance criteria, risks, and open questions.
+2. reviewer and tester review that design in parallel.
+3. lead resolves feedback and approves the final design.
+4. developer implements the approved design.
+5. reviewer and tester audit the implementation in parallel.
+6. If blockers are found, developer fixes them and reviewer re-reviews, up to 2 rounds before escalation.
+7. lead returns a final summary with changed files, validation, risks, and next steps.
+
+## Rules
+
+- Only developer may modify files.
+- Every agent must cite evidence.
+- Do not begin implementation before lead approval.
+- Keep changes scoped to the task.
+- Use a team sync when the team is blocked or disagrees on important trade-offs.
+
+## Task
+
+[Describe your task here]

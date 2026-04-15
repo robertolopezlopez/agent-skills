@@ -15,11 +15,13 @@ Custom Codex skills tracked in git.
 - `private-service-parallel-tests/`: run private-service unit and integration tests with 10 workers
 - `private-service-mr-comment-analysis/`: private-service overlay that uses `gitlab-mr-comment-analysis` plus repo-specific technical analysis and proposed changes
 - `multi-spawn-agent/`: reusable template for spawning parallel worker agents with disjoint ownership
+- `codex-multi-agent-template/`: copy-ready multi-agent starter with `.codex/`, `AGENTS.md`, and prompts
 - `git-hooks/post-commit`: copies committed skills into `~/.codex/skills`
 
 The private-service skills are overlays. Use them with the matching generic skills when working in that repository.
 Use `jira` for generic Atlassian/Jira access, including site-specific Jira usage when `~/.codex/jira.env` sets `ATLASSIAN_API_BASE_URL=https://example.atlassian.net`.
-Likewise, `gitlab-mr-comment-analysis` is an overlay on `gitlab`: use `gitlab` for generic MR fetch/discussion inspection and `gitlab-mr-comment-analysis` for grouped unresolved-comment analysis and reporting.
+Likewise, `gitlab-mr-comment-analysis` is an overlay on `gitlab`: use `gitlab` for generic MR fetch and discussion inspection, and `gitlab-mr-comment-analysis` for grouped unresolved-comment analysis and reporting.
+Use `codex-multi-agent-template/` when you want fixed lead/developer/reviewer/tester scaffolding. Use `multi-spawn-agent` when you want dynamic worker splits driven by a work definition file.
 
 ## Install
 
@@ -37,6 +39,25 @@ mkdir -p ~/.codex/skills ~/.codex/skills/scripts
 cp ARTIFACTS.md ~/.codex/skills/ARTIFACTS.md
 cp scripts/validate_artifact.py ~/.codex/skills/scripts/validate_artifact.py
 chmod +x ~/.codex/skills/scripts/validate_artifact.py
+```
+
+## Multi-Agent Starter Template
+
+To bootstrap a target project with a fixed Codex multi-agent setup:
+
+```bash
+cp -r codex-multi-agent-template/.codex/ my-project/.codex/
+cp codex-multi-agent-template/AGENTS.md my-project/
+cp -r codex-multi-agent-template/prompts/ my-project/.codex-prompts/  # optional
+```
+
+Verify the copied files:
+
+```bash
+cd my-project
+test -f AGENTS.md && echo "ok: AGENTS.md" || echo "MISSING: AGENTS.md"
+test -f .codex/config.toml && echo "ok: config.toml" || echo "MISSING: config.toml"
+ls .codex/agents/*.toml
 ```
 
 ## Behavior

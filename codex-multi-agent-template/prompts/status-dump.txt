@@ -1,0 +1,22 @@
+## Status Dump
+
+**Task**: [one-line description]
+
+**Progress**:
+- [ ] lead: [status]
+- [ ] design feedback: [status]
+- [ ] design approved: [yes/no]
+- [ ] developer: [status]
+- [ ] reviewer: [status]
+- [ ] tester: [status]
+
+**Evidence**:
+- Files modified: [list]
+- Commands run: [list]
+- Validation: [pass/fail summary]
+
+**Blockers**:
+- [blocker or "None"]
+
+**Next Step**:
+- [owner and next action]

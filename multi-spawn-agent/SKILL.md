@@ -7,6 +7,8 @@ description: Use when the user explicitly asks for subagents, delegation, or par
 
 Use this skill to structure parallel worker delegation after the user has explicitly authorized subagents.
 
+If the user wants a reusable project-level starter instead of ad hoc delegation only, pair this skill with the shipped template in `codex-multi-agent-template/`.
+
 ## Inputs
 
 Require a work definition file path as the primary input. This can be a plan or work-split document such as:
@@ -68,6 +70,7 @@ Keep write scopes disjoint. Do not wait immediately after spawning. Continue loc
 ## Notes
 
 - Treat the work definition file as authoritative unless the user says otherwise.
+- When the user wants a copy-ready project setup, use `codex-multi-agent-template/` as the baseline scaffold and keep this skill focused on dynamic work-split logic.
 - Choose the number of workers from the work definition and the number of truly independent write scopes.
 - Do not force parallelism when tasks are tightly coupled.
 - Prefer fewer workers when integration cost is high.
@@ -76,6 +79,27 @@ Keep write scopes disjoint. Do not wait immediately after spawning. Continue loc
 - If two tasks touch the same files, keep one local or serialize them instead of spawning both.
 - Reuse the same work definition file across workers to maintain coordination.
 - When a split causes avoidable overlap, waiting, or integration churn, record it once in `Bad Split Patterns` with the smallest useful correction.
+
+## Companion Template
+
+This repository also ships `codex-multi-agent-template/` for a fixed role-based starter layout:
+
+- `lead`
+- `developer`
+- `reviewer`
+- `tester`
+
+Use that template when the user wants:
+- a copyable `.codex/config.toml`
+- named role configs in `.codex/agents/*.toml`
+- a shared `AGENTS.md`
+- starter prompts for kickoff and status tracking
+
+Use this skill when the user wants:
+- dynamic worker counts
+- work-definition-driven file ownership
+- non-standard splits
+- narrower or more flexible parallel execution than a fixed 4-role team
 
 ## Self-Improving Behavior
 

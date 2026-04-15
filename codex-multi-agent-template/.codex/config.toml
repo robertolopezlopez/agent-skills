@@ -1,0 +1,22 @@
+[features]
+multi_agent = true
+
+[agents]
+max_threads = 4
+max_depth = 2
+
+[agents.lead]
+description = "Explores repo, designs solution, coordinates workflow, and produces final summary."
+config_file = "agents/lead.toml"
+
+[agents.developer]
+description = "Implements the approved design with scoped diffs. Only agent with write access."
+config_file = "agents/developer.toml"
+
+[agents.reviewer]
+description = "Reviews correctness, security, regressions, and missing tests."
+config_file = "agents/reviewer.toml"
+
+[agents.tester]
+description = "Validates test coverage, CI readiness, and edge cases."
+config_file = "agents/tester.toml"
