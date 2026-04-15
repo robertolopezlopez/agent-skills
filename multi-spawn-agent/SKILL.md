@@ -37,6 +37,7 @@ Use that file as the shared source of truth for worker scopes, ownership, constr
 6. Do not wait immediately after spawning. Continue local integration or other non-overlapping work.
 7. Wait only when a worker result is needed on the critical path.
 8. Review returned changes before integrating them.
+9. When rerunning similar delegation work, preserve durable learned sections such as `Worker Split Heuristics`, `Bad Split Patterns`, and `Integration Order Notes` when they still match the current work definition and write scopes.
 
 ## Worker Prompt Template
 
@@ -74,3 +75,13 @@ Keep write scopes disjoint. Do not wait immediately after spawning. Continue loc
 - Keep ownership boundaries explicit to reduce merge conflicts.
 - If two tasks touch the same files, keep one local or serialize them instead of spawning both.
 - Reuse the same work definition file across workers to maintain coordination.
+- When a split causes avoidable overlap, waiting, or integration churn, record it once in `Bad Split Patterns` with the smallest useful correction.
+
+## Self-Improving Behavior
+
+When rerunning delegation for the same or a similar work plan:
+
+- preserve durable learned sections such as `## Worker Split Heuristics`, `## Bad Split Patterns`, and `## Integration Order Notes` when they still match the current work definition
+- refresh split decisions against the current write scopes, dependencies, and integration order before reusing them
+- promote repeated confirmed observations into short heuristics, preferably phrased like `split by X, not Y, when files overlap`
+- demote, mark stale, or remove heuristics contradicted by better task decomposition evidence

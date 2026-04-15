@@ -25,6 +25,7 @@ This skill is intended to be reused by companion skills such as `gitlab`.
 2. Read `origin` first unless the user names another remote.
 3. Prefer the helper script for repeatable parsing and machine-readable output.
 4. If another skill needs a numeric GitLab project ID, call the helper with `--fetch-id`.
+5. When rerunning similar repository-identity work, preserve durable learned sections such as `Resolved Repo Identity Notes`, `Remote URL Oddities`, and `Project ID Resolution Notes` when they still match the current remote configuration.
 
 ## Commands
 
@@ -76,6 +77,15 @@ Companion-skill guidance:
 - `gitlab` should prefer `project_id` for `/projects/<project_id>/...`
 - if `project_id` is unavailable, fall back to `/projects/<encoded_project_path>/...`
 - companion skills must decide whether the resolved `host` is compatible with their own platform-specific APIs
+
+## Self-Improving Behavior
+
+When rerunning repository identity resolution for the same checkout:
+
+- preserve durable learned sections such as `## Resolved Repo Identity Notes`, `## Remote URL Oddities`, and `## Project ID Resolution Notes` when they still match the current remotes
+- refresh conclusions from the live local Git configuration before reusing them
+- record unusual remote formats, SSH aliases, or project ID lookup failures once with the shortest useful explanation
+- demote, mark stale, or remove notes contradicted by changed remotes or updated lookup results
 
 ## Notes
 

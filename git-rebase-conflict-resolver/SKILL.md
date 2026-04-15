@@ -20,6 +20,7 @@ Take an optional target branch input. Default to `origin/main`. Rebase carefully
 - If the worktree is dirty, separate unrelated user changes from rebase work.
 - Do not overwrite or discard unrelated local changes.
 - Refresh the chosen target branch with `git fetch` before rebasing.
+- When rerunning similar rebases, preserve durable learned sections such as `Conflict Pattern Notes`, `Files With Recurring Conflicts`, and `Post-Rebase Validation Lessons` when they still match the current branch and conflict set.
 
 ## Start or resume
 
@@ -62,6 +63,7 @@ Use the repository's real validation flow.
 - Run targeted tests for the modules touched by the conflict.
 - Run broader tests if the conflict affected shared infrastructure, schemas, core models, or cross-cutting utilities.
 - If validation fails, fix the branch before considering the rebase complete.
+- When a validation step proves noisy or low-signal after conflict resolution, record it once in `Post-Rebase Validation Lessons` with the better follow-up command.
 
 ## Report the outcome
 
@@ -82,3 +84,12 @@ State:
 - Never discard unrelated local changes.
 - Never claim both sides were preserved without verifying the merged code path.
 - Never stop after resolving conflicts without running relevant validation.
+
+## Self-Improving Behavior
+
+When rerunning rebases for the same branch family or recurring conflict area:
+
+- preserve durable learned sections such as `## Conflict Pattern Notes`, `## Files With Recurring Conflicts`, and `## Post-Rebase Validation Lessons` when they still match the current conflict set
+- refresh conclusions against the live conflict markers, Git stages, and current validation output before reusing them
+- promote repeated confirmed observations into short heuristics, preferably phrased like `when conflict touches X and Y, validate Z first`
+- demote, mark stale, or remove heuristics contradicted by newer branch state or validation evidence
