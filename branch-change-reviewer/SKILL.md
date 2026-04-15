@@ -33,6 +33,7 @@ Review changes against a target branch. Default to `origin/main`. Do not write c
 - Read the changed files and any adjacent files needed to understand architecture, call sites, and test coverage.
 - Read repo guidance such as `AGENTS.md`, `README`, `Makefile`, `pyproject.toml`, `package.json`, CI config, or test configuration when they affect the review standard.
 - If a local workflow artifact is provided, read it first and reuse its scope, links, assumptions, and open questions as review context, while keeping the branch diff as the source of truth.
+- If prior review artifacts for the same branch or area exist, preserve durable learned sections such as `Recurring Findings`, `Missed In Prior Review`, or `Repo-Specific Review Heuristics` when they still match the current diff and surrounding code.
 
 ## Review standards
 
@@ -44,6 +45,7 @@ Focus on comments worth raising. Do not pad the review with praise or trivial ob
 - Call out architecture issues when the change conflicts with existing patterns, duplicates logic, weakens boundaries, or increases coupling.
 - Call out code style issues when they materially affect readability, consistency, or future maintenance.
 - Prefer concrete, actionable comments tied to specific files and lines when possible.
+- When a risk was missed in a prior review and is now visible in the diff or surrounding code, record it once in `Missed In Prior Review` with the signal that should have been checked earlier.
 - If no meaningful findings exist, say so clearly.
 
 ## Output format
@@ -59,6 +61,7 @@ Write the same review content to both the screen and the output file.
   - why it matters
   - what should change or what should be verified
 - After findings, include `Open Questions` only if they materially affect the review.
+- Include optional learned sections such as `Recurring Findings`, `Missed In Prior Review`, or `Repo-Specific Review Heuristics` when they are evidence-backed and useful for future reviews of the same area.
 - End with a short `Summary` stating:
   - which branch was reviewed against which target branch
   - whether the target branch was user-provided or defaulted
@@ -90,3 +93,15 @@ When a local workflow artifact is provided:
 - if you update the same artifact, preserve the shared core sections from `../ARTIFACTS.md`
 
 This is additive only and does not replace the normal diff-based review workflow.
+
+## Self-Improving Behavior
+
+When rerunning review for the same branch, MR, or code area:
+
+- read any existing review artifact first
+- preserve durable learned sections such as `## Recurring Findings`, `## Missed In Prior Review`, and `## Repo-Specific Review Heuristics` when they still match the current diff and surrounding code
+- refresh findings from the live diff and current code before concluding
+- promote repeated confirmed review themes into short heuristics, preferably phrased like `when code changes X, verify Y`
+- demote, mark stale, or remove heuristics contradicted by new code or evidence
+
+This makes the review artifact more useful across reruns without replacing the normal evidence-based review flow.

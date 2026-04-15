@@ -23,7 +23,7 @@ Use this loop for technical analysis tasks:
 3. Use any relevant local material as research input, including repositories, notes, logs, and prior analysis files.
 4. Fetch online material when needed, including documentation or API references.
 5. Run the tests, scripts, benchmarks, or reproduction steps that best isolate the issue.
-6. When rerunning or extending an existing `analysis_<relevant_name>.md`, preserve local learned sections such as `Follow-up Findings`, `Improvement Candidates`, or `Root Cause Lessons` while refreshing evidence-backed sections from current code, logs, tests, and reproductions.
+6. When rerunning or extending an existing `analysis_<relevant_name>.md`, preserve durable learned sections such as `Follow-up Findings`, `Improvement Candidates`, `Root Cause Lessons`, `Known Patterns`, `Dead Ends Tried`, `Fastest Reliable Repro`, or `Next-Time Checks` when they still match current evidence, explicitly mark stale heuristics, and promote repeated confirmed observations into reusable checks.
 7. Write the analysis incrementally to `analysis_<relevant_name>.md` when the investigation is non-trivial.
 8. Iterate until the findings are confirmed, reduced to a small set of defensible hypotheses, or blocked by a clearly stated dependency.
 
@@ -33,6 +33,7 @@ Use this loop for technical analysis tasks:
 - Verify assumptions against the code before making architectural claims.
 - Call out whether a conclusion is confirmed, likely, or still speculative.
 - When multiple failures share one cause, report the shared cause once and list the impact clearly.
+- When a tactic fails to produce useful signal, record it once in `Dead Ends Tried` with a short reason so future reruns can skip it.
 - Keep recommendations concrete: what should change, why, and how confident the evidence is.
 - If `git` or `curl` fails because of authentication or authorization problems, stop immediately and inform the user instead of continuing with incomplete inputs.
 - If `git` times out while fetching or pushing resources, stop immediately and inform the user instead of continuing with incomplete inputs.
@@ -75,8 +76,12 @@ When rerunning analysis for the same problem or artifact:
 
 - read the existing `analysis_<relevant_name>.md` first
 - preserve local learned sections such as `## Follow-up Findings`, `## Improvement Candidates`, and optional `## Root Cause Lessons` when they still match current evidence
+- preserve optional reusable sections such as `## Known Patterns`, `## Dead Ends Tried`, `## Fastest Reliable Repro`, and `## Next-Time Checks` when they still match current evidence
 - refresh live evidence from the repository, logs, tests, traces, and documents before concluding
 - keep temporary hypotheses separate from confirmed findings
+- promote repeated confirmed observations into short operational heuristics, preferably phrased like `when X, check Y first`
+- demote, mark stale, or remove heuristics that new evidence contradicts
+- keep learned sections concise, task-local, and evidence-backed rather than generic advice
 - update preserved sections only when new evidence supports the change
 
 This makes the analysis artifact durable across reruns without auto-rewriting the skill logic itself.
