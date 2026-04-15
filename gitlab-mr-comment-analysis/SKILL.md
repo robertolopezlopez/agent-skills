@@ -12,6 +12,7 @@ Use this skill as a workflow-specific overlay for `gitlab`.
 
 - Read the repository `AGENTS.md` before running commands.
 - Consume normalized MR context from `gitlab`.
+- Treat `gitlab` as the transport boundary. Consume its normalized MR context whether it came from GitLab MCP or fallback `glab` / `glab api`.
 - If the user provides a local MR artifact such as `review_mr_<MR>.md` or `analysis_mr_<MR>.md`, read it first and reuse its MR link, repository, assumptions, and open questions as bootstrap context.
 - Do not duplicate MR parsing, project identity resolution, or GitLab transport logic here.
 - Use `multi-spawn-agent` only when the user has explicitly authorized subagents or parallel agent work.
@@ -41,6 +42,7 @@ Extract and reuse the canonical `mr_iid` consistently in filenames and reporting
    - normalized threads and comments
    - direct comment links when available
    - thread status such as actionable unresolved thread, resolved thread, and `answered_waiting_for_author_feedback`
+   - without depending on whether `gitlab` used GitLab MCP or fallback `glab`
 4. Filter the normalized thread set to actionable unresolved review issues.
 5. Group related comments together when they refer to the same underlying issue.
 6. If prior `work_plan_mr_<MR>.md` or `analysis_mr_<MR>_issue_<NN>.md` files already exist, preserve durable learned sections such as `Follow-up Findings`, `Improvement Candidates`, `Reviewer Pattern Notes`, `Common Fix Shapes`, and `Thread Outcome` for still-matching unresolved grouped issues, explicitly mark stale patterns, and promote repeated confirmed reviewer themes into reusable heuristics.
@@ -173,3 +175,4 @@ When enriching an existing bootstrap artifact, preserve the shared core sections
 When rerunning analysis for the same MR, preserve local learned sections such as `Follow-up Findings`, `Improvement Candidates`, `Reviewer Pattern Notes`, `Common Fix Shapes`, and `Thread Outcome` for unresolved grouped issues that still match the refreshed live MR context.
 Keep learned sections short, operational, and tied to observed reviewer behavior rather than generic advice.
 When the same reviewer or theme repeats, prefer heuristics phrased like `when reviewer flags X, verify Y before replying`.
+Keep grouped-issue analysis, filenames, and report structure transport-agnostic so downstream artifacts stay stable when `gitlab` switches between MCP and fallback transport.

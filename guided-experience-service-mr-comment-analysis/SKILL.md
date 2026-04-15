@@ -13,6 +13,7 @@ This skill consumes upstream GitLab MR context and grouped issue artifacts, then
 - Read `AGENTS.md` before running commands.
 - Read `gitlab` first to resolve normalized MR context, including MR identity, links, discussions, and thread status.
 - Read `gitlab-mr-comment-analysis` next to convert that MR context into grouped actionable unresolved issues and reporting scaffolds.
+- Treat `gitlab` and `gitlab-mr-comment-analysis` as the transport and normalization boundary. Consume their artifacts whether upstream data came from GitLab MCP or fallback `glab`.
 - Use `repository-technical-analysis` together with `private-service-technical-analysis` for the actual technical analysis.
 - After each technical analysis is complete, use `private-service-contributor` to add concrete proposed changes to the grouped-issue analysis file.
 - Use `multi-spawn-agent` only when the user has explicitly authorized subagents or parallel agent work.
@@ -45,6 +46,7 @@ If the user provides `review_mr_<MR>.md` or `analysis_mr_<MR>.md`, treat it as p
    - grouped comment membership
    - analysis file paths
    - plan history and status tracking
+   - without depending on whether upstream `gitlab` transport used GitLab MCP or fallback `glab`
 6. For each grouped issue in `work_plan_mr_<MR>.md`, use `repository-technical-analysis` plus `private-service-technical-analysis` to inspect the relevant local code, tests, and nearby modules before concluding.
 7. After the technical analysis is complete for a grouped issue, run `private-service-contributor` to add concrete proposed changes to the same analysis file.
 8. If subagents are explicitly authorized, use `multi-spawn-agent` and spawn one worker per independent grouped issue or per small disjoint set of grouped issues.
@@ -136,6 +138,7 @@ When a local workflow artifact is provided:
 - preserve the shared core sections from `../ARTIFACTS.md` when enriching an existing bootstrap artifact
 
 This is additive only and does not replace the existing upstream GitLab-driven workflow.
+Keep repo-specific grouped-issue analysis and report enrichment transport-agnostic so upstream transport changes do not change local artifact contracts.
 
 ## Self-Improving Behavior
 
