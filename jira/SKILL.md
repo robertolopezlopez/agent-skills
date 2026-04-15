@@ -145,7 +145,7 @@ summary,status,issuetype,priority,assignee,reporter,created,updated,description,
 2. Save the fetched JSON to a temporary local file.
 3. Run `scripts/bootstrap_jira_artifact.py` with the issue key and JSON path.
 4. Let the bootstrap helper extract comment summary and related-reference hints from the fetched Jira JSON.
-5. If a local `task_<issue>.md` already exists, preserve local follow-up sections such as `Follow-up Findings` and `Improvement Candidates` while refreshing Jira-sourced sections from live data.
+5. If a local `task_<issue>.md` already exists, preserve durable local sections such as `Follow-up Findings`, `Improvement Candidates`, `Implementation Notes`, `Similar Prior Issues`, `Resolved Unknowns`, `Next Best Step`, or `Common Ticket Pattern` while refreshing Jira-sourced sections from live data.
 6. Let the bootstrap helper validate the generated artifact against the shared schema.
 7. Write the artifact using the shared section order documented in `../ARTIFACTS.md`.
 8. Report the local artifact path and the most actionable next step.
@@ -253,6 +253,17 @@ Project-specific overlay skills should keep local ownership of:
 - any product-specific workflow rules
 
 Keep those details out of the generic `jira` skill.
+
+## Artifact-Aware Self-Improving Behavior
+
+When rerunning work for the same Jira issue or refreshing a bootstrapped `task_<issue>.md` artifact:
+
+- read the existing local artifact first when it exists
+- preserve durable learned sections such as `## Implementation Notes`, `## Similar Prior Issues`, `## Resolved Unknowns`, `## Next Best Step`, and `## Common Ticket Pattern` when they still match the current issue and local evidence
+- refresh Jira-sourced facts from the live API response before reusing them
+- keep durable learned sections concise, actionable, and tied to the issue family or component rather than generic advice
+- promote repeated confirmed issue-family observations into short heuristics, preferably phrased like `tickets in component X usually need Y before coding`
+- demote, mark stale, or remove heuristics contradicted by refreshed issue data or local investigation
 
 ## Notes
 

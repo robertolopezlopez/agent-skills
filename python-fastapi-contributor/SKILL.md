@@ -20,7 +20,7 @@ Use this skill for routine engineering work in Python or FastAPI repositories.
 Use this loop for routine implementation, debugging, or stabilization work:
 
 1. Start from the user's task and any provided local artifact, then identify the local docs, commands, and test targets that govern the repository.
-2. Prefer the narrowest test or validation command that exercises the changed area. Expand coverage only when the failure surface is unclear.
+2. Prefer the narrowest test or validation command that exercises the changed area. Expand coverage only when the failure surface is unclear. When rerunning similar work, preserve durable learned sections such as `Validation Lessons`, `Fastest Reliable Test Targets`, `Repo Gotchas`, `Common Failure Shapes`, or `Change Patterns That Broke Tests` when they still match current evidence.
 3. When debugging broad failures, group them by root cause before changing code.
 4. If the task is framed as investigation, failure analysis, or change planning, propose the intended fix and ask for approval before editing code.
 5. Iterate until the change is implemented, the failure set is reduced to a clear blocker, or the repo state shows the next concrete step.
@@ -31,6 +31,7 @@ Use this loop for routine implementation, debugging, or stabilization work:
 - Prefer maintained repo targets such as `make lint`, `make test`, or project scripts when they exist.
 - Use direct tool commands when tighter control is needed or the repo targets are too broad.
 - Do not treat full-suite execution as part of the default commit flow unless the task calls for it.
+- When a validation step fails to provide useful signal, record it once in `Validation Lessons` or `Fastest Reliable Test Targets` so future reruns can start with a better command.
 
 ## Pull Request Summaries
 
@@ -58,3 +59,15 @@ When a local workflow artifact is provided:
 - preserve the shared core sections from `../ARTIFACTS.md` when updating the same artifact
 
 This is additive only and does not replace the normal repository-aware contributor workflow.
+
+## Self-Improving Behavior
+
+When rerunning implementation, debugging, or stabilization work for the same area:
+
+- read any existing task or analysis artifact first
+- preserve durable learned sections such as `## Validation Lessons`, `## Fastest Reliable Test Targets`, `## Repo Gotchas`, `## Common Failure Shapes`, and `## Change Patterns That Broke Tests` when they still match current evidence
+- refresh conclusions against the live code, repo docs, and current validation results before reusing them
+- promote repeated confirmed observations into short operational heuristics, preferably phrased like `when changing X, run Y first`
+- demote, mark stale, or remove heuristics contradicted by new evidence
+
+This keeps contributor artifacts useful across reruns without replacing the normal repo-aware implementation and validation loop.
