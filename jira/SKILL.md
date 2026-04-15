@@ -144,10 +144,12 @@ summary,status,issuetype,priority,assignee,reporter,created,updated,description,
 
 2. Save the fetched JSON to a temporary local file.
 3. Run `scripts/bootstrap_jira_artifact.py` with the issue key and JSON path.
-4. Let the bootstrap helper validate the generated artifact against the shared schema.
-5. Write the artifact using the shared section order documented in `../ARTIFACTS.md`.
-6. Report the local artifact path and the most actionable next step.
-7. Do not modify Jira itself during artifact bootstrap.
+4. Let the bootstrap helper extract comment summary and related-reference hints from the fetched Jira JSON.
+5. If a local `task_<issue>.md` already exists, preserve local follow-up sections such as `Follow-up Findings` and `Improvement Candidates` while refreshing Jira-sourced sections from live data.
+6. Let the bootstrap helper validate the generated artifact against the shared schema.
+7. Write the artifact using the shared section order documented in `../ARTIFACTS.md`.
+8. Report the local artifact path and the most actionable next step.
+9. Do not modify Jira itself during artifact bootstrap.
 
 ## Create Workflow
 

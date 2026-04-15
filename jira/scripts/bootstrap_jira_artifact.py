@@ -6,6 +6,36 @@ import json
 import re
 import subprocess
 from pathlib import Path
+from typing import Any
+
+
+PRESERVED_SECTION_HEADERS = [
+    "## Follow-up Findings",
+    "## Improvement Candidates",
+]
+
+
+def parse_preserved_sections(path: Path) -> dict[str, str]:
+    if not path.exists():
+        return {}
+    text = path.read_text()
+    out: dict[str, str] = {}
+    headings = [match.group(0) for match in re.finditer(r"^## .+$", text, flags=re.MULTILINE)]
+    for header in PRESERVED_SECTION_HEADERS:
+        start = text.find(header)
+        if start == -1:
+            continue
+        body_start = start + len(header)
+        next_positions: list[int] = []
+        for other in headings:
+            if other == header:
+                continue
+            pos = text.find(other, body_start)
+            if pos != -1:
+                next_positions.append(pos)
+        end = min(next_positions) if next_positions else len(text)
+        out[header] = text[body_start:end].strip() or "- "
+    return out
 
 
 def adf_text(node: object) -> str:
@@ -58,6 +88,64 @@ def format_description(fields: dict) -> str:
     return description
 
 
+def adf_plain_text(node: object) -> str:
+    return re.sub(r"\n+", "\n", adf_text(node)).strip()
+
+
+def comment_entries(fields: dict[str, Any]) -> list[dict[str, str]]:
+    comments = (fields.get("comment") or {}).get("comments", [])
+    entries: list[dict[str, str]] = []
+    for comment in comments:
+        author = ((comment.get("author") or {}).get("displayName")) or "Unknown"
+        body = adf_plain_text(comment.get("body") or "")
+        created = comment.get("created") or ""
+        if body:
+            entries.append({"author": author, "body": body, "created": created})
+    return entries
+
+
+def summarize_comments(fields: dict[str, Any]) -> str:
+    comments = comment_entries(fields)
+    if not comments:
+        return "- No comments."
+    lines = [f"- Comment count: {len(comments)}"]
+    recent = comments[-3:]
+    lines.append("- Recent actionable comments:")
+    for item in recent:
+        body = item["body"][:240].strip()
+        if len(item["body"]) > 240:
+            body += "..."
+        lines.append(f"  - {item['author']}: {body}")
+    return "\n".join(lines)
+
+
+def extract_related_references(issue: str, fields: dict[str, Any]) -> list[str]:
+    text_parts = [format_description(fields)]
+    text_parts.extend(item["body"] for item in comment_entries(fields))
+    text_blob = "\n".join(part for part in text_parts if part and part != "No description text available.")
+
+    refs: list[str] = []
+    seen: set[str] = set()
+
+    for key in re.findall(r"\b[A-Z][A-Z0-9]+-\d+\b", text_blob):
+        if key != issue and key not in seen:
+            seen.add(key)
+            refs.append(f"- Related issue hint: {key}")
+
+    for url in re.findall(r"https?://\S+", text_blob):
+        clean_url = url.rstrip(').,]')
+        if clean_url not in seen:
+            seen.add(clean_url)
+            refs.append(f"- Related link: {clean_url}")
+        if len(refs) >= 10:
+            break
+
+    if "duplicate" in text_blob.lower() and "- Duplicate-related wording detected in description/comments." not in refs:
+        refs.append("- Duplicate-related wording detected in description/comments.")
+
+    return refs
+
+
 def resolve_validator() -> Path | None:
     candidates = [
         Path(__file__).resolve().parents[2] / 'scripts' / 'validate_artifact.py',
@@ -77,7 +165,7 @@ def validate_artifact(output: Path) -> None:
     subprocess.run(['python3', str(validator), str(output)], check=True)
 
 
-def build_content(issue: str, fields: dict, browse_url: str, defaults_path: str) -> str:
+def build_content(issue: str, fields: dict, browse_url: str, defaults_path: str, preserved_sections: dict[str, str]) -> str:
     summary = fields.get("summary", "")
     status = (fields.get("status") or {}).get("name", "")
     issue_type = (fields.get("issuetype") or {}).get("name", "")
@@ -89,6 +177,11 @@ def build_content(issue: str, fields: dict, browse_url: str, defaults_path: str)
     labels = ", ".join(fields.get("labels") or []) or "none"
     comment_count = len((fields.get("comment") or {}).get("comments", []))
     description = format_description(fields)
+    comment_summary = summarize_comments(fields)
+    related_references = extract_related_references(issue, fields)
+    related_references_block = "\n".join(related_references) or "- None found."
+    follow_up_findings = preserved_sections.get("## Follow-up Findings", "- ")
+    improvement_candidates = preserved_sections.get("## Improvement Candidates", "- ")
     return f"""# Task
 
 ## Summary
@@ -142,6 +235,18 @@ jira
 ## Description
 {description}
 
+## Comment Summary
+{comment_summary}
+
+## Related References
+{related_references_block}
+
+## Follow-up Findings
+{follow_up_findings}
+
+## Improvement Candidates
+{improvement_candidates}
+
 ## Actionable Context
 - Start from Jira issue details above.
 - Review description and comments for concrete requested work, debugging clues, or follow-up links.
@@ -165,11 +270,12 @@ def main() -> None:
     browse_url = f"{browse_base_from_api_base(api_base)}/browse/{issue}"
     defaults_path = str(Path.home() / ".codex/jira.env")
     output = Path(args.output or f"task_{slugify(issue)}.md")
+    preserved_sections = parse_preserved_sections(output) if output.exists() else {}
 
     if output.exists() and not args.overwrite:
         raise SystemExit(f"refusing to overwrite existing file: {output}")
 
-    output.write_text(build_content(issue, fields, browse_url, defaults_path))
+    output.write_text(build_content(issue, fields, browse_url, defaults_path, preserved_sections))
     validate_artifact(output)
     print(output)
 
