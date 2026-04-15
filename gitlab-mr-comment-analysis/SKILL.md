@@ -1,6 +1,6 @@
 ---
 name: gitlab-mr-comment-analysis
-description: "Analyze GitLab merge requests comment-by-comment. Consume MR context from `gitlab`, skip resolved threads, group related actionable unresolved comments into `work_plan_mr_<MR>.md`, preserve full plan history, track MR/comment/analysis links plus proposed solution and reply-waiting status, optionally split grouped issues across subagents when explicitly authorized, clean stale prior-run analysis/report files, and produce a short final report."
+description: "Analyze GitLab merge requests comment-by-comment. Consume MR context from `gitlab`, skip resolved threads, group related actionable unresolved comments into `work_plan_mr_<MR>.md`, preserve full plan history, track MR/comment/analysis links plus proposed solution and reply-waiting status, optionally support a quick-fix mode for selected grouped issues such as `fix 2 and 5 now`, optionally split grouped issues across subagents when explicitly authorized, clean stale prior-run analysis/report files, and produce a short final report."
 ---
 
 # GitLab MR Comment Analysis
@@ -26,10 +26,37 @@ Accept, in order of preference:
 - or a local MR artifact such as `review_mr_<MR>.md` or `analysis_mr_<MR>.md`
 - or a raw MR IID like `123`
 - or an MR URL that contains the IID
+- optional grouped-issue selection from the current session, such as:
+  - numbered grouped issues from the latest on-screen summary
+  - stable grouped issue labels like `issue_02`
 
 If the input is a local MR artifact, read it first, extract the canonical `mr_iid` and MR link, then refresh live MR context through `gitlab` before comment analysis.
 If the input is only a raw MR IID or MR URL, resolve it through `gitlab` first and then continue with this skill.
 Extract and reuse the canonical `mr_iid` consistently in filenames and reporting.
+
+## Modes
+
+Use one of two modes:
+
+### Full analysis mode
+
+Default when the user asks to analyze an MR, review unresolved comments, group issues, or produce artifacts.
+
+### Quick-fix mode
+
+Use when the user explicitly asks to address only specific grouped issues, for example:
+
+- `fix 2 and 5`
+- `address issue_03`
+- `handle only issues 1 and 4`
+
+Quick-fix mode should:
+
+- refresh live MR context through `gitlab`
+- resolve the selected grouped issues against the latest grouped summary
+- limit analysis to the selected grouped issues
+- avoid rebuilding the full MR report unless the user asks for a full rerun
+- hand off only the selected grouped issues to the repository-specific companion workflow when technical conclusions or code changes are needed
 
 ## Workflow
 
@@ -45,8 +72,12 @@ Extract and reuse the canonical `mr_iid` consistently in filenames and reporting
    - without depending on whether `gitlab` used GitLab MCP or fallback `glab`
 4. Filter the normalized thread set to actionable unresolved review issues.
 5. Group related comments together when they refer to the same underlying issue.
-6. If prior `work_plan_mr_<MR>.md` or `analysis_mr_<MR>_issue_<NN>.md` files already exist, preserve durable learned sections such as `Follow-up Findings`, `Improvement Candidates`, `Reviewer Pattern Notes`, `Common Fix Shapes`, and `Thread Outcome` for still-matching unresolved grouped issues, explicitly mark stale patterns, and promote repeated confirmed reviewer themes into reusable heuristics.
-7. Build `work_plan_mr_<MR>.md` with one section per grouped issue. For each grouped issue, record:
+6. Build a stable session-local numbered summary for grouped issues after grouping is complete.
+   - Use numbering only as a user-selection convenience layer for the current session.
+   - Do not replace stable issue labels such as `issue_01` in artifacts.
+   - When the user later says `fix 2 and 5`, resolve those numbers against the latest numbered grouped-issue summary in the current session.
+7. If prior `work_plan_mr_<MR>.md` or `analysis_mr_<MR>_issue_<NN>.md` files already exist, preserve durable learned sections such as `Follow-up Findings`, `Improvement Candidates`, `Reviewer Pattern Notes`, `Common Fix Shapes`, and `Thread Outcome` for still-matching unresolved grouped issues, explicitly mark stale patterns, and promote repeated confirmed reviewer themes into reusable heuristics.
+8. Build `work_plan_mr_<MR>.md` with one section per grouped issue. For each grouped issue, record:
    - a stable issue label such as `issue_01`
    - one or more comment labels such as `comment_01`, `comment_02`
    - author
@@ -58,14 +89,22 @@ Extract and reuse the canonical `mr_iid` consistently in filenames and reporting
    - direct MR comment link for each included comment when available
    - analysis file link such as `analysis_mr_<MR>_issue_01.md`
    - a history section that keeps prior plan states instead of replacing them with only the latest snapshot
-8. Do not analyze resolved comments.
-9. Ignore pure system notes or clearly non-actionable chatter unless the user asks for them.
-10. If follow-on analysis will run in parallel and subagents are explicitly authorized, split grouped issues into independent worker scopes using `work_plan_mr_<MR>.md` as the source of truth.
-11. Remove stale files from previous runs for the same MR before the final report:
+9. If the user selects specific grouped issues by session-local number or stable issue label:
+   - resolve the selection against the refreshed grouped issue set
+   - map each selected number to its stable issue label
+   - analyze only the selected grouped issues
+   - skip unrelated unresolved grouped issues
+   - avoid rebuilding unrelated per-issue files unless the user asks for a full rerun
+10. Do not analyze resolved comments.
+11. Ignore pure system notes or clearly non-actionable chatter unless the user asks for them.
+12. If follow-on analysis will run in parallel and subagents are explicitly authorized, split grouped issues into independent worker scopes using `work_plan_mr_<MR>.md` as the source of truth.
+13. Remove stale files from previous runs for the same MR before the final report:
    - remove `mr_<MR>_comment_report.md`
    - remove any `analysis_mr_<MR>_*.md` files that are not linked from the current `work_plan_mr_<MR>.md`
-12. Create a consolidated report file named `mr_<MR>_comment_report.md`.
-13. Show an on-screen report with 2-3 lines per analyzed grouped issue plus the path to its Markdown file.
+14. Create a consolidated report file named `mr_<MR>_comment_report.md` unless quick-fix mode is active and the user asked for selected grouped issues only.
+15. Show an on-screen report with 2-3 lines per analyzed grouped issue plus the path to its Markdown file.
+    - In full analysis mode, number each grouped issue in the on-screen summary.
+    - In quick-fix mode, show the selected session-local numbers and their mapped stable issue labels.
 
 ## Worker Requirements
 
@@ -126,6 +165,30 @@ After all workers finish:
 - show a screen summary with 2-3 lines per grouped issue and the corresponding Markdown path
 ```
 
+## Selection Resolution Rules
+
+When the user refers to grouped issues by number:
+
+1. Prefer the numbering from the latest on-screen grouped-issue summary in the current session.
+2. If numbering is stale, missing, or ambiguous, regenerate a fresh numbered grouped-issue summary before proceeding.
+3. Resolve each selected number to its stable issue label such as `issue_02`.
+4. Use the stable issue label in filenames, artifacts, and follow-on analysis.
+
+When the user refers to grouped issues by stable label such as `issue_03`, use that label directly.
+
+## Quick-Fix Output
+
+In quick-fix mode, the minimum output is:
+
+1. selected grouped-issue numbers or labels
+2. mapped stable issue labels
+3. short problem summary per selected grouped issue
+4. proposed change summary
+5. recommended next action
+6. paths to any updated analysis files
+
+Do not regenerate `mr_<MR>_comment_report.md` or unrelated issue files unless the user asks for a full MR refresh.
+
 ## Reporting
 
 Create `mr_<MR>_comment_report.md` with:
@@ -154,12 +217,15 @@ For `work_plan_mr_<MR>.md`, include:
 
 For the final on-screen report, list each grouped issue with:
 
+- session-local grouped-issue number
 - issue label
 - 2-3 line summary
 - verdict
 - short proposed changes summary
 - reply/waiting status when relevant
 - Markdown file path
+
+In quick-fix mode, the on-screen report may be limited to the selected grouped issues only.
 
 ## Artifact-Aware Behavior
 
