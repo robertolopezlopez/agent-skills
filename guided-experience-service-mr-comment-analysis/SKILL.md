@@ -51,6 +51,7 @@ If the user provides `review_mr_<MR>.md` or `analysis_mr_<MR>.md`, treat it as p
 9. If subagents are not authorized, analyze the grouped issues sequentially with the same file layout.
 10. Enrich the upstream reporting artifacts with private-service-specific verdicts, repo-specific risks, prerequisites, blockers, and recommended next actions.
 11. Finish with a concise on-screen report with 2-3 lines per analyzed grouped issue plus the path to its Markdown file.
+12. When rerunning similar MR analysis, preserve durable repo-local learned sections such as `Reviewer Preference Notes`, `Common Service Fix Patterns`, `Environment Preconditions`, and `Thread Outcome` when they still match refreshed live MR context and local code evidence.
 
 ## Worker Requirements
 
@@ -83,6 +84,10 @@ Each file should contain:
 9. proposed changes
 10. recommended next action
 11. confidence and open questions
+12. optional reviewer preference notes
+13. optional common service fix patterns
+14. optional environment preconditions
+15. optional thread outcome
 
 ## Parallel Worker Template
 
@@ -131,6 +136,18 @@ When a local workflow artifact is provided:
 - preserve the shared core sections from `../ARTIFACTS.md` when enriching an existing bootstrap artifact
 
 This is additive only and does not replace the existing upstream GitLab-driven workflow.
+
+## Self-Improving Behavior
+
+When rerunning MR comment analysis for the same MR or code area:
+
+- read any existing grouped-issue analysis artifact first
+- preserve durable repo-local learned sections such as `## Reviewer Preference Notes`, `## Common Service Fix Patterns`, `## Environment Preconditions`, and `## Thread Outcome` when they still match refreshed MR context and current code evidence
+- refresh conclusions through the upstream `gitlab` and `gitlab-mr-comment-analysis` flows before reusing prior lessons
+- promote repeated confirmed observations into short repo-local heuristics, preferably phrased like `when this reviewer flags X in private-service, verify Y first`
+- demote, mark stale, or remove heuristics contradicted by updated thread state or local code evidence
+
+This keeps grouped-issue analysis artifacts useful across reruns without replacing the upstream GitLab-driven workflow.
 
 ## Reporting
 

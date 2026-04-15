@@ -19,12 +19,14 @@ Use this skill as a repo-specific overlay for `python-fastapi-contributor`.
 - For broad debugging or stabilization, start with `uv run pytest -v -m "not integration and not functional" -n 10` and `uv run pytest -v -m "integration and not skip_ci" -n 10` because the current `Makefile` targets do not expose worker count.
 - If the repo targets are updated to support parallelism, prefer `make test-unit` and `make test-integration` with 10 workers instead.
 - For targeted validation, prefer `uv run pytest -v tests/<target>`.
+- When rerunning similar work, preserve durable repo-local learned sections such as `Validation Shortcuts`, `Common Integration Breakpoints`, `Weaviate Setup Lessons`, and `Fastest Reliable Test Targets` when they still match current evidence.
 
 ## Repo Validation
 
 - After modifying files, run `make lint`.
 - Run `make format` when formatting is needed or when lint indicates formatting drift.
 - Use the pytest commands above when repo targets are too broad.
+- When a validation command proves noisy, flaky, or low-signal, record it once in `Validation Shortcuts` or `Fastest Reliable Test Targets` with the better alternative.
 
 ## Environment Notes
 
@@ -56,6 +58,18 @@ When a local workflow artifact is provided:
 - preserve the shared core sections from `../ARTIFACTS.md` when updating the same artifact
 
 This is additive only and does not replace the normal `python-fastapi-contributor` workflow.
+
+## Self-Improving Behavior
+
+When rerunning implementation, debugging, or stabilization work in this repository:
+
+- read any existing task or analysis artifact first
+- preserve durable repo-local learned sections such as `## Validation Shortcuts`, `## Common Integration Breakpoints`, `## Weaviate Setup Lessons`, and `## Fastest Reliable Test Targets` when they still match current evidence
+- refresh implementation decisions against the live code, repo docs, and current validation output before reusing them
+- promote repeated confirmed observations into short repo-local heuristics, preferably phrased like `when changing X in private-service, run Y first`
+- demote, mark stale, or remove heuristics contradicted by new evidence
+
+This keeps repo-specific contributor artifacts useful across reruns without replacing the base `python-fastapi-contributor` workflow.
 
 ## Useful Repo Anchors
 

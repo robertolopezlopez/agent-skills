@@ -45,6 +45,7 @@ uv run pytest -v -m "integration and not skip_ci" -n 10
 10. If failures suggest extra local infrastructure is needed, use the repo Makefile helpers such as `make test-db-start` and `make test-db-stop`.
 11. After both suites finish, use `repository-technical-analysis` together with `private-service-technical-analysis` to review any failing tests, suspicious errors, environment gaps, or likely root causes.
 12. Report the raw test outcomes first, then the follow-up technical analysis.
+13. When rerunning similar broad test execution, preserve durable learned sections such as `Frequent Failure Clusters`, `Known Prerequisite Gaps`, `Fastest Reliable Suite Order`, and `Flaky or Low-Signal Checks` when they still match current test output and environment state.
 
 ## Parallel Worker Template
 
@@ -84,6 +85,7 @@ Do not wait immediately after spawning. Wait after both workers have started or 
 - For integration execution, check `IAC_TOKEN` first and stop with a clear error if it is missing.
 - After the unit and integration runs complete, use `repository-technical-analysis` with `private-service-technical-analysis` to analyze failures, suspicious stack traces, environment problems, and likely root causes.
 - Do not run functional tests unless the user asks for them; this skill is for unit and integration suites.
+- When a suite, prerequisite step, or helper command proves flaky or low-signal, record it once in `Flaky or Low-Signal Checks` or `Known Prerequisite Gaps` with the shortest useful explanation.
 
 ## Reporting
 
@@ -105,6 +107,18 @@ When a local workflow artifact is provided:
 - preserve the shared core sections from `../ARTIFACTS.md` when updating the same artifact or reporting back into it
 
 This is additive only and does not replace the existing unit/integration test workflow.
+
+## Self-Improving Behavior
+
+When rerunning broad unit and integration execution for the same repository state or failure family:
+
+- read any existing task or analysis artifact first
+- preserve durable learned sections such as `## Frequent Failure Clusters`, `## Known Prerequisite Gaps`, `## Fastest Reliable Suite Order`, and `## Flaky or Low-Signal Checks` when they still match current output and environment state
+- refresh conclusions against the live unit output, integration output, dependency state, and environment checks before reusing them
+- promote repeated confirmed observations into short operational heuristics, preferably phrased like `when suite X fails with Y, check Z first`
+- demote, mark stale, or remove heuristics contradicted by new output or environment evidence
+
+This keeps broad test-run artifacts useful across reruns without replacing the normal execution and follow-up analysis workflow.
 
 ## Useful Repo Anchors
 

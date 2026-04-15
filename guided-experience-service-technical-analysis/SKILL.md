@@ -20,11 +20,13 @@ Use this skill as a repo-specific overlay for `repository-technical-analysis`.
 - For narrower reproduction, use the smallest `uv run pytest ...` command that still reproduces the issue.
 - When the analysis depends on production Weaviate behavior, source `cicd/scripts/set_weaviate_config.sh` first.
 - Create `analysis_<relevant_name>.md`, `analysis_<relevant_name>_slides.html`, and `analysis_<relevant_name>_slides_notes.md` when the investigation requires a written artifact or presentation.
+- When rerunning similar analysis, preserve durable repo-local learned sections such as `Known Failure Modes`, `Weaviate Pitfalls`, `Fastest Reliable Repro`, and `Next-Time Checks` when they still match current evidence.
 
 ## Repo Investigation Rules
 
 - If `git` or `curl` fails because of authentication or authorization problems, stop immediately and inform the user instead of continuing with incomplete inputs.
 - If `git` times out while fetching or pushing resources, stop immediately and inform the user instead of continuing with incomplete inputs.
+- When a repo-specific tactic fails to provide useful signal, record it once in `Known Failure Modes` or `Weaviate Pitfalls` with the shortest useful reason.
 
 ## Repo Validation
 
@@ -46,6 +48,18 @@ When a local workflow artifact is provided:
 - preserve the shared core sections from `../ARTIFACTS.md` when enriching the same artifact
 
 This is additive only and does not replace the normal `repository-technical-analysis` workflow.
+
+## Self-Improving Behavior
+
+When rerunning investigation for the same repo area or failure mode:
+
+- read any existing analysis artifact first
+- preserve durable repo-local learned sections such as `## Known Failure Modes`, `## Weaviate Pitfalls`, `## Fastest Reliable Repro`, and `## Next-Time Checks` when they still match current evidence
+- refresh conclusions against the live code, pytest output, environment state, and current repo docs before reusing them
+- promote repeated confirmed observations into short repo-local heuristics, preferably phrased like `when X fails in private-service, check Y first`
+- demote, mark stale, or remove heuristics contradicted by new evidence
+
+This keeps repo-specific investigation artifacts useful across reruns without replacing the base `repository-technical-analysis` workflow.
 
 ## Useful Repo Anchors
 
