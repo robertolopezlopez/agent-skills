@@ -101,6 +101,19 @@ Use this skill when the user wants:
 - non-standard splits
 - narrower or more flexible parallel execution than a fixed 4-role team
 
+## Team Sync Pattern
+
+When workers uncover a major disagreement, blocked dependency, or architecture trade-off that cuts across write scopes, pause narrow execution and run a short team sync in the main thread.
+
+A team sync should:
+
+- restate the blocking issue briefly
+- summarize the competing options
+- name the ownership or integration impact
+- choose one decision before resuming parallel work
+
+Use team syncs sparingly. Prefer clear ownership and independent work when the split is still valid.
+
 ## Self-Improving Behavior
 
 When rerunning delegation for the same or a similar work plan:
