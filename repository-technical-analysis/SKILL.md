@@ -23,8 +23,9 @@ Use this loop for technical analysis tasks:
 3. Use any relevant local material as research input, including repositories, notes, logs, and prior analysis files.
 4. Fetch online material when needed, including documentation or API references.
 5. Run the tests, scripts, benchmarks, or reproduction steps that best isolate the issue.
-6. Write the analysis incrementally to `analysis_<relevant_name>.md` when the investigation is non-trivial.
-7. Iterate until the findings are confirmed, reduced to a small set of defensible hypotheses, or blocked by a clearly stated dependency.
+6. When rerunning or extending an existing `analysis_<relevant_name>.md`, preserve local learned sections such as `Follow-up Findings`, `Improvement Candidates`, or `Root Cause Lessons` while refreshing evidence-backed sections from current code, logs, tests, and reproductions.
+7. Write the analysis incrementally to `analysis_<relevant_name>.md` when the investigation is non-trivial.
+8. Iterate until the findings are confirmed, reduced to a small set of defensible hypotheses, or blocked by a clearly stated dependency.
 
 ## Investigation Rules
 
@@ -67,3 +68,15 @@ When a local workflow artifact is provided:
 - preserve the shared core sections from `../ARTIFACTS.md` when enriching the same artifact
 
 This is additive only and does not replace the normal evidence-first analysis workflow.
+
+## Self-Improving Behavior
+
+When rerunning analysis for the same problem or artifact:
+
+- read the existing `analysis_<relevant_name>.md` first
+- preserve local learned sections such as `## Follow-up Findings`, `## Improvement Candidates`, and optional `## Root Cause Lessons` when they still match current evidence
+- refresh live evidence from the repository, logs, tests, traces, and documents before concluding
+- keep temporary hypotheses separate from confirmed findings
+- update preserved sections only when new evidence supports the change
+
+This makes the analysis artifact durable across reruns without auto-rewriting the skill logic itself.
