@@ -77,6 +77,27 @@ test -f .codex/config.toml && echo "ok: config.toml" || echo "MISSING: config.to
 ls .codex/agents/*.toml
 ```
 
+## Verify Local Setup
+
+Verify the shared installed assets:
+
+```bash
+test -f ~/.codex/skills/ARTIFACTS.md && echo "ok: installed ARTIFACTS.md" || echo "MISSING: ~/.codex/skills/ARTIFACTS.md"
+test -f ~/.codex/skills/scripts/validate_artifact.py && echo "ok: installed validator" || echo "MISSING: ~/.codex/skills/scripts/validate_artifact.py"
+```
+
+Verify an installed copied skill:
+
+```bash
+test -f ~/.codex/skills/multi-spawn-agent/SKILL.md && echo "ok: installed multi-spawn-agent" || echo "MISSING: ~/.codex/skills/multi-spawn-agent/SKILL.md"
+```
+
+Verify the post-commit hook is installed:
+
+```bash
+test -x .git/hooks/post-commit && echo "ok: post-commit hook" || echo "MISSING: .git/hooks/post-commit"
+```
+
 ## Behavior
 
 After each commit in this repository, the `post-commit` hook:
