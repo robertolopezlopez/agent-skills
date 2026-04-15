@@ -23,6 +23,23 @@ Use `jira` for generic Atlassian/Jira access, including site-specific Jira usage
 Likewise, `gitlab-mr-comment-analysis` is an overlay on `gitlab`: use `gitlab` for generic MR fetch and discussion inspection, and `gitlab-mr-comment-analysis` for grouped unresolved-comment analysis and reporting.
 Use `codex-multi-agent-template/` when you want fixed lead/developer/reviewer/tester scaffolding. Use `multi-spawn-agent` when you want dynamic worker splits driven by a work definition file.
 
+## Philosophy
+
+This repository aims to provide reusable Codex workflows that are:
+
+- **copy-ready when helpful**: ship runnable templates when users need immediate project scaffolding
+- **flexible when needed**: keep skill logic reusable across repositories and task shapes
+- **evidence-based**: prefer file paths, commands, and concrete artifacts over vague summaries
+- **scoped**: encourage focused changes and avoid unrelated refactors
+- **parallel where safe**: use fixed roles or dynamic workers when ownership boundaries are clear
+
+## When To Use What
+
+- Use `codex-multi-agent-template/` when you want a fixed project-level starter with `lead`, `developer`, `reviewer`, and `tester`.
+- Use `multi-spawn-agent/` when you want dynamic worker counts, explicit file ownership, or non-standard task splits.
+- Use generic skills such as `gitlab`, `jira`, and `repository-technical-analysis` for reusable cross-repo workflows.
+- Use overlay skills when you need repository-specific commands, conventions, or analysis depth layered on top of a generic workflow.
+
 ## Install
 
 Copy the tracked hook into the local git hooks directory:
