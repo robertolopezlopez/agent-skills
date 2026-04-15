@@ -188,8 +188,9 @@ Recommended flow:
 2. fetch MR JSON with `glab api`
 3. run `scripts/bootstrap_gitlab_artifact.py`
 4. let the bootstrap helper validate the generated artifact against the shared schema
-5. write the artifact using the shared section order documented in `../ARTIFACTS.md`
-6. report the artifact path and next suggested action
+5. if a local review artifact already exists, preserve local sections such as `Follow-up Findings` and `Improvement Candidates` while refreshing GitLab-derived sections from live MR data
+6. write the artifact using the shared section order documented in `../ARTIFACTS.md`
+7. report the artifact path and next suggested action
 
 Example requests:
 

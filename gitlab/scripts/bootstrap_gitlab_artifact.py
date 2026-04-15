@@ -3,9 +3,39 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 from pathlib import Path
 from typing import Any
+
+
+PRESERVED_SECTION_HEADERS = [
+    "## Follow-up Findings",
+    "## Improvement Candidates",
+]
+
+
+def parse_preserved_sections(path: Path) -> dict[str, str]:
+    if not path.exists():
+        return {}
+    text = path.read_text()
+    out: dict[str, str] = {}
+    headings = [match.group(0) for match in re.finditer(r"^## .+$", text, flags=re.MULTILINE)]
+    for header in PRESERVED_SECTION_HEADERS:
+        start = text.find(header)
+        if start == -1:
+            continue
+        body_start = start + len(header)
+        next_positions: list[int] = []
+        for other in headings:
+            if other == header:
+                continue
+            pos = text.find(other, body_start)
+            if pos != -1:
+                next_positions.append(pos)
+        end = min(next_positions) if next_positions else len(text)
+        out[header] = text[body_start:end].strip() or "- "
+    return out
 
 
 def as_list(value: Any) -> list[str]:
@@ -55,7 +85,7 @@ def validate_artifact(output: Path) -> None:
     subprocess.run(['python3', str(validator), str(output)], check=True)
 
 
-def build_content(mr: dict[str, Any], artifact_type: str, defaults_files: list[str]) -> str:
+def build_content(mr: dict[str, Any], artifact_type: str, defaults_files: list[str], preserved_sections: dict[str, str]) -> str:
     iid = mr.get("iid", "")
     title = mr.get("title") or ""
     web_url = mr.get("web_url") or ""
@@ -82,6 +112,8 @@ def build_content(mr: dict[str, Any], artifact_type: str, defaults_files: list[s
     if draft:
         actionable_lines.insert(0, "- MR is draft; confirm whether feedback should focus on readiness blockers or early review.")
     actionable_block = "\n".join(actionable_lines)
+    follow_up_findings = preserved_sections.get("## Follow-up Findings", "- ")
+    improvement_candidates = preserved_sections.get("## Improvement Candidates", "- ")
 
     return f"""# Task
 
@@ -133,6 +165,12 @@ MR {iid}: {title}
 ## Description
 {description_block}
 
+## Follow-up Findings
+{follow_up_findings}
+
+## Improvement Candidates
+{improvement_candidates}
+
 ## Actionable Context
 {actionable_block}
 """
@@ -158,10 +196,11 @@ def main() -> None:
 
     prefix = "review" if args.type == "review" else "analysis"
     output = Path(args.output or f"{prefix}_mr_{iid}.md")
+    preserved_sections = parse_preserved_sections(output) if output.exists() else {}
     if output.exists() and not args.overwrite:
         raise SystemExit(f"refusing to overwrite existing file: {output}")
 
-    content = build_content(mr=mr, artifact_type=args.type, defaults_files=args.defaults_file)
+    content = build_content(mr=mr, artifact_type=args.type, defaults_files=args.defaults_file, preserved_sections=preserved_sections)
     output.write_text(content)
     validate_artifact(output)
     print(output)
