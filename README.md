@@ -51,6 +51,17 @@ This repository aims to provide reusable Codex workflows that are:
 
 Only the `developer` writes files in the fixed multi-agent template.
 
+## Standard Workflow Phases
+
+The fixed multi-agent template follows this default flow:
+
+1. `lead` explores the repo and writes the design
+2. `reviewer` and `tester` review the design in parallel
+3. `lead` approves the final plan
+4. `developer` implements the approved design
+5. `reviewer` and `tester` audit the implementation in parallel
+6. `lead` summarizes what changed, how it was validated, and any remaining risks
+
 ## Quick Start
 
 For the fastest fixed-role setup in a target project:
@@ -67,6 +78,8 @@ ls .codex/agents/*.toml
 ```
 
 Then start Codex in that project and use `prompts/standard-multi-agent-prompt.txt`.
+
+For longer tasks, use `prompts/status-dump.txt` to keep a short shared progress snapshot with current status, evidence, blockers, and next step.
 
 ## Install
 
@@ -111,6 +124,8 @@ Why this layout:
 - `.codex/config.toml` registers the roles and multi-agent settings
 - `.codex/agents/*.toml` keeps role-specific model and sandbox config close to execution
 - `prompts/` provides paste-ready kickoff and status-tracking helpers
+
+For larger tasks, the lead can break work into milestones so review and validation can start on completed slices before the entire implementation is finished.
 
 ## Verify Local Setup
 
