@@ -62,6 +62,8 @@ The fixed multi-agent template follows this default flow:
 5. `reviewer` and `tester` audit the implementation in parallel
 6. `lead` summarizes what changed, how it was validated, and any remaining risks
 
+Not every task needs all 4 roles. Use `multi-spawn-agent/` instead when a narrower or non-standard split is a better fit.
+
 ## Quick Start
 
 For the fastest fixed-role setup in a target project:
@@ -80,6 +82,16 @@ ls .codex/agents/*.toml
 Then start Codex in that project and use `prompts/standard-multi-agent-prompt.txt`.
 
 For longer tasks, use `prompts/status-dump.txt` to keep a short shared progress snapshot with current status, evidence, blockers, and next step.
+
+Example status snapshot:
+
+```text
+Task: add repo-specific worker split template
+Progress: lead done, design approved, developer in progress, reviewer pending, tester pending
+Evidence: changed README.md, multi-spawn-agent/SKILL.md
+Blockers: none
+Next step: developer finishes docs update, then reviewer and tester audit
+```
 
 ## Install
 
@@ -124,6 +136,8 @@ Why this layout:
 - `.codex/config.toml` registers the roles and multi-agent settings
 - `.codex/agents/*.toml` keeps role-specific model and sandbox config close to execution
 - `prompts/` provides paste-ready kickoff and status-tracking helpers
+
+For per-role configuration details and template-specific notes, see `codex-multi-agent-template/README.md`.
 
 For larger tasks, the lead can break work into milestones so review and validation can start on completed slices before the entire implementation is finished.
 
