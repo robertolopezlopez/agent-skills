@@ -40,6 +40,34 @@ This repository aims to provide reusable Codex workflows that are:
 - Use generic skills such as `gitlab`, `jira`, and `repository-technical-analysis` for reusable cross-repo workflows.
 - Use overlay skills when you need repository-specific commands, conventions, or analysis depth layered on top of a generic workflow.
 
+## Default Multi-Agent Roles
+
+| Role | Access | Responsibility |
+|------|--------|----------------|
+| `lead` | read-only | Explore the repo, write the design, coordinate work, approve the plan, produce the final summary |
+| `developer` | write | Implement the approved design and run validation |
+| `reviewer` | read-only | Review correctness, regressions, security, and missing tests |
+| `tester` | read-only | Validate coverage, CI readiness, and edge cases |
+
+Only the `developer` writes files in the fixed multi-agent template.
+
+## Quick Start
+
+For the fastest fixed-role setup in a target project:
+
+```bash
+cp -r codex-multi-agent-template/.codex/ my-project/.codex/
+cp codex-multi-agent-template/AGENTS.md my-project/
+cp -r codex-multi-agent-template/prompts/ my-project/.codex-prompts/  # optional
+
+cd my-project
+test -f AGENTS.md && echo "ok: AGENTS.md" || echo "MISSING: AGENTS.md"
+test -f .codex/config.toml && echo "ok: config.toml" || echo "MISSING: config.toml"
+ls .codex/agents/*.toml
+```
+
+Then start Codex in that project and use `prompts/standard-multi-agent-prompt.txt`.
+
 ## Install
 
 Copy the tracked hook into the local git hooks directory:
@@ -76,6 +104,13 @@ test -f AGENTS.md && echo "ok: AGENTS.md" || echo "MISSING: AGENTS.md"
 test -f .codex/config.toml && echo "ok: config.toml" || echo "MISSING: config.toml"
 ls .codex/agents/*.toml
 ```
+
+Why this layout:
+
+- `AGENTS.md` carries shared workflow rules for the whole project
+- `.codex/config.toml` registers the roles and multi-agent settings
+- `.codex/agents/*.toml` keeps role-specific model and sandbox config close to execution
+- `prompts/` provides paste-ready kickoff and status-tracking helpers
 
 ## Verify Local Setup
 
