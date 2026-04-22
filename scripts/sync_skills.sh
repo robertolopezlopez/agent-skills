@@ -67,6 +67,8 @@ done
 planned_shared_files=()
 planned_skill_names=()
 deleted_skill_names=()
+verified_shared_files=()
+verified_skill_names=()
 
 run_or_print() {
   if [[ "$dry_run" == true ]]; then
@@ -179,6 +181,10 @@ print_summary() {
     done
   fi
 
+  if [[ "$verify" == true && "$dry_run" == false ]]; then
+    echo "verify: enabled"
+  fi
+
   if [[ "$delete_missing" == true ]]; then
     echo "deleted installed skills: ${#deleted_skill_names[@]}"
     if [[ ${#deleted_skill_names[@]} -gt 0 ]]; then
@@ -197,6 +203,8 @@ verify_install() {
     if [[ ! -f "$dest_root/$shared_file" ]]; then
       echo "missing shared file: $dest_root/$shared_file" >&2
       failures=$((failures + 1))
+    else
+      verified_shared_files+=("$shared_file")
     fi
   done
 
@@ -204,6 +212,8 @@ verify_install() {
     if [[ ! -f "$dest_root/$skill_name/SKILL.md" ]]; then
       echo "missing installed skill: $dest_root/$skill_name/SKILL.md" >&2
       failures=$((failures + 1))
+    else
+      verified_skill_names+=("$skill_name")
     fi
   done
 
@@ -212,6 +222,8 @@ verify_install() {
     exit 1
   fi
   echo "verification OK"
+  echo "verified shared files: ${#verified_shared_files[@]}"
+  echo "verified skills: ${#verified_skill_names[@]}"
 }
 
 print_summary
