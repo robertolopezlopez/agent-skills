@@ -58,4 +58,6 @@ if [[ "$summary_only" == true ]]; then
   skill_count="$(find "$repo_root" -maxdepth 2 -type f -name 'SKILL.md' | wc -l | tr -d ' ')"
   artifact_count="${#artifact_paths[@]}"
   echo "==> Summary: validated ${skill_count} skills and ${artifact_count} root artifact(s)"
+  echo "==> Manifest summary"
+  python3 "$repo_root/scripts/skill_manifest.py" summary
 fi

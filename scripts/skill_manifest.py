@@ -50,7 +50,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Read the repo skills manifest.")
     parser.add_argument(
         "command",
-        choices={"list-skill-paths", "list-skill-names", "list-shared-files"},
+        choices={"list-skill-paths", "list-skill-names", "list-shared-files", "summary"},
     )
     parser.add_argument(
         "--manifest",
@@ -69,6 +69,14 @@ def main() -> None:
     elif args.command == "list-shared-files":
       for shared_file in manifest["shared_files"]:
           print(shared_file)
+    elif args.command == "summary":
+      skills = manifest["skills"]
+      stable = [skill for skill in skills if skill.get("status") == "stable"]
+      experimental = [skill for skill in skills if skill.get("status") == "experimental"]
+      print(f"skills: {len(skills)}")
+      print(f"stable: {len(stable)}")
+      print(f"experimental: {len(experimental)}")
+      print(f"shared_files: {len(manifest['shared_files'])}")
 
 
 if __name__ == "__main__":
