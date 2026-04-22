@@ -40,7 +40,7 @@ def load_manifest(path: Path) -> dict[str, object]:
                 key, value = stripped.split(":", 1)
                 key = key.strip()
                 value = value.strip()
-                if key in {"path", "status"}:
+                if key in {"path", "status", "type", "repo_scope", "release_group", "owner"}:
                     current_skill[key] = value
 
     return {"shared_files": shared_files, "skills": skills}
@@ -50,7 +50,12 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Read the repo skills manifest.")
     parser.add_argument(
         "command",
-        choices={"list-skill-paths", "list-skill-names", "list-shared-files", "summary"},
+        choices={"list-skill-paths", "list-skill-names", "list-shared-files", "summary", "summary-by-group"},
+    )
+    parser.add_argument(
+        "--group-by",
+        choices={"release_group", "repo_scope", "type"},
+        default="release_group",
     )
     parser.add_argument(
         "--manifest",
@@ -77,6 +82,15 @@ def main() -> None:
       print(f"stable: {len(stable)}")
       print(f"experimental: {len(experimental)}")
       print(f"shared_files: {len(manifest['shared_files'])}")
+    elif args.command == "summary-by-group":
+      groups: dict[str, list[dict[str, str]]] = {}
+      for skill in manifest["skills"]:
+          key = skill.get(args.group_by, "unknown")
+          groups.setdefault(key, []).append(skill)
+      for key in sorted(groups):
+          print(f"{args.group_by}: {key} ({len(groups[key])})")
+          for skill in sorted(groups[key], key=lambda s: s["name"]):
+              print(f"  - {skill['name']}")
 
 
 if __name__ == "__main__":
