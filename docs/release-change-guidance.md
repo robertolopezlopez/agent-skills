@@ -63,6 +63,21 @@ Use lightweight location choices:
 
 If a change is durable and repository-wide, prefer a checked-in doc in `docs/`.
 
+## Changelog policy
+
+Use `CHANGELOG.md` for:
+
+- breaking changes
+- workflow-level repository changes
+- notable tooling or manifest behavior changes that contributors should know about
+
+Do not use `CHANGELOG.md` for:
+
+- every small skill wording tweak
+- routine cleanup or refactors
+- minor doc phrasing changes
+- implementation details already covered well by commit history
+
 ## Suggested changelog entry shape
 
 Use a short format like:

@@ -85,3 +85,8 @@ When a skill describes subagent or parallel-agent behavior:
 ## Backward-compatibility rule
 
 Be careful when renaming a skill directory, changing artifact schemas, or changing referenced helper paths. These changes can break installed copies and downstream workflows. Document the change clearly in the edited skill.
+
+## Changelog rule
+
+Use `CHANGELOG.md` for breaking changes and workflow-level repository changes.
+Do not treat it as a mirror of every commit; routine wording, cleanup, and implementation-only changes belong in commit history instead.

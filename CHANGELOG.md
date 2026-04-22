@@ -9,6 +9,7 @@ It is intended for:
 - durable repository-level guidance changes
 
 It is not intended to mirror every commit.
+Use commit history for routine wording, cleanup, and implementation-only changes.
 
 ## Unreleased
 
