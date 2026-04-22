@@ -25,6 +25,58 @@ Phase 6:  lead produces final summary
 
 For larger tasks, the lead may split implementation into independent sub-tasks so work and review can overlap safely.
 
+## Role Output Contract
+
+Each role should return concise structured output.
+
+### lead
+
+Should produce:
+- scope
+- acceptance criteria
+- risks
+- open questions
+- final decision when reviewer and tester disagree
+
+### developer
+
+Should produce:
+- summary
+- files changed
+- validation run
+- blockers or assumptions that affected implementation
+
+### reviewer
+
+Should produce:
+- blocker vs non-blocker assessment
+- findings with file paths or evidence when possible
+- re-review result after fixes when needed
+
+### tester
+
+Should produce:
+- commands run
+- pass/fail summary
+- failing tests or suspicious signals
+- environment gaps or setup blockers
+
+## Write-Scope Ownership
+
+- The lead owns planning, task decomposition, and final summary.
+- The developer owns code changes unless the lead explicitly splits implementation into disjoint worker scopes.
+- Reviewer and tester are read-only by default.
+- If implementation is split further, each worker must own explicit files or directories.
+- Do not assign overlapping write scopes unless the lead intentionally serializes the work.
+
+## Handoff Rules
+
+- The developer must not start until the lead approves the design.
+- Reviewer and tester should review the same approved design, not separate versions.
+- Findings should be handed back with enough detail for the developer to act without guessing.
+- If a blocker changes scope or architecture, return control to the lead before proceeding.
+- Every phase handoff should state whether the next role is blocked or clear to proceed.
+
 ## Team Sync
 
 For hard problems, conflicting feedback, or major scope or architecture decisions, the lead should call a **team sync**.
@@ -51,9 +103,11 @@ Any agent may request a sync by flagging the issue to the lead.
 - **Report evidence**: cite file paths, line numbers, and command output
 - **State assumptions**: do not guess silently
 - **Suggest model refreshes when relevant**: if a newer suitable model exists for these roles, recommend it explicitly, but do not change model defaults without approval
+- **Keep handoffs crisp**: every role should clearly state outcome, blockers, and next owner
 
 ## Safety Rules
 
 - **Only the developer may modify code.** All other agents are read-only.
 - The developer must not begin until the lead approves the design.
 - Do not skip workflow phases.
+- Do not silently expand ownership beyond the assigned write scope.
