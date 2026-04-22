@@ -47,6 +47,7 @@ def find_primary_heading(body: str) -> str | None:
 
 def validate_skill_dir(skill_dir: Path) -> list[str]:
     errors: list[str] = []
+    warnings: list[str] = []
     skill_md = skill_dir / "SKILL.md"
 
     if not skill_dir.is_dir():
@@ -97,7 +98,8 @@ def validate_skill_dir(skill_dir: Path) -> list[str]:
         )
 
     errors.extend(validate_relative_references(skill_dir, text))
-    return prefix_errors(skill_dir, errors)
+    warnings.extend(validate_recommended_sections(body))
+    return prefix_errors(skill_dir, errors + [f"WARNING: {warning}" for warning in warnings])
 
 
 def validate_relative_references(skill_dir: Path, text: str) -> list[str]:
@@ -124,6 +126,22 @@ def validate_relative_references(skill_dir: Path, text: str) -> list[str]:
 
 def prefix_errors(skill_dir: Path, errors: list[str]) -> list[str]:
     return [f"{skill_dir}: {error}" for error in errors]
+
+
+def validate_recommended_sections(body: str) -> list[str]:
+    warnings: list[str] = []
+    recommended_groups = [
+        ("When to Use", ("## When to Use",)),
+        ("When Not to Use", ("## When Not to Use",)),
+        ("Validation", ("## Validation",)),
+        ("Outputs", ("## Outputs", "## Outputs / Artifacts", "## Output Expectations")),
+        ("Companion Skills", ("## Companion Skills",)),
+        ("Safety Notes", ("## Safety Notes", "## Constraints", "## General Notes")),
+    ]
+    for label, variants in recommended_groups:
+        if not any(variant in body for variant in variants):
+            warnings.append(f"recommended section missing: {label}")
+    return warnings
 
 
 def looks_like_repo_path(candidate: str) -> bool:
@@ -173,16 +191,47 @@ def main() -> None:
         targets = discover_top_level_skill_dirs(repo_root)
 
     total_errors = 0
+    total_warnings = 0
+    seen_names: dict[str, Path] = {}
     for skill_dir in targets:
         errors = validate_skill_dir(skill_dir)
-        if errors:
+        warning_lines = [line for line in errors if "WARNING:" in line]
+        error_lines = [line for line in errors if "WARNING:" not in line]
+
+        skill_md = skill_dir / "SKILL.md"
+        if skill_md.exists():
+            text = skill_md.read_text()
+            frontmatter = extract_frontmatter(text)
+            if frontmatter is not None:
+                name_match = FRONTMATTER_NAME_RE.search(frontmatter)
+                if name_match:
+                    name = name_match.group(1).strip().strip("'\"")
+                    previous = seen_names.get(name)
+                    if previous is not None and previous != skill_dir:
+                        error_lines.append(
+                            f"{skill_dir}: duplicate skill name '{name}' also used by {previous}"
+                        )
+                    else:
+                        seen_names[name] = skill_dir
+
+        if error_lines:
             print(f"{skill_dir}: FAIL")
-            for error in errors:
+            for error in error_lines:
                 print(f"  - {error}")
-            total_errors += len(errors)
+            for warning in warning_lines:
+                print(f"  - {warning}")
+            total_errors += len(error_lines)
+            total_warnings += len(warning_lines)
+        elif warning_lines:
+            print(f"{skill_dir}: WARN")
+            for warning in warning_lines:
+                print(f"  - {warning}")
+            total_warnings += len(warning_lines)
         else:
             print(f"{skill_dir}: OK")
 
+    if total_warnings:
+        print(f"\nWarnings: {total_warnings}")
     raise SystemExit(1 if total_errors else 0)
 
 
