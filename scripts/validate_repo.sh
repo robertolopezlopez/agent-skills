@@ -3,6 +3,37 @@ set -euo pipefail
 
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd -- "$script_dir/.." && pwd)"
+summary_only=false
+
+usage() {
+  cat <<'EOF'
+Usage: validate_repo.sh [--summary]
+
+Validate top-level skills and root workflow artifacts.
+
+Options:
+  --summary    Print a short success summary after validation completes.
+  -h, --help   Show this help.
+EOF
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --summary)
+      summary_only=true
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "unknown argument: $1" >&2
+      usage >&2
+      exit 2
+      ;;
+  esac
+done
 
 echo "==> Validating top-level skills"
 python3 "$repo_root/scripts/validate_skill.py"
@@ -23,3 +54,8 @@ else
   echo "==> No matching workflow artifacts found"
 fi
 
+if [[ "$summary_only" == true ]]; then
+  skill_count="$(find "$repo_root" -maxdepth 2 -type f -name 'SKILL.md' | wc -l | tr -d ' ')"
+  artifact_count="${#artifact_paths[@]}"
+  echo "==> Summary: validated ${skill_count} skills and ${artifact_count} root artifact(s)"
+fi
