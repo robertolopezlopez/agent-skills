@@ -8,6 +8,25 @@ description: Fetch and inspect GitLab merge requests and their discussions. Use 
 Use this skill from a GitLab repository root when the user wants merge request data fetched or inspected.
 This skill is the source of truth for GitLab MR identity, links, discussion fetch, and thread-status normalization for companion skills.
 
+## When to Use
+
+Use this skill when the user wants to:
+
+- fetch or inspect a GitLab merge request
+- read merge request comments or discussions
+- inspect structured discussion state
+- bootstrap a local MR artifact
+- prepare normalized MR context for a companion skill
+
+## When Not to Use
+
+Do not use this skill when:
+
+- the task is general local Git repository inspection only; use `git`
+- the task is primarily comment grouping or review planning; use `gitlab-mr-comment-analysis` after this skill
+- the task is primarily repository-specific technical analysis or code changes; use the appropriate overlay after this skill
+- the repository is not hosted on GitLab
+
 ## First Read
 
 - Read the repository `AGENTS.md` before running commands.
@@ -60,6 +79,16 @@ Resolves to:
 - project path: `guided-experience/private-service`
 - encoded project path: `guided-experience%2Fprivate-service`
 - MR IID: `123`
+
+## Companion Skills
+
+Use this skill as the transport and normalization layer.
+
+Common pairings:
+
+- `git` for repository identity or GitLab project resolution in fallback mode
+- `gitlab-mr-comment-analysis` for unresolved comment grouping and reporting
+- repository-specific overlay skills for deeper technical analysis or proposed changes
 
 ## Workflow
 
@@ -190,6 +219,34 @@ If the repo is not hosted on GitLab, stop and report that the remote host is not
 - Artifact bootstrap is optional and must not change the existing MR context contract consumed by dependent skills.
 - Keep GitLab transport selection and discussion inspection logic in this skill; let overlays add workflow-specific outputs and repository-specific conclusions.
 - When a transport path or thread shape proves unusual, record it once in `Transport Notes`, `Project Resolution Fallbacks`, or `Discussion Shape Oddities` with the smallest useful explanation.
+
+## Validation
+
+- Prefer GitLab MCP first when available.
+- Keep the same normalized MR context contract regardless of transport.
+- Verify that `mr_iid`, `mr_link`, and project identity fields stay consistent across fallback commands.
+- Exclude resolved threads only when the downstream task calls for unresolved comments only.
+
+## Outputs / Artifacts
+
+This skill should return normalized MR context for downstream skills, including when available:
+
+- `mr_iid`
+- `mr_link`
+- project identity fields such as `project_id` or `encoded_project_path`
+- thread status and comment links
+- transport notes that matter for reruns
+
+When artifact bootstrap is requested, this skill may also write:
+
+- `review_mr_<MR>.md`
+- `analysis_mr_<MR>.md`
+
+## Safety Notes
+
+- Stop and report when the remote host is not a GitLab instance.
+- Keep GitLab transport and normalization logic here; do not duplicate it in companion skills.
+- Do not let artifact bootstrap change the normalized MR context contract used by downstream skills.
 
 ## Self-Improving Behavior
 
