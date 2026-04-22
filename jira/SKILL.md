@@ -7,6 +7,36 @@ description: Fetch, summarize, create, and update Jira or Atlassian issues. Use 
 
 When a Jira issue is not readable through normal browser access, prefer Jira or Atlassian MCP when available, otherwise use the bundled Jira REST helper workflow before concluding the ticket is inaccessible.
 
+## When to Use
+
+Use this skill when the user wants to:
+
+- fetch or summarize a Jira or Atlassian issue
+- create a Jira ticket
+- transition or update a Jira ticket
+- move a ticket into a sprint
+- assign, edit, or comment on a ticket
+- bootstrap a local task artifact from Jira
+- debug Jira helper access or Jira auth defaults
+
+## When Not to Use
+
+Do not use this skill when:
+
+- the task is GitLab MR access or Git repository context
+- the task is only local artifact analysis and no live Jira access is needed
+- a repository-specific overlay should own project-local Jira conventions after issue data has already been fetched
+
+## Inputs
+
+Accept, depending on the requested action:
+
+- an issue key such as `PROJ-123`
+- an Atlassian issue URL
+- an optional host or base-path override for fallback helper use
+- a requested field set
+- free-form task context for create or update flows
+
 ## Workflow
 
 1. Extract the issue key from the URL or user request.
@@ -52,6 +82,13 @@ summary,status,issuetype,priority,assignee,reporter,created,updated,description,
    - overridden site base: `<resolved-path-to-scripts/jira-request> https://example.atlassian.net METHOD /rest/api/3/... [JSON_BODY_FILE]`
 20. When the user asks to bootstrap an artifact from a Jira issue, save the fetched issue JSON from MCP when possible, otherwise from the fallback helper, to a temporary local file and run `scripts/bootstrap_jira_artifact.py`.
 21. Never issue a direct Jira `curl` command from the skill workflow. All Jira HTTP access must go through Jira or Atlassian MCP when available, otherwise through `jira-api` or `jira-request`.
+
+## Validation
+
+- Prefer Jira or Atlassian MCP first when available.
+- Keep fallback helper execution routed through `jira-api` or `jira-request`, never direct `curl`.
+- Resolve auth and base URL defaults before invoking fallback helpers.
+- Keep the same normalized issue and artifact contract regardless of transport.
 
 ## Transport Preference
 
@@ -162,6 +199,20 @@ summary,status,issuetype,priority,assignee,reporter,created,updated,description,
 8. Report the local artifact path and the most actionable next step.
 9. Do not modify Jira itself during artifact bootstrap.
 
+## Outputs / Artifacts
+
+This skill should return the most useful normalized Jira result for the task, such as:
+
+- issue summary and key fields
+- available transitions
+- update outcome
+- created ticket key and URL
+- helper or auth diagnosis
+
+When artifact bootstrap is requested, this skill may also write:
+
+- `task_<issue>.md`
+
 ## Create Workflow
 
 Use this workflow when the user asks to create a Jira ticket, issue, story, or task.
@@ -258,6 +309,22 @@ Project-specific overlay skills should keep local ownership of:
 
 - project defaults
 - issue type defaults
+- project defaults for status, sprint, or field conventions
+
+## Companion Skills
+
+Use this skill as the Jira transport and normalization layer.
+
+Common pairings:
+
+- repository-specific overlay skills for project-local issue conventions
+- local task artifacts such as `task_<issue>.md` for downstream implementation or analysis
+
+## Safety Notes
+
+- Never issue direct Jira `curl` commands from this skill.
+- Keep shared Atlassian auth behavior in the vendored helper scripts instead of duplicating it inline.
+- Do not modify Jira during artifact bootstrap.
 - custom field mappings
 - component/team heuristics
 - epic and sprint conventions

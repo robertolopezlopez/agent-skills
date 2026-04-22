@@ -7,6 +7,24 @@ description: Use this when performing technical analysis in a code repository, i
 
 Use this skill for investigation-first work across repositories.
 
+## When to Use
+
+Use this skill when the user wants:
+
+- root-cause analysis
+- test failure investigation
+- incident or regression triage
+- architecture inspection tied to a concrete problem
+- evidence-backed technical recommendations
+
+## When Not to Use
+
+Do not use this skill when:
+
+- the task is primarily remote transport access like Jira or GitLab fetch
+- a repository-specific overlay alone already fully defines the needed workflow
+- the user only wants code changes with no meaningful investigation component
+
 ## First Read
 
 - Read local workflow and contributor docs first when they exist: `AGENTS.md`, `README`, `CONTRIBUTING.md`, `Makefile`, and `pyproject.toml`.
@@ -44,7 +62,7 @@ Use this loop for technical analysis tasks:
 - After approved code changes, run the lint, format, and test commands that are relevant to the fix.
 - Prefer the smallest validation set that proves or disproves the hypothesis before expanding coverage.
 
-## Output Expectations
+## Outputs / Artifacts
 
 Technical analysis output should usually include:
 
@@ -54,10 +72,23 @@ Technical analysis output should usually include:
 4. The proposed fix or next step
 5. Any blocker, missing dependency, or uncertainty
 
+When the work is non-trivial, this skill may also write or enrich:
+
+- `analysis_<relevant_name>.md`
+
 ## General Notes
 
 - For reference repositories, switch to the default branch and update them before relying on them.
 - When a project also has a repo-specific overlay skill, use both: keep the generic investigation workflow here and let the overlay provide project-local commands, configs, and anchors.
+
+## Companion Skills
+
+Use this skill as the generic investigation layer.
+
+Common pairings:
+
+- repository-specific overlay skills for local commands, configs, and validation
+- transport skills such as `jira` or `gitlab` when the investigation starts from remote issue or MR context
 
 ## Artifact-Aware Behavior
 
@@ -69,6 +100,12 @@ When a local workflow artifact is provided:
 - preserve the shared core sections from `../ARTIFACTS.md` when enriching the same artifact
 
 This is additive only and does not replace the normal evidence-first analysis workflow.
+
+## Safety Notes
+
+- Do not edit code until the failure mode or hypothesis is clear enough to defend.
+- Stop when critical authenticated inputs such as `git` or `curl` access fail and tell the user.
+- Keep conclusions labeled as confirmed, likely, or speculative.
 
 ## Self-Improving Behavior
 
