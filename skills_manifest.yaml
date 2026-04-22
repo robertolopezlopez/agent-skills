@@ -6,32 +6,53 @@ skills:
   - name: branch-change-reviewer
     path: branch-change-reviewer
     status: stable
+    type: core
+    repo_scope: generic
+    release_group: core
   - name: git
     path: git
     status: stable
+    type: core
+    repo_scope: generic
+    release_group: core
   - name: git-rebase-conflict-resolver
     path: git-rebase-conflict-resolver
     status: stable
+    type: core
+    repo_scope: generic
+    release_group: core
   - name: gitlab
     path: gitlab
     status: stable
+    type: core
+    repo_scope: generic
+    release_group: core
     companion_skills:
       - git
       - gitlab-mr-comment-analysis
   - name: gitlab-mr-comment-analysis
     path: gitlab-mr-comment-analysis
     status: stable
+    type: core
+    repo_scope: generic
+    release_group: core
     companion_skills:
       - gitlab
       - multi-spawn-agent
   - name: private-service-contributor
     path: private-service-contributor
     status: stable
+    type: overlay
+    repo_scope: private-service
+    release_group: private-service
     companion_skills:
       - python-fastapi-contributor
   - name: private-service-mr-comment-analysis
     path: private-service-mr-comment-analysis
     status: stable
+    type: overlay
+    repo_scope: private-service
+    release_group: private-service
     companion_skills:
       - gitlab
       - gitlab-mr-comment-analysis
@@ -41,25 +62,43 @@ skills:
   - name: private-service-parallel-tests
     path: private-service-parallel-tests
     status: stable
+    type: overlay
+    repo_scope: private-service
+    release_group: private-service
     companion_skills:
       - private-service-technical-analysis
       - repository-technical-analysis
   - name: private-service-technical-analysis
     path: private-service-technical-analysis
     status: stable
+    type: overlay
+    repo_scope: private-service
+    release_group: private-service
     companion_skills:
       - repository-technical-analysis
   - name: jira
     path: jira
     status: stable
+    type: core
+    repo_scope: generic
+    release_group: core
   - name: multi-spawn-agent
     path: multi-spawn-agent
     status: stable
+    type: core
+    repo_scope: generic
+    release_group: core
   - name: python-fastapi-contributor
     path: python-fastapi-contributor
     status: stable
+    type: core
+    repo_scope: generic
+    release_group: core
     companion_skills:
       - repository-technical-analysis
   - name: repository-technical-analysis
     path: repository-technical-analysis
     status: stable
+    type: core
+    repo_scope: generic
+    release_group: core
