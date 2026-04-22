@@ -53,7 +53,7 @@ def load_manifest(path: Path) -> dict[str, object]:
                 key, value = stripped.split(":", 1)
                 key = key.strip()
                 value = value.strip()
-                if key in {"path", "status"}:
+                if key in {"path", "status", "type", "repo_scope", "release_group", "owner"}:
                     current_skill[key] = value
 
     return {"shared_files": shared_files, "skills": skills}
@@ -302,6 +302,13 @@ def main() -> None:
                 f"  - {manifest_path}: manifest name/path mismatch: name '{skill['name']}' path '{skill['path']}'"
             )
             total_errors += 1
+        for required_key in ("type", "repo_scope", "release_group"):
+            if required_key not in skill or not skill[required_key]:
+                print(f"{manifest_path}: FAIL")
+                print(
+                    f"  - {manifest_path}: manifest entry for '{skill['name']}' missing required field '{required_key}'"
+                )
+                total_errors += 1
 
     if len(manifest_names) != len(manifest["skills"]):
         print(f"{manifest_path}: FAIL")
