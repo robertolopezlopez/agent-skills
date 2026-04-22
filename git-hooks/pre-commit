@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+script_dir="$(cd -- "$(dirname -- "$0")" && pwd)"
+repo_root="$(cd -- "$script_dir/../.." && pwd)"
+validator="$repo_root/scripts/validate_skill.py"
+
+if [[ ! -x "$validator" ]]; then
+  echo "missing executable validator: $validator" >&2
+  exit 1
+fi
+
+changed_skill_paths=()
+
+while IFS= read -r path; do
+  [[ -z "$path" ]] && continue
+  top="${path%%/*}"
+  if [[ -f "$repo_root/$top/SKILL.md" ]]; then
+    changed_skill_paths+=("$repo_root/$top")
+  fi
+done < <(git -C "$repo_root" diff --cached --name-only)
+
+if [[ ${#changed_skill_paths[@]} -eq 0 ]]; then
+  exit 0
+fi
+
+unique_paths=()
+declare -A seen
+for path in "${changed_skill_paths[@]}"; do
+  if [[ -z "${seen[$path]:-}" ]]; then
+    seen[$path]=1
+    unique_paths+=("$path")
+  fi
+done
+
+echo "Validating changed skills..."
+python3 "$validator" "${unique_paths[@]}"
