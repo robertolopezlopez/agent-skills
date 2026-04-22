@@ -53,6 +53,8 @@ Recommended sections:
 - Safety notes
 - Companion skills or ordering rules
 
+See `docs/skill-schema.md` for the preferred section order and migration guidance.
+
 ## Design rules
 
 - Keep skills modular. Prefer a small focused skill over a large mixed-purpose skill.
