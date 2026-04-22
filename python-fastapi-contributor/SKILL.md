@@ -7,6 +7,23 @@ description: Use this when working on Python or FastAPI code in any repository, 
 
 Use this skill for routine engineering work in Python or FastAPI repositories.
 
+## When to Use
+
+Use this skill when the user wants:
+
+- routine implementation in a Python or FastAPI repository
+- debugging or stabilization work in a Python service
+- targeted validation after code changes
+- a pull request or merge request summary for Python/FastAPI work
+
+## When Not to Use
+
+Do not use this skill when:
+
+- the task is primarily remote transport access such as Jira or GitLab fetch
+- the task is primarily investigation-first root-cause analysis better handled by `repository-technical-analysis`
+- a repo-specific overlay already fully defines the required local workflow and this generic layer adds no value
+
 ## First Read
 
 - Read local contributor docs first when they exist: `AGENTS.md`, `README`, `CONTRIBUTING.md`, `Makefile`, and `pyproject.toml`.
@@ -42,12 +59,35 @@ When asked to prepare a pull request or merge request description:
 3. Produce a concise, fully rendered summary focused on what changed and why.
 4. Fill required sections instead of leaving placeholders behind.
 
+## Outputs / Artifacts
+
+This skill should usually produce:
+
+1. implemented code changes or a clear blocker
+2. targeted validation results
+3. concise summary of what changed and why
+4. pull request or merge request text when requested
+
+When a local workflow artifact is being used, this skill may also enrich:
+
+- `task_<issue>.md`
+- `review_mr_<MR>.md`
+- `analysis_mr_<MR>.md`
+
 ## General Notes
 
 - Infer the default branch from the repository; use `main` or `master` as appropriate.
 - If `git` or `curl` fails because of authentication or authorization problems, stop immediately and inform the user instead of continuing with incomplete inputs.
 - If `git` times out while fetching or pushing resources, stop immediately and inform the user instead of continuing with incomplete inputs.
 - When a project also has a repo-specific overlay skill, use both: keep the generic workflow here and let the overlay supply project-local commands and anchors.
+
+## Companion Skills
+
+Common pairings:
+
+- repo-specific overlay skills for local commands, defaults, and validation
+- `repository-technical-analysis` when the task is investigation-heavy before implementation
+- transport skills such as `jira` or `gitlab` when the work starts from remote issue or MR context
 
 ## Artifact-Aware Behavior
 
@@ -59,6 +99,12 @@ When a local workflow artifact is provided:
 - preserve the shared core sections from `../ARTIFACTS.md` when updating the same artifact
 
 This is additive only and does not replace the normal repository-aware contributor workflow.
+
+## Safety Notes
+
+- Do not revert unrelated user changes in the worktree.
+- If the task is framed as investigation or change planning, ask for approval before editing code.
+- Stop when authenticated `git` or `curl` access fails instead of continuing with partial context.
 
 ## Self-Improving Behavior
 

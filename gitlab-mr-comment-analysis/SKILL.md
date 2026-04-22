@@ -8,6 +8,25 @@ description: "Analyze GitLab merge requests comment-by-comment. Consume MR conte
 Use this skill from a GitLab repository root when the user wants an MR analyzed comment-by-comment.
 Use this skill as a workflow-specific overlay for `gitlab`.
 
+## When to Use
+
+Use this skill when the user wants to:
+
+- analyze a GitLab MR comment-by-comment
+- group actionable unresolved review comments into issues
+- create or refresh `work_plan_mr_<MR>.md`
+- create or refresh `mr_<MR>_comment_report.md`
+- run quick-fix analysis for selected grouped issues
+
+## When Not to Use
+
+Do not use this skill when:
+
+- the task is only MR transport access or identity resolution; use `gitlab`
+- the task is only local Git repository inspection; use `git`
+- the task is primarily repository-specific technical analysis or code changes without grouped MR comment analysis
+- the user has not authorized subagents and parallel delegation is the only reason to invoke this skill
+
 ## First Read
 
 - Read the repository `AGENTS.md` before running commands.
@@ -57,6 +76,16 @@ Quick-fix mode should:
 - limit analysis to the selected grouped issues
 - avoid rebuilding the full MR report unless the user asks for a full rerun
 - hand off only the selected grouped issues to the repository-specific companion workflow when technical conclusions or code changes are needed
+
+## Companion Skills
+
+Use this skill as the workflow and grouping layer on top of `gitlab`.
+
+Common pairings:
+
+- `gitlab` for transport, MR identity, thread state, and comment-link normalization
+- repository-specific analysis skills for code-aware conclusions or proposed fixes
+- `multi-spawn-agent` only when the user has explicitly authorized subagents or parallel work
 
 ## Workflow
 
@@ -227,6 +256,28 @@ For the final on-screen report, list each grouped issue with:
 
 In quick-fix mode, the on-screen report may be limited to the selected grouped issues only.
 
+## Validation
+
+- Always refresh live MR comments and thread status through `gitlab` before grouping issues.
+- Keep grouped-issue numbering session-local and map it back to stable issue labels in artifacts.
+- Exclude resolved comments unless the user explicitly asks for them.
+- Keep filenames, issue labels, and report structure stable across reruns.
+
+## Outputs / Artifacts
+
+This skill may create or update:
+
+- `work_plan_mr_<MR>.md`
+- `analysis_mr_<MR>_issue_<NN>.md`
+- `mr_<MR>_comment_report.md`
+
+It should also return:
+
+- grouped-issue summaries
+- issue-number to stable-label mappings
+- selected issue paths in quick-fix mode
+- reply/waiting status when relevant
+
 ## Artifact-Aware Behavior
 
 When the user provides a GitLab bootstrap artifact such as `review_mr_<MR>.md` or `analysis_mr_<MR>.md`:
@@ -242,3 +293,9 @@ When rerunning analysis for the same MR, preserve local learned sections such as
 Keep learned sections short, operational, and tied to observed reviewer behavior rather than generic advice.
 When the same reviewer or theme repeats, prefer heuristics phrased like `when reviewer flags X, verify Y before replying`.
 Keep grouped-issue analysis, filenames, and report structure transport-agnostic so downstream artifacts stay stable when `gitlab` switches between MCP and fallback transport.
+
+## Safety Notes
+
+- Do not duplicate GitLab transport or project-resolution logic here; consume it from `gitlab`.
+- Do not analyze resolved comments unless the user asks for them.
+- Use `multi-spawn-agent` only when subagents are explicitly authorized.
