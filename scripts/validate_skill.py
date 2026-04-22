@@ -20,6 +20,45 @@ KNOWN_PATH_PREFIXES = (
 )
 
 
+def load_manifest(path: Path) -> dict[str, object]:
+    shared_files: list[str] = []
+    skills: list[dict[str, str]] = []
+    current_skill: dict[str, str] | None = None
+    section: str | None = None
+
+    for raw_line in path.read_text().splitlines():
+        line = raw_line.rstrip()
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        if stripped == "shared_files:":
+            section = "shared_files"
+            current_skill = None
+            continue
+        if stripped == "skills:":
+            section = "skills"
+            current_skill = None
+            continue
+        if section == "shared_files" and stripped.startswith("- "):
+            shared_files.append(stripped[2:].strip())
+            continue
+        if section == "skills":
+            if stripped.startswith("- name:"):
+                current_skill = {"name": stripped.split(":", 1)[1].strip()}
+                skills.append(current_skill)
+                continue
+            if current_skill is None:
+                continue
+            if ":" in stripped and not stripped.startswith("- "):
+                key, value = stripped.split(":", 1)
+                key = key.strip()
+                value = value.strip()
+                if key in {"path", "status"}:
+                    current_skill[key] = value
+
+    return {"shared_files": shared_files, "skills": skills}
+
+
 def extract_frontmatter(text: str) -> str | None:
     if not text.startswith("---\n"):
         return None
@@ -178,6 +217,10 @@ def main() -> None:
     args = parser.parse_args()
 
     repo_root = Path(__file__).resolve().parents[1]
+    manifest_path = repo_root / "skills_manifest.yaml"
+    manifest = load_manifest(manifest_path)
+    manifest_paths = {Path(skill["path"]) for skill in manifest["skills"]}
+    manifest_names = {skill["name"] for skill in manifest["skills"]}
 
     targets: list[Path] = []
     if args.paths:
@@ -229,6 +272,36 @@ def main() -> None:
             total_warnings += len(warning_lines)
         else:
             print(f"{skill_dir}: OK")
+
+    repo_skill_dirs = {path.relative_to(repo_root) for path in discover_top_level_skill_dirs(repo_root)}
+    for path in sorted(repo_skill_dirs - manifest_paths):
+        print(f"{manifest_path}: FAIL")
+        print(f"  - {manifest_path}: missing manifest entry for skill path '{path}'")
+        total_errors += 1
+
+    for path in sorted(manifest_paths - repo_skill_dirs):
+        print(f"{manifest_path}: FAIL")
+        print(f"  - {manifest_path}: manifest path does not resolve to a top-level skill: '{path}'")
+        total_errors += 1
+
+    for skill in manifest["skills"]:
+        if skill["path"] != skill["name"]:
+            print(f"{manifest_path}: FAIL")
+            print(
+                f"  - {manifest_path}: manifest name/path mismatch: name '{skill['name']}' path '{skill['path']}'"
+            )
+            total_errors += 1
+
+    if len(manifest_names) != len(manifest["skills"]):
+        print(f"{manifest_path}: FAIL")
+        print(f"  - {manifest_path}: duplicate skill name entries in manifest")
+        total_errors += 1
+
+    for shared_file in manifest["shared_files"]:
+        if not (repo_root / shared_file).exists():
+            print(f"{manifest_path}: FAIL")
+            print(f"  - {manifest_path}: shared file does not exist: '{shared_file}'")
+            total_errors += 1
 
     if total_warnings:
         print(f"\nWarnings: {total_warnings}")
