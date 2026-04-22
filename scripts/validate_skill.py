@@ -9,7 +9,15 @@ from pathlib import Path
 FRONTMATTER_NAME_RE = re.compile(r"^name:\s*(.+?)\s*$", re.MULTILINE)
 FRONTMATTER_DESCRIPTION_RE = re.compile(r"^description:\s*(.+?)\s*$", re.MULTILINE)
 RELATIVE_MD_LINK_RE = re.compile(r"\[[^\]]+\]\((?![a-z]+:|/|#)([^)]+)\)")
-INLINE_CODE_PATH_RE = re.compile(r"`((?:[^`/]+/)+[^`]+)`")
+INLINE_CODE_SPAN_RE = re.compile(r"`([^`\n]+)`")
+KNOWN_PATH_PREFIXES = (
+    "./",
+    "../",
+    "scripts/",
+    "templates/",
+    "references/",
+    "assets/",
+)
 
 
 def extract_frontmatter(text: str) -> str | None:
@@ -78,9 +86,14 @@ def validate_skill_dir(skill_dir: Path) -> list[str]:
     if heading is None:
         errors.append("missing primary heading starting with '# '")
 
-    if "## Workflow" not in body and "## First Read" not in body and "## Inputs" not in body:
+    if (
+        "## Workflow" not in body
+        and "## First Read" not in body
+        and "## Inputs" not in body
+        and "## Input" not in body
+    ):
         errors.append(
-            "expected at least one operational section: ## Workflow, ## First Read, or ## Inputs"
+            "expected at least one operational section: ## Workflow, ## First Read, ## Inputs, or ## Input"
         )
 
     errors.extend(validate_relative_references(skill_dir, text))
@@ -93,9 +106,9 @@ def validate_relative_references(skill_dir: Path, text: str) -> list[str]:
     linked_paths = set()
     for match in RELATIVE_MD_LINK_RE.finditer(text):
         linked_paths.add(match.group(1).strip())
-    for match in INLINE_CODE_PATH_RE.finditer(text):
+    for match in INLINE_CODE_SPAN_RE.finditer(text):
         candidate = match.group(1).strip()
-        if any(sep in candidate for sep in ("/",)):
+        if looks_like_repo_path(candidate):
             linked_paths.add(candidate)
 
     for raw in sorted(linked_paths):
@@ -111,6 +124,16 @@ def validate_relative_references(skill_dir: Path, text: str) -> list[str]:
 
 def prefix_errors(skill_dir: Path, errors: list[str]) -> list[str]:
     return [f"{skill_dir}: {error}" for error in errors]
+
+
+def looks_like_repo_path(candidate: str) -> bool:
+    if not candidate or "/" not in candidate:
+        return False
+    if any(ch in candidate for ch in ("\n", "\r", " ", ">", "<")):
+        return False
+    if "://" in candidate:
+        return False
+    return candidate.startswith(KNOWN_PATH_PREFIXES)
 
 
 def discover_top_level_skill_dirs(repo_root: Path) -> list[Path]:
