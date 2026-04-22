@@ -7,6 +7,23 @@ description: Inspect local Git repository state and derive metadata from configu
 
 Use this skill for local Git-derived context that other skills can build on.
 
+## When to Use
+
+Use this skill when the task needs:
+
+- local remote URL or host inspection
+- repository project-path resolution
+- URL-encoded project path output
+- optional GitLab numeric project ID lookup for a companion skill
+
+## When Not to Use
+
+Do not use this skill when:
+
+- the task is a full GitLab MR workflow better handled by `gitlab`
+- the task is a Jira or other non-Git repository workflow
+- deeper transport-specific logic belongs in a companion skill instead of generic Git context resolution
+
 ## Current capability
 
 Resolve remote-derived project identity, including:
@@ -54,6 +71,13 @@ Resolve and fetch a numeric GitLab project ID:
 python3 git/scripts/resolve_project_id.py --fetch-id --json
 ```
 
+## Validation
+
+- Prefer the helper script for consistent parsing and machine-readable output.
+- Read `origin` first unless the user or repo conventions require another remote.
+- Preserve nested groups and stable encoding rules in returned project identity fields.
+- Refresh conclusions from live local Git configuration before reusing prior notes.
+
 ## Output contract
 
 When another skill needs repository identity, return these fields:
@@ -78,6 +102,19 @@ Companion-skill guidance:
 - if `project_id` is unavailable, fall back to `/projects/<encoded_project_path>/...`
 - companion skills must decide whether the resolved `host` is compatible with their own platform-specific APIs
 
+## Outputs / Artifacts
+
+This skill should return repository identity fields such as:
+
+- `remote`
+- `remote_url`
+- `host`
+- `project_path`
+- `encoded_project_path`
+- `project_id`
+
+It is normally a context-producing skill and does not need to create local artifacts.
+
 ## Self-Improving Behavior
 
 When rerunning repository identity resolution for the same checkout:
@@ -87,9 +124,16 @@ When rerunning repository identity resolution for the same checkout:
 - record unusual remote formats, SSH aliases, or project ID lookup failures once with the shortest useful explanation
 - demote, mark stale, or remove notes contradicted by changed remotes or updated lookup results
 
-## Notes
+## Companion Skills
+
+Common pairings:
+
+- `gitlab` for GitLab MR and discussion workflows
+- any companion skill that needs normalized repository identity before calling its own API or helper
+
+## Safety Notes
 
 - Prefer `origin` unless repository conventions say otherwise.
 - Preserve nested groups exactly.
 - Strip a trailing `.git` suffix before building a project path.
-- Use this skill for Git transport and repository-context discovery; let companion skills handle GitLab merge requests, issues, and deeper workflows.
+- Keep this skill focused on Git repository-context discovery; let companion skills handle deeper platform-specific workflows.

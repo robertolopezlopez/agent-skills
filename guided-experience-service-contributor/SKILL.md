@@ -7,6 +7,23 @@ description: Use this with python-fastapi-contributor when working in the privat
 
 Use this skill as a repo-specific overlay for `python-fastapi-contributor`.
 
+## When to Use
+
+Use this skill when the user is working in the `private-service` repository and needs:
+
+- repo-specific implementation workflow
+- repo-specific validation commands
+- repo-specific MR summary rules
+- repo-specific Weaviate setup guidance
+
+## When Not to Use
+
+Do not use this skill when:
+
+- the task is outside the `private-service` repository
+- the generic `python-fastapi-contributor` workflow is sufficient with no repo-local rules needed
+- the task is primarily transport access such as Jira or GitLab fetch
+
 ## First Read
 
 - Read `AGENTS.md` before making changes.
@@ -59,6 +76,20 @@ When a local workflow artifact is provided:
 
 This is additive only and does not replace the normal `python-fastapi-contributor` workflow.
 
+## Outputs / Artifacts
+
+This skill should usually produce:
+
+- repo-specific command and validation choices
+- repo-specific implementation guidance layered on top of `python-fastapi-contributor`
+- repo-specific MR summary guidance when requested
+
+When local workflow artifacts are in use, this skill may also enrich:
+
+- `task_<issue>.md`
+- `review_mr_<MR>.md`
+- `analysis_mr_<MR>.md`
+
 ## Self-Improving Behavior
 
 When rerunning implementation, debugging, or stabilization work in this repository:
@@ -70,6 +101,20 @@ When rerunning implementation, debugging, or stabilization work in this reposito
 - demote, mark stale, or remove heuristics contradicted by new evidence
 
 This keeps repo-specific contributor artifacts useful across reruns without replacing the base `python-fastapi-contributor` workflow.
+
+## Companion Skills
+
+Common pairings:
+
+- `python-fastapi-contributor` for the generic implementation and validation loop
+- `repository-technical-analysis` for investigation-heavy work
+- `private-service-technical-analysis` for repo-specific investigation overlays
+
+## Safety Notes
+
+- Keep this skill focused on repo-local behavior; do not duplicate generic contributor guidance unnecessarily.
+- Stop when authenticated `git` or `curl` access fails instead of continuing with partial context.
+- Prefer repo-native commands and `uv` workflows over ad hoc alternatives.
 
 ## Useful Repo Anchors
 

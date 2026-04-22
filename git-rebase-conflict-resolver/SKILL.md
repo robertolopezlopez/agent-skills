@@ -7,6 +7,23 @@ description: Rebase a Git branch onto a user-provided target branch, defaulting 
 
 Take an optional target branch input. Default to `origin/main`. Rebase carefully. Merge intent, not markers.
 
+## When to Use
+
+Use this skill when the user wants to:
+
+- rebase a branch onto `origin/main` or another target branch
+- resolve rebase or merge conflicts carefully
+- preserve compatible intent from both sides of a conflict
+- validate the rebased branch before finishing
+
+## When Not to Use
+
+Do not use this skill when:
+
+- the task is a non-rebase branch review with no history rewrite
+- the user wants destructive reset behavior not tied to conflict-preserving rebase work
+- the task is general Git repository context lookup rather than rebase execution
+
 ## Input
 
 - Accept an optional target branch.
@@ -65,6 +82,13 @@ Use the repository's real validation flow.
 - If validation fails, fix the branch before considering the rebase complete.
 - When a validation step proves noisy or low-signal after conflict resolution, record it once in `Post-Rebase Validation Lessons` with the better follow-up command.
 
+## Validation
+
+- Refresh the chosen target branch before rebasing.
+- Verify merged conflict resolution behavior from live files and Git stages, not just conflict markers.
+- Run relevant lint, format, and test commands before treating the rebase as complete.
+- Keep unrelated local changes intact throughout the workflow.
+
 ## Report the outcome
 
 State:
@@ -77,6 +101,21 @@ State:
 - whether they passed
 - whether the worktree is clean
 - whether the branch now diverges from its remote because history was rewritten
+
+## Outputs / Artifacts
+
+This skill should produce:
+
+- a rebased branch state
+- a concise outcome report covering conflict resolution and validation
+
+The report should include:
+
+- target branch used
+- files with manual conflicts
+- important merge decisions
+- validation commands run and results
+- final worktree state
 
 ## Safety rules
 
@@ -93,3 +132,17 @@ When rerunning rebases for the same branch family or recurring conflict area:
 - refresh conclusions against the live conflict markers, Git stages, and current validation output before reusing them
 - promote repeated confirmed observations into short heuristics, preferably phrased like `when conflict touches X and Y, validate Z first`
 - demote, mark stale, or remove heuristics contradicted by newer branch state or validation evidence
+
+## Companion Skills
+
+Common pairings:
+
+- repository-specific contributor skills for repo-local validation commands
+- repository-specific analysis skills when conflict resolution needs deeper investigation before merging intent
+
+## Safety Notes
+
+- Never use destructive resets unless explicitly requested.
+- Never discard unrelated local changes.
+- Never claim both sides were preserved without verifying the merged code path.
+- Never stop after resolving conflicts without running relevant validation.

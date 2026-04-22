@@ -7,6 +7,23 @@ description: Use this with repository-technical-analysis when performing technic
 
 Use this skill as a repo-specific overlay for `repository-technical-analysis`.
 
+## When to Use
+
+Use this skill when the user is doing investigation-first work in the `private-service` repository and needs:
+
+- repo-specific reproduction commands
+- repo-specific investigation anchors
+- repo-specific Weaviate guidance
+- repo-specific analysis artifact expectations
+
+## When Not to Use
+
+Do not use this skill when:
+
+- the task is outside the `private-service` repository
+- the generic `repository-technical-analysis` workflow is sufficient with no repo-local rules needed
+- the task is primarily transport access such as Jira or GitLab fetch
+
 ## First Read
 
 - Read `AGENTS.md` before starting.
@@ -34,6 +51,13 @@ Use this skill as a repo-specific overlay for `repository-technical-analysis`.
 - Run `make lint` after code changes are approved and implemented.
 - Run `make format` when formatting drift is introduced.
 
+## Validation
+
+- Prefer the smallest reproduction or analysis command that still proves the issue.
+- Use repo-native `Makefile` targets when they match the task, but switch to direct `uv run pytest ...` commands when tighter control is needed.
+- Reconfirm conclusions against current repo state, test output, and environment setup before closing the investigation.
+- Record better reproduction or validation shortcuts when a default command proves noisy or low-signal.
+
 ## Environment Notes
 
 - Pytest markers and ruff settings are defined in `pyproject.toml`.
@@ -49,6 +73,20 @@ When a local workflow artifact is provided:
 
 This is additive only and does not replace the normal `repository-technical-analysis` workflow.
 
+## Outputs / Artifacts
+
+This skill may produce or enrich:
+
+- `analysis_<relevant_name>.md`
+- `analysis_<relevant_name>_slides.html`
+- `analysis_<relevant_name>_slides_notes.md`
+
+It should also provide repo-specific:
+
+- reproduction choices
+- environment prerequisites
+- validation guidance
+
 ## Self-Improving Behavior
 
 When rerunning investigation for the same repo area or failure mode:
@@ -60,6 +98,20 @@ When rerunning investigation for the same repo area or failure mode:
 - demote, mark stale, or remove heuristics contradicted by new evidence
 
 This keeps repo-specific investigation artifacts useful across reruns without replacing the base `repository-technical-analysis` workflow.
+
+## Companion Skills
+
+Common pairings:
+
+- `repository-technical-analysis` for the generic investigation workflow
+- `private-service-contributor` when investigation leads to approved implementation work
+- `gitlab` or `jira` when the investigation starts from remote MR or issue context
+
+## Safety Notes
+
+- Keep this skill focused on repo-local investigation guidance; do not duplicate the base analysis workflow unnecessarily.
+- Stop when authenticated `git` or `curl` access fails instead of continuing with partial context.
+- Reproduce from live code and test evidence before concluding.
 
 ## Useful Repo Anchors
 

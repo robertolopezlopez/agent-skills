@@ -8,6 +8,22 @@ description: "Analyze private-service merge request comments by consuming groupe
 Use this skill from the `private-service` repository root when the user wants an MR analyzed comment-by-comment.
 This skill consumes upstream GitLab MR context and grouped issue artifacts, then enriches them with private-service-specific technical analysis, verdicts, and proposed changes.
 
+## When to Use
+
+Use this skill when the user wants unresolved MR review comments analyzed for the `private-service` repository and needs:
+
+- grouped issue analysis grounded in local repo code
+- private-service-specific verdicts and risks
+- proposed changes layered onto grouped issue analysis files
+
+## When Not to Use
+
+Do not use this skill when:
+
+- the task is only GitLab transport access or MR grouping; use `gitlab` or `gitlab-mr-comment-analysis`
+- the task is outside the `private-service` repository
+- the task is general repo investigation with no grouped MR comment workflow
+
 ## First Read
 
 - Read `AGENTS.md` before running commands.
@@ -28,6 +44,18 @@ Accept, in order of preference:
 
 Prefer consuming existing upstream artifacts instead of repeating GitLab fetch or grouping work locally.
 If the user provides `review_mr_<MR>.md` or `analysis_mr_<MR>.md`, treat it as preferred bootstrap context before continuing through the normal upstream GitLab analysis flow.
+
+## Companion Skills
+
+Use this skill as a repo-specific overlay on top of the upstream GitLab MR analysis workflow.
+
+Common pairings:
+
+- `gitlab` for transport, MR identity, and thread normalization
+- `gitlab-mr-comment-analysis` for grouped issue planning and reporting scaffolds
+- `repository-technical-analysis` plus `private-service-technical-analysis` for local technical conclusions
+- `private-service-contributor` for repo-specific proposed changes
+- `multi-spawn-agent` only when subagents are explicitly authorized
 
 ## Workflow
 
@@ -161,6 +189,34 @@ Make sure each per-issue analysis adds:
 - a verdict grounded in local code and test inspection
 - a proposed changes section produced with `private-service-contributor`
 - any repo-specific prerequisites, environment gaps, blockers, or follow-up checks that materially affect the conclusion
+
+## Validation
+
+- Refresh and consume upstream grouped issue context before local analysis.
+- Keep GitLab transport and grouping logic upstream; do not duplicate it here.
+- Ground verdicts in local code, test, and environment inspection.
+- Keep per-issue analysis files aligned with the stable grouped issue labels and upstream report structure.
+
+## Outputs / Artifacts
+
+This skill may create or enrich:
+
+- `analysis_mr_<MR>_issue_<NN>.md`
+- `mr_<MR>_comment_report.md` through the upstream reporting flow
+- `work_plan_mr_<MR>.md` indirectly through the upstream grouping workflow
+
+It should add:
+
+- private-service-specific technical analysis
+- repo-specific verdicts
+- proposed changes
+- repo-specific blockers, prerequisites, and follow-up checks
+
+## Safety Notes
+
+- Do not duplicate GitLab transport, project resolution, or raw comment grouping logic here.
+- Use `multi-spawn-agent` only when subagents are explicitly authorized.
+- Reuse upstream artifact structure instead of inventing a parallel report contract.
 
 ## Useful Repo Anchors
 

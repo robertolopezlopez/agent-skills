@@ -7,6 +7,22 @@ description: Review the current branch against a target Git branch, defaulting t
 
 Review changes against a target branch. Default to `origin/main`. Do not write code. Write the review to both the screen and a Markdown file. Focus on code style, architecture, testing, and possible regressions.
 
+## When to Use
+
+Use this skill when the user wants:
+
+- a branch diff reviewed without changing code
+- review comments focused on regressions, architecture, testing, or maintainability
+- a written review artifact for the current branch against a target branch
+
+## When Not to Use
+
+Do not use this skill when:
+
+- the user wants code changes, fixes, or implementation work
+- the task is primarily MR transport access or comment grouping
+- the task is repository investigation rather than branch-diff review
+
 ## Inputs
 
 - Accept an optional target branch.
@@ -48,6 +64,13 @@ Focus on comments worth raising. Do not pad the review with praise or trivial ob
 - When a risk was missed in a prior review and is now visible in the diff or surrounding code, record it once in `Missed In Prior Review` with the signal that should have been checked earlier.
 - If no meaningful findings exist, say so clearly.
 
+## Validation
+
+- Review committed changes first, expanding to uncommitted changes only when relevant to the request.
+- Keep findings grounded in the live diff and surrounding code.
+- Prefer concrete file and line references when available.
+- Keep the report concise and ordered by severity.
+
 ## Output format
 
 Write the same review content to both the screen and the output file.
@@ -83,6 +106,19 @@ Write the same review content to both the screen and the output file.
 - Use Markdown.
 - If there are no findings, still create the file and state that no review comments were warranted.
 
+## Outputs / Artifacts
+
+This skill should produce:
+
+- an on-screen review summary
+- a Markdown review file such as `review_<branch>.md`
+
+The review should include:
+
+- findings ordered by severity
+- open questions when materially relevant
+- short summary of review scope and result
+
 ## Artifact-Aware Behavior
 
 When a local workflow artifact is provided:
@@ -93,6 +129,13 @@ When a local workflow artifact is provided:
 - if you update the same artifact, preserve the shared core sections from `../ARTIFACTS.md`
 
 This is additive only and does not replace the normal diff-based review workflow.
+
+## Companion Skills
+
+Common pairings:
+
+- local workflow artifacts such as `task_<issue>.md` or `review_mr_<MR>.md` for extra review context
+- repository-specific contributor or analysis skills only after the review is complete and the user asks for follow-on changes
 
 ## Self-Improving Behavior
 
@@ -105,3 +148,9 @@ When rerunning review for the same branch, MR, or code area:
 - demote, mark stale, or remove heuristics contradicted by new code or evidence
 
 This makes the review artifact more useful across reruns without replacing the normal evidence-based review flow.
+
+## Safety Notes
+
+- Do not write code or apply fixes as part of this skill.
+- Keep existing user changes intact.
+- Do not invent issues without evidence from the diff and surrounding code.

@@ -7,6 +7,22 @@ description: "Use this when working in the private-service repository and the us
 
 Use this skill for broad test execution in `../private-service` when the goal is to run both the unit and integration suites in parallel. Prefer 2 parallel workers when subagents are available and explicitly authorized by the user, then review any failures or suspicious errors with `repository-technical-analysis` plus `private-service-technical-analysis`.
 
+## When to Use
+
+Use this skill when the user wants:
+
+- both unit and integration suites run for `private-service`
+- broad parallel validation in this repository
+- follow-up failure analysis after broad test execution
+
+## When Not to Use
+
+Do not use this skill when:
+
+- the task only needs a narrow targeted test command
+- the task is outside the `private-service` repository
+- the user has not authorized subagents and broad parallelization is the main reason to invoke this skill
+
 ## First Read
 
 - Read `../private-service/AGENTS.md` before running commands.
@@ -87,6 +103,13 @@ Do not wait immediately after spawning. Wait after both workers have started or 
 - Do not run functional tests unless the user asks for them; this skill is for unit and integration suites.
 - When a suite, prerequisite step, or helper command proves flaky or low-signal, record it once in `Flaky or Low-Signal Checks` or `Known Prerequisite Gaps` with the shortest useful explanation.
 
+## Validation
+
+- Run the exact unit and integration commands documented by this skill unless the repo workflow has changed.
+- Fail fast on missing prerequisites such as `IAC_TOKEN` before expensive integration execution.
+- Report raw suite outcomes separately from follow-up technical analysis.
+- Prefer repo-native helpers for environment lifecycle when they exist.
+
 ## Reporting
 
 When summarizing results:
@@ -96,6 +119,16 @@ When summarizing results:
 3. List failing tests or modules clearly.
 4. Call out missing environment or auth prerequisites explicitly.
 5. Add a separate technical-analysis section that summarizes likely root causes, failure groupings, and next debugging steps.
+
+## Outputs / Artifacts
+
+This skill should provide:
+
+- unit suite outcome
+- integration suite outcome
+- exact commands run
+- missing prerequisite or environment notes
+- follow-up technical analysis when failures occur
 
 ## Artifact-Aware Behavior
 
@@ -108,6 +141,14 @@ When a local workflow artifact is provided:
 
 This is additive only and does not replace the existing unit/integration test workflow.
 
+## Companion Skills
+
+Common pairings:
+
+- `repository-technical-analysis` for failure investigation after test execution
+- `private-service-technical-analysis` for repo-specific failure analysis
+- `multi-spawn-agent` only when subagents are explicitly authorized
+
 ## Self-Improving Behavior
 
 When rerunning broad unit and integration execution for the same repository state or failure family:
@@ -119,6 +160,12 @@ When rerunning broad unit and integration execution for the same repository stat
 - demote, mark stale, or remove heuristics contradicted by new output or environment evidence
 
 This keeps broad test-run artifacts useful across reruns without replacing the normal execution and follow-up analysis workflow.
+
+## Safety Notes
+
+- Do not run functional tests unless the user asks for them.
+- Do not treat missing prerequisites as flaky failures; report them explicitly.
+- Keep unit and integration results separated in both execution and reporting.
 
 ## Useful Repo Anchors
 
