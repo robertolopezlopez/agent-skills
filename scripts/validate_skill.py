@@ -210,6 +210,11 @@ def main() -> None:
         description="Validate top-level skill directories in this repository."
     )
     parser.add_argument(
+        "--strict-new",
+        action="store_true",
+        help="Treat missing recommended sections as hard failures for explicit path targets.",
+    )
+    parser.add_argument(
         "paths",
         nargs="*",
         help="Optional skill directories or SKILL.md files to validate. Defaults to all top-level skills.",
@@ -240,6 +245,12 @@ def main() -> None:
         errors = validate_skill_dir(skill_dir)
         warning_lines = [line for line in errors if "WARNING:" in line]
         error_lines = [line for line in errors if "WARNING:" not in line]
+
+        if args.strict_new and args.paths:
+            error_lines.extend(
+                [warning.replace("WARNING: ", "") for warning in warning_lines]
+            )
+            warning_lines = []
 
         skill_md = skill_dir / "SKILL.md"
         if skill_md.exists():
