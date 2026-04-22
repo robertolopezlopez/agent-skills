@@ -4,6 +4,7 @@ set -euo pipefail
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd -- "$script_dir/.." && pwd)"
 dest_root="${CODEX_HOME:-$HOME/.codex}/skills"
+manifest_reader="$repo_root/scripts/skill_manifest.py"
 
 usage() {
   cat <<'EOF'
@@ -68,36 +69,56 @@ run_or_print() {
 }
 
 collect_skill_dirs() {
+  manifest_paths="$("$manifest_reader" list-skill-paths)"
   if [[ "$changed_only" == true ]]; then
     git -C "$repo_root" status --short | while IFS= read -r line; do
       path="${line:3}"
       [[ -n "$path" ]] || continue
       top="${path%%/*}"
-      if [[ -f "$repo_root/$top/SKILL.md" ]]; then
+      if printf '%s\n' "$manifest_paths" | grep -Fxq "$top"; then
         printf '%s\n' "$repo_root/$top"
       fi
     done | sort -u
   else
-    for skill_dir in "$repo_root"/*; do
-      if [[ -d "$skill_dir" && -f "$skill_dir/SKILL.md" ]]; then
-        printf '%s\n' "$skill_dir"
+    while IFS= read -r skill_path; do
+      [[ -n "$skill_path" ]] || continue
+      if [[ -d "$repo_root/$skill_path" && -f "$repo_root/$skill_path/SKILL.md" ]]; then
+        printf '%s\n' "$repo_root/$skill_path"
       fi
-    done | sort
+    done <<< "$manifest_paths"
   fi
 }
 
-run_or_print mkdir -p "$dest_root" "$dest_root/scripts"
+collect_shared_files() {
+  while IFS= read -r shared_file; do
+    [[ -n "$shared_file" ]] || continue
+    printf '%s\n' "$shared_file"
+  done < <("$manifest_reader" list-shared-files)
+}
 
-if [[ -f "$repo_root/ARTIFACTS.md" ]]; then
-  run_or_print cp "$repo_root/ARTIFACTS.md" "$dest_root/ARTIFACTS.md"
+copy_shared_file() {
+  local relative_path="$1"
+  local src="$repo_root/$relative_path"
+  local dest="$dest_root/$relative_path"
+  [[ -f "$src" ]] || return 0
+  run_or_print mkdir -p "$(dirname "$dest")"
+  run_or_print cp "$src" "$dest"
+  if [[ "$relative_path" == scripts/* ]]; then
+    run_or_print chmod +x "$dest"
+  fi
+}
+
+if [[ ! -x "$manifest_reader" ]]; then
+  echo "missing executable manifest reader: $manifest_reader" >&2
+  exit 1
 fi
 
-for helper in validate_artifact.py; do
-  if [[ -f "$repo_root/scripts/$helper" ]]; then
-    run_or_print cp "$repo_root/scripts/$helper" "$dest_root/scripts/$helper"
-    run_or_print chmod +x "$dest_root/scripts/$helper"
-  fi
-done
+run_or_print mkdir -p "$dest_root"
+
+while IFS= read -r shared_file; do
+  [[ -n "$shared_file" ]] || continue
+  copy_shared_file "$shared_file"
+done < <(collect_shared_files)
 
 if [[ "$sync_all" == true || "$changed_only" == true ]]; then
   while IFS= read -r skill_dir; do
@@ -109,11 +130,12 @@ if [[ "$sync_all" == true || "$changed_only" == true ]]; then
 fi
 
 if [[ "$delete_missing" == true ]]; then
+  manifest_names="$("$manifest_reader" list-skill-names)"
   shopt -s nullglob
   for installed in "$dest_root"/*; do
     [[ -d "$installed" ]] || continue
     skill_name="$(basename "$installed")"
-    if [[ ! -f "$repo_root/$skill_name/SKILL.md" ]]; then
+    if ! printf '%s\n' "$manifest_names" | grep -Fxq "$skill_name"; then
       run_or_print rm -rf "$installed"
     fi
   done
