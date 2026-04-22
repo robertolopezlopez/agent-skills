@@ -8,7 +8,7 @@ manifest_reader="$repo_root/scripts/skill_manifest.py"
 
 usage() {
   cat <<'EOF'
-Usage: sync_skills.sh [--all] [--changed] [--dry-run] [--delete-missing]
+Usage: sync_skills.sh [--all] [--changed] [--dry-run] [--verify] [--delete-missing]
 
 Sync top-level skill directories from this repository into ~/.codex/skills.
 
@@ -16,6 +16,7 @@ Options:
   --all             Sync all top-level skills and shared helper files (default).
   --changed         Sync only top-level skills with local changes.
   --dry-run         Print planned sync actions without copying files.
+  --verify          Verify that manifest-declared shared files and skills exist in the installed copy after sync.
   --delete-missing  Remove installed copied skills that no longer exist in the repo.
   -h, --help        Show this help.
 EOF
@@ -24,6 +25,7 @@ EOF
 sync_all=true
 changed_only=false
 dry_run=false
+verify=false
 delete_missing=false
 
 while [[ $# -gt 0 ]]; do
@@ -42,6 +44,10 @@ while [[ $# -gt 0 ]]; do
       dry_run=true
       shift
       ;;
+    --verify)
+      verify=true
+      shift
+      ;;
     --delete-missing)
       delete_missing=true
       shift
@@ -58,11 +64,13 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+planned_shared_files=()
+planned_skill_names=()
+deleted_skill_names=()
+
 run_or_print() {
   if [[ "$dry_run" == true ]]; then
-    printf '[dry-run] '
-    printf '%q ' "$@"
-    printf '\n'
+    return 0
   else
     "$@"
   fi
@@ -117,6 +125,7 @@ run_or_print mkdir -p "$dest_root"
 
 while IFS= read -r shared_file; do
   [[ -n "$shared_file" ]] || continue
+  planned_shared_files+=("$shared_file")
   copy_shared_file "$shared_file"
 done < <(collect_shared_files)
 
@@ -124,6 +133,7 @@ if [[ "$sync_all" == true || "$changed_only" == true ]]; then
   while IFS= read -r skill_dir; do
     [[ -n "$skill_dir" ]] || continue
     skill_name="$(basename "$skill_dir")"
+    planned_skill_names+=("$skill_name")
     run_or_print rm -rf "$dest_root/$skill_name"
     run_or_print cp -R "$skill_dir" "$dest_root/$skill_name"
   done < <(collect_skill_dirs)
@@ -136,7 +146,80 @@ if [[ "$delete_missing" == true ]]; then
     [[ -d "$installed" ]] || continue
     skill_name="$(basename "$installed")"
     if ! printf '%s\n' "$manifest_names" | grep -Fxq "$skill_name"; then
+      deleted_skill_names+=("$skill_name")
       run_or_print rm -rf "$installed"
     fi
   done
+fi
+
+print_summary() {
+  local mode_label="all"
+  if [[ "$changed_only" == true ]]; then
+    mode_label="changed"
+  fi
+
+  if [[ "$dry_run" == true ]]; then
+    echo "==> Dry-run sync summary"
+  else
+    echo "==> Sync summary"
+  fi
+
+  echo "mode: $mode_label"
+  echo "destination: $dest_root"
+  echo "shared files: ${#planned_shared_files[@]}"
+  if [[ ${#planned_shared_files[@]} -gt 0 ]]; then
+    for shared_file in "${planned_shared_files[@]}"; do
+      echo "  - $shared_file"
+    done
+  fi
+  echo "skills: ${#planned_skill_names[@]}"
+  if [[ ${#planned_skill_names[@]} -gt 0 ]]; then
+    for skill_name in "${planned_skill_names[@]}"; do
+      echo "  - $skill_name"
+    done
+  fi
+
+  if [[ "$delete_missing" == true ]]; then
+    echo "deleted installed skills: ${#deleted_skill_names[@]}"
+    if [[ ${#deleted_skill_names[@]} -gt 0 ]]; then
+      for skill_name in "${deleted_skill_names[@]}"; do
+        echo "  - $skill_name"
+      done
+    fi
+  fi
+}
+
+verify_install() {
+  local failures=0
+  echo "==> Verifying installed copy"
+
+  for shared_file in "${planned_shared_files[@]}"; do
+    if [[ ! -f "$dest_root/$shared_file" ]]; then
+      echo "missing shared file: $dest_root/$shared_file" >&2
+      failures=$((failures + 1))
+    fi
+  done
+
+  for skill_name in "${planned_skill_names[@]}"; do
+    if [[ ! -f "$dest_root/$skill_name/SKILL.md" ]]; then
+      echo "missing installed skill: $dest_root/$skill_name/SKILL.md" >&2
+      failures=$((failures + 1))
+    fi
+  done
+
+  if [[ "$failures" -gt 0 ]]; then
+    echo "verification failed with $failures missing installed item(s)" >&2
+    exit 1
+  fi
+  echo "verification OK"
+}
+
+print_summary
+
+if [[ "$verify" == true ]]; then
+  if [[ "$dry_run" == true ]]; then
+    echo "cannot verify during dry-run" >&2
+    exit 2
+  fi
+  verify_install
 fi
