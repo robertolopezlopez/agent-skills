@@ -16,7 +16,6 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 ### Added
 
 - shared skill schema guidance in `docs/skill-schema.md`
-- skill schema audit in `docs/skill-schema-audit.md`
 - release/change guidance in `docs/release-change-guidance.md`
 - reusable work-plan template in `templates/work_plan.md`
 - repo command shortcuts in `Makefile`
