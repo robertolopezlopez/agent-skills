@@ -1,0 +1,24 @@
+name: Makefile CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Validate repo
+      run: make validate
+
+    - name: Validate skills
+      run: make validate-skills
+
+    - name: Validate artifacts
+      run: make validate-artifacts
