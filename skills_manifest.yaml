@@ -9,6 +9,14 @@ skills:
     type: core
     repo_scope: generic
     release_group: core
+  - name: diagnose
+    path: diagnose
+    status: stable
+    type: core
+    repo_scope: generic
+    release_group: core
+    companion_skills:
+      - repository-technical-analysis
   - name: git
     path: git
     status: stable

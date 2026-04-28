@@ -4,6 +4,7 @@ Custom Codex skills tracked in git.
 
 ## Layout
 
+- `diagnose/`: focused debugging workflow for concrete bugs, flaky issues, and performance regressions
 - `python-fastapi-contributor/`: reusable contributor workflow for Python and FastAPI repositories
 - `repository-technical-analysis/`: reusable investigation-first workflow for code repositories
 - `gitlab/`: generic GitLab merge request fetch and discussion-inspection workflow
@@ -37,7 +38,10 @@ This repository aims to provide reusable Codex workflows that are:
 
 - Use `codex-multi-agent-template/` when you want a fixed project-level starter with `lead`, `developer`, `reviewer`, and `tester`.
 - Use `multi-spawn-agent/` when you want dynamic worker counts, explicit file ownership, or non-standard task splits.
-- Use generic skills such as `gitlab`, `jira`, and `repository-technical-analysis` for reusable cross-repo workflows.
+- Use generic skills such as `diagnose`, `gitlab`, `jira`, and `repository-technical-analysis` for reusable cross-repo workflows.
+- Use `diagnose` for tight debugging loops with a concrete failing behavior, repro, or regression signal.
+- Use `repository-technical-analysis` for broader investigation, triage, root-cause framing, and artifact-driven analysis.
+- Use both when a broad investigation narrows into a concrete bug that needs disciplined debugging.
 - Use overlay skills when you need repository-specific commands, conventions, or analysis depth layered on top of a generic workflow.
 
 ## Default Multi-Agent Roles
