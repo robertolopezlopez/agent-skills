@@ -7,19 +7,19 @@ dest_root="${CODEX_HOME:-$HOME/.codex}/skills"
 manifest_reader="$repo_root/scripts/skill_manifest.py"
 
 usage() {
-  cat <<'EOF'
+  cat <<'EOH'
 Usage: sync_skills.sh [--all] [--changed] [--dry-run] [--verify] [--delete-missing]
 
-Sync top-level skill directories from this repository into ~/.codex/skills.
+Sync manifest-declared skills from this repository into ~/.codex/skills.
 
 Options:
-  --all             Sync all top-level skills and shared helper files (default).
-  --changed         Sync only top-level skills with local changes.
+  --all             Sync all manifest-declared skills and shared helper files (default).
+  --changed         Sync only manifest-declared skills with local changes.
   --dry-run         Print planned sync actions without copying files.
   --verify          Verify that manifest-declared shared files and skills exist in the installed copy after sync.
-  --delete-missing  Remove installed copied skills that no longer exist in the repo.
+  --delete-missing  Remove installed copied skills that no longer exist in the manifest.
   -h, --help        Show this help.
-EOF
+EOH
 }
 
 sync_all=true
@@ -78,32 +78,12 @@ run_or_print() {
   fi
 }
 
-collect_skill_dirs() {
-  manifest_paths="$("$manifest_reader" list-skill-paths)"
-  if [[ "$changed_only" == true ]]; then
-    git -C "$repo_root" status --short | while IFS= read -r line; do
-      path="${line:3}"
-      [[ -n "$path" ]] || continue
-      top="${path%%/*}"
-      if printf '%s\n' "$manifest_paths" | grep -Fxq "$top"; then
-        printf '%s\n' "$repo_root/$top"
-      fi
-    done | sort -u
-  else
-    while IFS= read -r skill_path; do
-      [[ -n "$skill_path" ]] || continue
-      if [[ -d "$repo_root/$skill_path" && -f "$repo_root/$skill_path/SKILL.md" ]]; then
-        printf '%s\n' "$repo_root/$skill_path"
-      fi
-    done <<< "$manifest_paths"
-  fi
+collect_skill_entries() {
+  "$manifest_reader" list-skill-name-paths
 }
 
 collect_shared_files() {
-  while IFS= read -r shared_file; do
-    [[ -n "$shared_file" ]] || continue
-    printf '%s\n' "$shared_file"
-  done < <("$manifest_reader" list-shared-files)
+  "$manifest_reader" list-shared-files
 }
 
 copy_shared_file() {
@@ -132,17 +112,36 @@ while IFS= read -r shared_file; do
 done < <(collect_shared_files)
 
 if [[ "$sync_all" == true || "$changed_only" == true ]]; then
-  while IFS= read -r skill_dir; do
-    [[ -n "$skill_dir" ]] || continue
-    skill_name="$(basename "$skill_dir")"
+  changed_paths=""
+  if [[ "$changed_only" == true ]]; then
+    changed_paths="$(git -C "$repo_root" status --short | sed 's/^...//' | sed '/^$/d')"
+  fi
+
+  while IFS=$'\t' read -r skill_name skill_path; do
+    [[ -n "$skill_name" && -n "$skill_path" ]] || continue
+    skill_dir="$repo_root/$skill_path"
+    [[ -d "$skill_dir" && -f "$skill_dir/SKILL.md" ]] || continue
+
+    if [[ "$changed_only" == true ]]; then
+      match=false
+      while IFS= read -r changed_path; do
+        [[ -n "$changed_path" ]] || continue
+        if [[ "$changed_path" == "$skill_path" || "$changed_path" == "$skill_path/"* ]]; then
+          match=true
+          break
+        fi
+      done <<< "$changed_paths"
+      [[ "$match" == true ]] || continue
+    fi
+
     planned_skill_names+=("$skill_name")
     run_or_print rm -rf "$dest_root/$skill_name"
     run_or_print cp -R "$skill_dir" "$dest_root/$skill_name"
-  done < <(collect_skill_dirs)
+  done < <(collect_skill_entries)
 fi
 
 if [[ "$delete_missing" == true ]]; then
-  manifest_names="$("$manifest_reader" list-skill-names)"
+  manifest_names="$($manifest_reader list-skill-names)"
   shopt -s nullglob
   for installed in "$dest_root"/*; do
     [[ -d "$installed" ]] || continue

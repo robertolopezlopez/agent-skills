@@ -50,7 +50,14 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Read the repo skills manifest.")
     parser.add_argument(
         "command",
-        choices={"list-skill-paths", "list-skill-names", "list-shared-files", "summary", "summary-by-group"},
+        choices={
+            "list-skill-paths",
+            "list-skill-names",
+            "list-skill-name-paths",
+            "list-shared-files",
+            "summary",
+            "summary-by-group",
+        },
     )
     parser.add_argument(
         "--group-by",
@@ -66,31 +73,34 @@ def main() -> None:
     manifest = load_manifest(Path(args.manifest))
 
     if args.command == "list-skill-paths":
-      for skill in manifest["skills"]:
-          print(skill["path"])
+        for skill in manifest["skills"]:
+            print(skill["path"])
     elif args.command == "list-skill-names":
-      for skill in manifest["skills"]:
-          print(skill["name"])
+        for skill in manifest["skills"]:
+            print(skill["name"])
+    elif args.command == "list-skill-name-paths":
+        for skill in manifest["skills"]:
+            print(f"{skill['name']}\t{skill['path']}")
     elif args.command == "list-shared-files":
-      for shared_file in manifest["shared_files"]:
-          print(shared_file)
+        for shared_file in manifest["shared_files"]:
+            print(shared_file)
     elif args.command == "summary":
-      skills = manifest["skills"]
-      stable = [skill for skill in skills if skill.get("status") == "stable"]
-      experimental = [skill for skill in skills if skill.get("status") == "experimental"]
-      print(f"skills: {len(skills)}")
-      print(f"stable: {len(stable)}")
-      print(f"experimental: {len(experimental)}")
-      print(f"shared_files: {len(manifest['shared_files'])}")
+        skills = manifest["skills"]
+        stable = [skill for skill in skills if skill.get("status") == "stable"]
+        experimental = [skill for skill in skills if skill.get("status") == "experimental"]
+        print(f"skills: {len(skills)}")
+        print(f"stable: {len(stable)}")
+        print(f"experimental: {len(experimental)}")
+        print(f"shared_files: {len(manifest['shared_files'])}")
     elif args.command == "summary-by-group":
-      groups: dict[str, list[dict[str, str]]] = {}
-      for skill in manifest["skills"]:
-          key = skill.get(args.group_by, "unknown")
-          groups.setdefault(key, []).append(skill)
-      for key in sorted(groups):
-          print(f"{args.group_by}: {key} ({len(groups[key])})")
-          for skill in sorted(groups[key], key=lambda s: s["name"]):
-              print(f"  - {skill['name']}")
+        groups: dict[str, list[dict[str, str]]] = {}
+        for skill in manifest["skills"]:
+            key = skill.get(args.group_by, "unknown")
+            groups.setdefault(key, []).append(skill)
+        for key in sorted(groups):
+            print(f"{args.group_by}: {key} ({len(groups[key])})")
+            for skill in sorted(groups[key], key=lambda s: s["name"]):
+                print(f"  - {skill['name']}")
 
 
 if __name__ == "__main__":

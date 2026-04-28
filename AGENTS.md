@@ -4,12 +4,12 @@ This repository is the source of truth for Codex skills.
 
 ## Skill sync rule
 
-Whenever a top-level skill directory changes or a new skill is created:
+Whenever a manifest-declared skill directory changes or a new skill is created:
 
 1. install or update the matching copied skill in `~/.codex/skills/<skill-name>`
 2. keep the installed copy in sync with the repository copy before finishing the task
 
-Whenever a top-level skill directory is deleted:
+Whenever a manifest-declared skill directory is deleted or removed from `skills_manifest.yaml`:
 
 1. remove the matching installed skill from `~/.codex/skills/<skill-name>`
 
@@ -19,13 +19,15 @@ Treat this sync as part of the required workflow for skill changes in this repos
 
 Use this file as the repo-global policy layer. Prefer putting shared rules here instead of repeating them in every skill.
 
-## Top-level skill directory contract
+## Installable skill directory contract
 
-Each top-level skill directory is expected to be a standalone installed skill.
+Each installable skill directory declared in `skills_manifest.yaml` is expected to be a standalone installed skill.
 
 Required:
-- a top-level directory name that becomes the installed skill name
-- `SKILL.md` at the root of that directory
+- a manifest entry with:
+  - stable `name` used for the installed skill name
+  - `path` pointing to the repo-local skill directory
+- `SKILL.md` at the root of the declared skill directory
 
 Allowed:
 - helper scripts
@@ -34,7 +36,7 @@ Allowed:
 - assets
 - companion docs
 
-Do not assume hidden repo context inside a skill. A copied skill should remain usable after sync into `~/.codex/skills/<skill-name>`.
+Do not assume hidden repo context inside a skill. A copied skill should remain usable after sync into `~/.codex/skills/<skill-name>`. Filesystem location inside this repository may differ from installed skill name; the manifest is the source of truth for that mapping.
 
 ## SKILL.md minimum contract
 
@@ -66,7 +68,7 @@ See `docs/skill-schema.md` for the preferred section order and migration guidanc
 
 ## Validation rule
 
-Before finishing a task that changes any top-level skill directory or shared skill helper:
+Before finishing a task that changes any manifest-declared skill directory or shared skill helper:
 
 1. validate the changed skill definitions with the repository skill validator
 2. fix validation failures

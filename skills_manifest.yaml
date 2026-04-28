@@ -4,13 +4,13 @@ shared_files:
 
 skills:
   - name: branch-change-reviewer
-    path: branch-change-reviewer
+    path: skills/core/branch-change-reviewer
     status: stable
     type: core
     repo_scope: generic
     release_group: core
   - name: diagnose
-    path: diagnose
+    path: skills/core/diagnose
     status: stable
     type: core
     repo_scope: generic
@@ -18,19 +18,19 @@ skills:
     companion_skills:
       - repository-technical-analysis
   - name: git
-    path: git
+    path: skills/core/git
     status: stable
     type: core
     repo_scope: generic
     release_group: core
   - name: git-rebase-conflict-resolver
-    path: git-rebase-conflict-resolver
+    path: skills/core/git-rebase-conflict-resolver
     status: stable
     type: core
     repo_scope: generic
     release_group: core
   - name: github
-    path: github
+    path: skills/core/github
     status: stable
     type: core
     repo_scope: generic
@@ -41,7 +41,7 @@ skills:
       - diagnose
       - tdd
   - name: gitlab
-    path: gitlab
+    path: skills/core/gitlab
     status: stable
     type: core
     repo_scope: generic
@@ -50,7 +50,7 @@ skills:
       - git
       - gitlab-mr-comment-analysis
   - name: gitlab-mr-comment-analysis
-    path: gitlab-mr-comment-analysis
+    path: skills/core/gitlab-mr-comment-analysis
     status: stable
     type: core
     repo_scope: generic
@@ -59,7 +59,7 @@ skills:
       - gitlab
       - multi-spawn-agent
   - name: github-issue-triage
-    path: github-issue-triage
+    path: skills/core/github-issue-triage
     status: stable
     type: core
     repo_scope: generic
@@ -70,7 +70,7 @@ skills:
       - diagnose
       - tdd
   - name: private-service-contributor
-    path: private-service-contributor
+    path: skills/private-service/contributor
     status: stable
     type: overlay
     repo_scope: private-service
@@ -78,7 +78,7 @@ skills:
     companion_skills:
       - python-fastapi-contributor
   - name: private-service-mr-comment-analysis
-    path: private-service-mr-comment-analysis
+    path: skills/private-service/mr-comment-analysis
     status: stable
     type: overlay
     repo_scope: private-service
@@ -90,7 +90,7 @@ skills:
       - private-service-technical-analysis
       - repository-technical-analysis
   - name: private-service-parallel-tests
-    path: private-service-parallel-tests
+    path: skills/private-service/parallel-tests
     status: stable
     type: overlay
     repo_scope: private-service
@@ -99,7 +99,7 @@ skills:
       - private-service-technical-analysis
       - repository-technical-analysis
   - name: private-service-technical-analysis
-    path: private-service-technical-analysis
+    path: skills/private-service/technical-analysis
     status: stable
     type: overlay
     repo_scope: private-service
@@ -107,19 +107,19 @@ skills:
     companion_skills:
       - repository-technical-analysis
   - name: jira
-    path: jira
+    path: skills/core/jira
     status: stable
     type: core
     repo_scope: generic
     release_group: core
   - name: multi-spawn-agent
-    path: multi-spawn-agent
+    path: skills/core/multi-spawn-agent
     status: stable
     type: core
     repo_scope: generic
     release_group: core
   - name: plan-issues
-    path: plan-issues
+    path: skills/core/plan-issues
     status: stable
     type: core
     repo_scope: generic
@@ -132,7 +132,7 @@ skills:
       - gitlab
       - jira
   - name: python-fastapi-contributor
-    path: python-fastapi-contributor
+    path: skills/core/python-fastapi-contributor
     status: stable
     type: core
     repo_scope: generic
@@ -140,7 +140,7 @@ skills:
     companion_skills:
       - repository-technical-analysis
   - name: tdd
-    path: tdd
+    path: skills/core/tdd
     status: stable
     type: core
     repo_scope: generic
@@ -150,7 +150,7 @@ skills:
       - repository-technical-analysis
       - python-fastapi-contributor
   - name: repository-technical-analysis
-    path: repository-technical-analysis
+    path: skills/core/repository-technical-analysis
     status: stable
     type: core
     repo_scope: generic

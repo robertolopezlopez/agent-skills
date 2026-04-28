@@ -4,22 +4,33 @@ Custom Codex skills tracked in git.
 
 ## Layout
 
-- `diagnose/`: focused debugging workflow for concrete bugs, flaky issues, and performance regressions
-- `github/`: GitHub transport and normalization workflow for issues and pull requests
-- `github-issue-triage/`: maintainer-facing GitHub issue triage overlay built on top of `github`
-- `plan-issues/`: planning decomposition skill for turning scoped changes into dependency-aware vertical slices
-- `tdd/`: generic test-first implementation workflow using small vertical slices and red-green-refactor
-- `python-fastapi-contributor/`: reusable contributor workflow for Python and FastAPI repositories
-- `repository-technical-analysis/`: reusable investigation-first workflow for code repositories
-- `gitlab/`: generic GitLab merge request fetch and discussion-inspection workflow
-- `gitlab-mr-comment-analysis/`: reusable GitLab merge request comment-analysis workflow for any GitLab repository
-- `jira/`: generic Jira and Atlassian issue access and update workflow through the Jira REST API
-  See `jira/README.md` for setup, auth expectations, and `jira-api` usage.
-- `private-service-contributor/`: repo workflow skill for private-service
-- `private-service-technical-analysis/`: investigation and analysis skill for private-service
-- `private-service-parallel-tests/`: run private-service unit and integration tests with 10 workers
-- `private-service-mr-comment-analysis/`: private-service overlay that uses `gitlab-mr-comment-analysis` plus repo-specific technical analysis and proposed changes
-- `multi-spawn-agent/`: reusable template for spawning parallel worker agents with disjoint ownership
+### Core skills
+
+- `skills/core/diagnose/`: focused debugging workflow for concrete bugs, flaky issues, and performance regressions
+- `skills/core/github/`: GitHub transport and normalization workflow for issues and pull requests
+- `skills/core/github-issue-triage/`: maintainer-facing GitHub issue triage overlay built on top of `github`
+- `skills/core/plan-issues/`: planning decomposition skill for turning scoped changes into dependency-aware vertical slices
+- `skills/core/tdd/`: generic test-first implementation workflow using small vertical slices and red-green-refactor
+- `skills/core/python-fastapi-contributor/`: reusable contributor workflow for Python and FastAPI repositories
+- `skills/core/repository-technical-analysis/`: reusable investigation-first workflow for code repositories
+- `skills/core/gitlab/`: generic GitLab merge request fetch and discussion-inspection workflow
+- `skills/core/gitlab-mr-comment-analysis/`: reusable GitLab merge request comment-analysis workflow for any GitLab repository
+- `skills/core/jira/`: generic Jira and Atlassian issue access and update workflow through the Jira REST API
+  See `skills/core/jira/README.md` for setup, auth expectations, and `jira-api` usage.
+- `skills/core/multi-spawn-agent/`: reusable template for spawning parallel worker agents with disjoint ownership
+- `skills/core/git/`: local Git repository inspection and remote metadata helper
+- `skills/core/git-rebase-conflict-resolver/`: rebase and conflict-resolution workflow
+- `skills/core/branch-change-reviewer/`: branch review workflow against a target branch
+
+### Guided Experience Service skills
+
+- `skills/private-service/contributor/`: repo workflow skill for private-service
+- `skills/private-service/technical-analysis/`: investigation and analysis skill for private-service
+- `skills/private-service/parallel-tests/`: run private-service unit and integration tests with 10 workers
+- `skills/private-service/mr-comment-analysis/`: private-service overlay that uses `gitlab-mr-comment-analysis` plus repo-specific technical analysis and proposed changes
+
+### Other tracked assets
+
 - `codex-multi-agent-template/`: copy-ready multi-agent starter with `.codex/`, `AGENTS.md`, and prompts
 - `git-hooks/post-commit`: copies committed skills into `~/.codex/skills`
 
@@ -185,15 +196,15 @@ After each commit in this repository, the `post-commit` hook:
 
 - copies `ARTIFACTS.md` to `~/.codex/skills/ARTIFACTS.md`
 - copies `scripts/validate_artifact.py` to `~/.codex/skills/scripts/validate_artifact.py`
-- finds each top-level directory that contains `SKILL.md`
-- removes the matching directory in `~/.codex/skills`
-- copies the committed skill directory into `~/.codex/skills`
+- reads manifest-declared skill directories from `skills_manifest.yaml`
+- removes the matching installed directory in `~/.codex/skills`
+- copies the declared skill directory into `~/.codex/skills/<skill-name>`
 
 This keeps this repository as the source of truth while installing real copied directories for Codex discovery.
 
 ## Skill Docs
 
-- `jira/README.md`: generic Jira setup, auth expectations, base URL behavior, and `jira-api` examples
+- `skills/core/jira/README.md`: generic Jira setup, auth expectations, base URL behavior, and `jira-api` examples
 - `ARTIFACTS.md`: shared schema, naming, and section order for local workflow artifacts
 
 ## Local Defaults Files
@@ -202,11 +213,11 @@ Use home-local env files for non-secret skill defaults when a skill documents th
 
 See the relevant skill `README.md` for the supported variables and precedence rules:
 
-- `jira/README.md`
-- `private-service-contributor/README.md`
-- `private-service-technical-analysis/README.md`
-- `private-service-parallel-tests/README.md`
-- `private-service-mr-comment-analysis/README.md`
+- `skills/core/jira/README.md`
+- `skills/private-service/contributor/README.md`
+- `skills/private-service/technical-analysis/README.md`
+- `skills/private-service/parallel-tests/README.md`
+- `skills/private-service/mr-comment-analysis/README.md`
 
 Do not store secrets such as `ATLASSIAN_API_TOKEN` or `IAC_TOKEN` in these files.
 

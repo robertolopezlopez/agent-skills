@@ -6,15 +6,15 @@ repo_root="$(cd -- "$script_dir/.." && pwd)"
 summary_only=false
 
 usage() {
-  cat <<'EOF'
+  cat <<'EOH'
 Usage: validate_repo.sh [--summary]
 
-Validate top-level skills and root workflow artifacts.
+Validate manifest-declared skills and root workflow artifacts.
 
 Options:
   --summary    Print a short success summary after validation completes.
   -h, --help   Show this help.
-EOF
+EOH
 }
 
 while [[ $# -gt 0 ]]; do
@@ -35,7 +35,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-echo "==> Validating top-level skills"
+echo "==> Validating manifest-declared skills"
 python3 "$repo_root/scripts/validate_skill.py"
 
 artifact_paths=()
@@ -55,7 +55,7 @@ else
 fi
 
 if [[ "$summary_only" == true ]]; then
-  skill_count="$(find "$repo_root" -maxdepth 2 -type f -name 'SKILL.md' | wc -l | tr -d ' ')"
+  skill_count="$(python3 "$repo_root/scripts/skill_manifest.py" list-skill-names | wc -l | tr -d ' ')"
   artifact_count="${#artifact_paths[@]}"
   echo "==> Summary: validated ${skill_count} skills and ${artifact_count} root artifact(s)"
   echo "==> Manifest summary"
