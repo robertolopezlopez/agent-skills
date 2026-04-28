@@ -177,10 +177,13 @@ def validate_relative_references(
                 continue
 
         if normalized.startswith(".."):
-            # allow only if the installed-layout fallback resolved it above
-            errors.append(f"referenced path does not exist: {normalized}")
-        else:
-            errors.append(f"referenced path does not exist: {normalized}")
+            # Parent-relative references may intentionally point outside this repo,
+            # for example to a sibling checked out separately on a developer machine.
+            # Validate them when they resolve locally or in installed-layout form,
+            # but do not hard-fail when they are external and unavailable in CI.
+            continue
+
+        errors.append(f"referenced path does not exist: {normalized}")
 
     return errors
 
