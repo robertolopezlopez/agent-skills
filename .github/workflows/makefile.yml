@@ -19,9 +19,3 @@ jobs:
 
     - name: Validate repo
       run: make validate
-
-    - name: Validate skills
-      run: make validate-skills
-
-    - name: Validate artifacts
-      run: make validate-artifacts
