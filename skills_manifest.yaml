@@ -29,6 +29,17 @@ skills:
     type: core
     repo_scope: generic
     release_group: core
+  - name: github
+    path: github
+    status: stable
+    type: core
+    repo_scope: generic
+    release_group: core
+    companion_skills:
+      - git
+      - repository-technical-analysis
+      - diagnose
+      - tdd
   - name: gitlab
     path: gitlab
     status: stable

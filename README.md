@@ -5,6 +5,7 @@ Custom Codex skills tracked in git.
 ## Layout
 
 - `diagnose/`: focused debugging workflow for concrete bugs, flaky issues, and performance regressions
+- `github/`: GitHub transport and normalization workflow for issues and pull requests
 - `tdd/`: generic test-first implementation workflow using small vertical slices and red-green-refactor
 - `python-fastapi-contributor/`: reusable contributor workflow for Python and FastAPI repositories
 - `repository-technical-analysis/`: reusable investigation-first workflow for code repositories
@@ -39,7 +40,9 @@ This repository aims to provide reusable Codex workflows that are:
 
 - Use `codex-multi-agent-template/` when you want a fixed project-level starter with `lead`, `developer`, `reviewer`, and `tester`.
 - Use `multi-spawn-agent/` when you want dynamic worker counts, explicit file ownership, or non-standard task splits.
-- Use generic skills such as `diagnose`, `tdd`, `gitlab`, `jira`, and `repository-technical-analysis` for reusable cross-repo workflows.
+- Use generic skills such as `diagnose`, `github`, `tdd`, `gitlab`, `jira`, and `repository-technical-analysis` for reusable cross-repo workflows.
+- Use `git` for local repository state, remotes, and repository identity inspection.
+- Use `github` for GitHub issue and pull-request fetch, inspection, and normalization.
 - Use `diagnose` for tight debugging loops with a concrete failing behavior, repro, or regression signal.
 - Use `tdd` when the target behavior is already understood and you want to implement or fix it through a test-first red-green-refactor loop.
 - Use `repository-technical-analysis` for broader investigation, triage, root-cause framing, and artifact-driven analysis.
