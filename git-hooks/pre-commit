@@ -4,21 +4,31 @@ set -euo pipefail
 script_dir="$(cd -- "$(dirname -- "$0")" && pwd)"
 repo_root="$(cd -- "$script_dir/../.." && pwd)"
 validator="$repo_root/scripts/validate_skill.py"
+manifest_reader="$repo_root/scripts/skill_manifest.py"
 
 if [[ ! -x "$validator" ]]; then
   echo "missing executable validator: $validator" >&2
   exit 1
 fi
 
-changed_skill_paths=()
+if [[ ! -x "$manifest_reader" ]]; then
+  echo "missing executable manifest reader: $manifest_reader" >&2
+  exit 1
+fi
 
-while IFS= read -r path; do
-  [[ -z "$path" ]] && continue
-  top="${path%%/*}"
-  if [[ -f "$repo_root/$top/SKILL.md" ]]; then
-    changed_skill_paths+=("$repo_root/$top")
-  fi
-done < <(git -C "$repo_root" diff --cached --name-only)
+changed_skill_paths=()
+changed_files="$(git -C "$repo_root" diff --cached --name-only)"
+
+while IFS=$'\t' read -r skill_name skill_path; do
+  [[ -n "$skill_name" && -n "$skill_path" ]] || continue
+  while IFS= read -r path; do
+    [[ -z "$path" ]] && continue
+    if [[ "$path" == "$skill_path" || "$path" == "$skill_path/"* ]]; then
+      changed_skill_paths+=("$repo_root/$skill_path")
+      break
+    fi
+  done <<< "$changed_files"
+done < <("$manifest_reader" list-skill-name-paths)
 
 if [[ ${#changed_skill_paths[@]} -eq 0 ]]; then
   exit 0
