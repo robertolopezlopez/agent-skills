@@ -58,6 +58,17 @@ skills:
     companion_skills:
       - gitlab
       - multi-spawn-agent
+  - name: github-issue-triage
+    path: github-issue-triage
+    status: stable
+    type: core
+    repo_scope: generic
+    release_group: core
+    companion_skills:
+      - github
+      - repository-technical-analysis
+      - diagnose
+      - tdd
   - name: private-service-contributor
     path: private-service-contributor
     status: stable
