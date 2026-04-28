@@ -104,6 +104,16 @@ skills:
     release_group: core
     companion_skills:
       - repository-technical-analysis
+  - name: tdd
+    path: tdd
+    status: stable
+    type: core
+    repo_scope: generic
+    release_group: core
+    companion_skills:
+      - diagnose
+      - repository-technical-analysis
+      - python-fastapi-contributor
   - name: repository-technical-analysis
     path: repository-technical-analysis
     status: stable
