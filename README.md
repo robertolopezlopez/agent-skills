@@ -7,6 +7,7 @@ Custom Codex skills tracked in git.
 - `diagnose/`: focused debugging workflow for concrete bugs, flaky issues, and performance regressions
 - `github/`: GitHub transport and normalization workflow for issues and pull requests
 - `github-issue-triage/`: maintainer-facing GitHub issue triage overlay built on top of `github`
+- `plan-issues/`: planning decomposition skill for turning scoped changes into dependency-aware vertical slices
 - `tdd/`: generic test-first implementation workflow using small vertical slices and red-green-refactor
 - `python-fastapi-contributor/`: reusable contributor workflow for Python and FastAPI repositories
 - `repository-technical-analysis/`: reusable investigation-first workflow for code repositories
@@ -47,10 +48,13 @@ This repository aims to provide reusable Codex workflows that are:
 - Use `github-issue-triage` for maintainer-facing GitHub issue classification, missing-info detection, and next-state recommendation after issue context has been fetched.
 - Use `repository-technical-analysis` or `diagnose` when GitHub issue triage requires technical evidence before a confident next-state recommendation.
 - Use `diagnose` for tight debugging loops with a concrete failing behavior, repro, or regression signal.
+- Use `plan-issues` when the scope is already understood and you want to break the work into dependency-aware vertical slices.
 - Use `tdd` when the target behavior is already understood and you want to implement or fix it through a test-first red-green-refactor loop.
+- Use `multi-spawn-agent` after `plan-issues` when the breakdown is ready for delegated parallel execution.
 - Use `repository-technical-analysis` for broader investigation, triage, root-cause framing, and artifact-driven analysis.
 - Use `repository-technical-analysis` plus `diagnose` when a broad investigation narrows into a concrete bug that needs disciplined debugging.
 - Use `diagnose` plus `tdd` when a concrete bug has been isolated and the fix should be driven by a regression test first.
+- Use `plan-issues` plus `tdd` when scoped work should be executed slice-by-slice through a test-first loop.
 - Use overlay skills when you need repository-specific commands, conventions, or analysis depth layered on top of a generic workflow.
 
 ## Default Multi-Agent Roles

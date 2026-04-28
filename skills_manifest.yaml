@@ -118,6 +118,19 @@ skills:
     type: core
     repo_scope: generic
     release_group: core
+  - name: plan-issues
+    path: plan-issues
+    status: stable
+    type: core
+    repo_scope: generic
+    release_group: core
+    companion_skills:
+      - repository-technical-analysis
+      - multi-spawn-agent
+      - tdd
+      - github
+      - gitlab
+      - jira
   - name: python-fastapi-contributor
     path: python-fastapi-contributor
     status: stable
