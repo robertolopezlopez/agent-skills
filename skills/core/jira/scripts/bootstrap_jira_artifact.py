@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import subprocess
 from pathlib import Path
@@ -61,16 +62,39 @@ def slugify(text: str) -> str:
     return text or "jira-task"
 
 
-def read_api_base(cli_base: str | None) -> str | None:
+JIRA_ENV_CANDIDATES: tuple[Path, ...] = (
+    Path.home() / ".cursor" / "jira.env",
+    Path.home() / ".codex" / "jira.env",
+)
+
+
+def read_api_base(cli_base: str | None) -> tuple[str | None, Path | None, str]:
+    """Return (api_base_or_none, env_file_when_used, source_kind).
+
+    source_kind is one of: cli, env, file, none.
+    """
     if cli_base:
-        return cli_base
-    env_file = Path.home() / ".codex/jira.env"
-    if not env_file.exists():
-        return None
-    for line in env_file.read_text().splitlines():
-        if line.startswith("ATLASSIAN_API_BASE_URL="):
-            return line.split("=", 1)[1].strip()
-    return None
+        return cli_base.strip(), None, "cli"
+    env_inline = (os.environ.get("ATLASSIAN_API_BASE_URL") or "").strip()
+    if env_inline:
+        return env_inline, None, "env"
+    for env_file in JIRA_ENV_CANDIDATES:
+        if not env_file.is_file():
+            continue
+        for line in env_file.read_text().splitlines():
+            if line.startswith("ATLASSIAN_API_BASE_URL="):
+                return line.split("=", 1)[1].strip(), env_file, "file"
+    return None, None, "none"
+
+
+def describe_defaults_path(source_kind: str, source_file: Path | None) -> str:
+    if source_kind == "cli":
+        return "(from --api-base)"
+    if source_kind == "env":
+        return "(from ATLASSIAN_API_BASE_URL in environment)"
+    if source_kind == "file" and source_file is not None:
+        return str(source_file)
+    return "; ".join(str(p) for p in JIRA_ENV_CANDIDATES) + " (not found)"
 
 
 def browse_base_from_api_base(api_base: str | None) -> str:
@@ -150,6 +174,7 @@ def resolve_validator() -> Path | None:
     candidates = [
         Path(__file__).resolve().parents[2] / 'scripts' / 'validate_artifact.py',
         Path(__file__).resolve().parents[1].parent / 'scripts' / 'validate_artifact.py',
+        Path.home() / '.cursor' / 'skills' / 'scripts' / 'validate_artifact.py',
         Path.home() / '.codex' / 'skills' / 'scripts' / 'validate_artifact.py',
     ]
     for candidate in candidates:
@@ -266,9 +291,9 @@ def main() -> None:
     obj = json.loads(Path(args.json).read_text())
     issue = obj.get("key") or args.issue
     fields = obj.get("fields", {})
-    api_base = read_api_base(args.api_base)
+    api_base, api_defaults_file, source_kind = read_api_base(args.api_base)
     browse_url = f"{browse_base_from_api_base(api_base)}/browse/{issue}"
-    defaults_path = str(Path.home() / ".codex/jira.env")
+    defaults_path = describe_defaults_path(source_kind, api_defaults_file)
     output = Path(args.output or f"task_{slugify(issue)}.md")
     preserved_sections = parse_preserved_sections(output) if output.exists() else {}
 

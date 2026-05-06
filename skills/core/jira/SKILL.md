@@ -42,11 +42,11 @@ Accept, depending on the requested action:
 1. Extract the issue key from the URL or user request.
 2. Accept an optional host + path parameter before the issue key.
 3. Prefer Jira or Atlassian MCP for read and write operations when a suitable MCP server is configured in the session.
-4. If no host + path override is provided for fallback helper use, resolve defaults in this order: exported environment variable, `~/.codex/jira.env`, then any built-in helper fallback.
+4. If no host + path override is provided for fallback helper use, resolve defaults in this order: exported environment variable, then the first readable defaults file (**`~/.cursor/jira.env`**, then **`~/.codex/jira.env`**), then any built-in helper fallback.
    - Prefer `ATLASSIAN_API_BASE_URL` from the exported environment when present.
-   - Otherwise, if `~/.codex/jira.env` exists, read it for default non-secret Jira settings before invoking the fallback helper.
-   - `ATLASSIAN_API_BASE_URL` in `~/.codex/jira.env` may be a site URL like `https://example.atlassian.net`.
-   - `ATLASSIAN_API_BASE_URL` in `~/.codex/jira.env` may already be an issue API base like `https://example.atlassian.net/rest/api/3/issue/`.
+   - Otherwise, if `~/.cursor/jira.env` or `~/.codex/jira.env` exists, read the first one found (in that order) for default non-secret Jira settings before invoking the fallback helper.
+   - `ATLASSIAN_API_BASE_URL` in those files may be a site URL like `https://example.atlassian.net`.
+   - `ATLASSIAN_API_BASE_URL` in those files may already be an issue API base like `https://example.atlassian.net/rest/api/3/issue/`.
 5. Use `git config user.email` as the Atlassian username for fallback helper auth.
 6. Use `ATLASSIAN_API_TOKEN` from the environment as the fallback helper password.
    - If it is unset, the shared auth helper may fall back to `${ATLASSIAN_API_TOKEN_FILE:-$HOME/.config/.jira/.credentials}` and read the first line as the token.
@@ -110,12 +110,12 @@ The installed shared Atlassian auth helper should live at `${XDG_DATA_HOME:-$HOM
 
 Use the resolved helper path in place for fallback helper execution.
 Refresh the installed shared auth helper from the vendored skill copy before invoking `jira-api`.
-Use `~/.codex/jira.env` for non-secret defaults such as `ATLASSIAN_API_BASE_URL`; keep tokens out of that file unless the local environment explicitly requires it.
+Use **`~/.cursor/jira.env`** first, then **`~/.codex/jira.env`** (legacy), for non-secret defaults such as `ATLASSIAN_API_BASE_URL`; keep tokens out of those files unless the local environment explicitly requires it.
 Do not duplicate Atlassian auth logic inline in this file or in `scripts/jira-api` or `scripts/jira-request`; keep shared auth behavior in `scripts/atlassian-auth.sh` and the installed shared copy.
 
 ## Local Defaults File
 
-If `~/.codex/jira.env` exists, read it before invoking the fallback Jira helpers to supply default non-secret settings.
+If `~/.cursor/jira.env` or `~/.codex/jira.env` exists, read the first match (in that order) before invoking the fallback Jira helpers to supply default non-secret settings.
 
 Preferred usage:
 
@@ -126,9 +126,9 @@ ATLASSIAN_API_BASE_URL=https://example.atlassian.net
 Rules:
 
 - treat explicit helper arguments as highest priority
-- treat exported environment variables as higher priority than `~/.codex/jira.env`
-- use `~/.codex/jira.env` for defaults, not for required per-request overrides
-- prefer keeping `ATLASSIAN_API_TOKEN` in the environment or existing credentials flow instead of storing it in `~/.codex/jira.env`
+- treat exported environment variables as higher priority than defaults files
+- use **`~/.cursor/jira.env`**, then **`~/.codex/jira.env`**, for defaults, not for required per-request overrides
+- prefer keeping `ATLASSIAN_API_TOKEN` in the environment or existing credentials flow instead of storing it in a defaults file
 
 ## Fallback Command Pattern
 
@@ -231,8 +231,8 @@ Reuse the same generic Jira auth and base URL conventions for fallback helper us
 - use `git config user.email` as the Atlassian username
 - use `ATLASSIAN_API_TOKEN` from the environment as the password
 - if it is unset, the shared auth helper may fall back to `${ATLASSIAN_API_TOKEN_FILE:-$HOME/.config/.jira/.credentials}` and read the first line as the token
-- read `~/.codex/jira.env` for default non-secret Jira settings when present
-- use `ATLASSIAN_API_BASE_URL` from the exported environment first, then from `~/.codex/jira.env`, unless an explicit override is provided
+- read **`~/.cursor/jira.env`**, then **`~/.codex/jira.env`**, for default non-secret Jira settings when present
+- use `ATLASSIAN_API_BASE_URL` from the exported environment first, then from those files in that order, unless an explicit override is provided
 
 ### Generic creation flow
 
@@ -349,8 +349,8 @@ When rerunning work for the same Jira issue or refreshing a bootstrapped `task_<
 - Prefer Jira or Atlassian MCP when available, otherwise prefer the bundled helper over raw `curl`.
 - Resolve `scripts/jira-api` and `scripts/jira-request` relative to this skill directory and invoke those resolved paths directly instead of relying on `PATH` or copies in other directories.
 - Accept a host + path override before the issue key.
-- When no override is provided for fallback helper use, prefer exported `ATLASSIAN_API_BASE_URL`, then `~/.codex/jira.env`, to identify the Jira site.
-- Use `~/.codex/jira.env` for defaults like `ATLASSIAN_API_BASE_URL=https://example.atlassian.net`.
+- When no override is provided for fallback helper use, prefer exported `ATLASSIAN_API_BASE_URL`, then **`~/.cursor/jira.env`**, then **`~/.codex/jira.env`**, to identify the Jira site.
+- Prefer `~/.cursor/jira.env` for Cursor-oriented setups; `~/.codex/jira.env` remains supported for Codex-heavy environments.
 - Never access Jira with a direct assistant-issued `curl`; use Jira or Atlassian MCP when available, otherwise only run `jira-api` or `jira-request`.
 - If `ATLASSIAN_API_TOKEN` is already set, do not probe `~/.config/.jira/.credentials` just to verify auth.
 - If auth works but the issue is still unavailable, report that the account likely lacks permission to view the ticket.

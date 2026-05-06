@@ -34,12 +34,17 @@ if [[ ${#changed_skill_paths[@]} -eq 0 ]]; then
 fi
 
 unique_paths=()
-declare -A seen
 for path in "${changed_skill_paths[@]}"; do
-  if [[ -z "${seen[$path]:-}" ]]; then
-    seen[$path]=1
-    unique_paths+=("$path")
+  already=false
+  if [[ ${#unique_paths[@]} -gt 0 ]]; then
+    for u in "${unique_paths[@]}"; do
+      if [[ "$u" == "$path" ]]; then
+        already=true
+        break
+      fi
+    done
   fi
+  [[ "$already" == true ]] || unique_paths+=("$path")
 done
 
 echo "Validating changed skills..."

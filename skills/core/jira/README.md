@@ -4,14 +4,14 @@ Setup and usage notes for the generic `jira` skill.
 
 ## Purpose
 
-This skill lets Codex fetch, summarize, create, and update Jira or Atlassian tickets through the Jira REST API when browser access redirects to login or when API access is more reliable.
+This skill lets agents (for example in Codex or Cursor) fetch, summarize, create, and update Jira or Atlassian tickets through the Jira REST API when browser access redirects to login or when API access is more reliable.
 
 Use this skill for generic Jira/Atlassian access.
-For a site-specific Jira instance, set `ATLASSIAN_API_BASE_URL=https://example.atlassian.net` in `~/.codex/jira.env` or export it in the environment before invoking the helpers.
+For a site-specific Jira instance, set `ATLASSIAN_API_BASE_URL=https://example.atlassian.net` in **`~/.cursor/jira.env`** (preferred for Cursor) or **`~/.codex/jira.env`** (legacy Codex layout), or export it in the environment before invoking the helpers.
 
 ## Files
 
-- `SKILL.md`: Codex skill definition and workflow
+- `SKILL.md`: skill definition and workflow
 - `README.md`: local setup and helper usage
 - `scripts/jira-api`: canonical helper implementation used by the skill
 - `scripts/jira-request`: canonical generic request helper for create/update actions
@@ -20,7 +20,7 @@ For a site-specific Jira instance, set `ATLASSIAN_API_BASE_URL=https://example.a
 
 ## Local Defaults File
 
-Use `~/.codex/jira.env` for non-secret local defaults for this skill.
+Use **`~/.cursor/jira.env`** first, then **`~/.codex/jira.env`**, for non-secret local defaults for this skill.
 
 Example:
 
@@ -32,7 +32,8 @@ Precedence:
 
 1. explicit helper arguments
 2. exported environment variables
-3. `~/.codex/jira.env`
+3. `~/.cursor/jira.env`
+4. `~/.codex/jira.env`
 
 Do not store `ATLASSIAN_API_TOKEN` in this file.
 
@@ -139,7 +140,7 @@ scripts/bootstrap_jira_artifact.py --issue PROJ-123 --json /tmp/proj-123.json
 scripts/bootstrap_jira_artifact.py --issue PROJ-123 --json /tmp/proj-123.json --output task_proj-123.md --overwrite
 ```
 
-The bootstrap helper validates the generated artifact automatically with `../scripts/validate_artifact.py` or the installed copy at `~/.codex/skills/scripts/validate_artifact.py`. It also extracts a brief comment summary plus related issue and link hints from the fetched Jira JSON.
+The bootstrap helper validates the generated artifact automatically with `../scripts/validate_artifact.py` or an installed copy at `~/.cursor/skills/scripts/validate_artifact.py` or `~/.codex/skills/scripts/validate_artifact.py`. It also extracts a brief comment summary plus related issue and link hints from the fetched Jira JSON.
 If the artifact already exists, it preserves local follow-up sections such as `## Follow-up Findings` and `## Improvement Candidates` while refreshing Jira-derived sections from live issue data.
 
 ## Shared Artifact Schema
