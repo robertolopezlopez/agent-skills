@@ -203,6 +203,10 @@ sync_to_destination() {
     for installed in "$dest_root"/*; do
       [[ -d "$installed" ]] || continue
       skill_name="$(basename "$installed")"
+      # Not manifest skills: dirs required by shared_files (e.g. scripts/ for validate_artifact.py)
+      if [[ "$skill_name" == "scripts" ]]; then
+        continue
+      fi
       if ! printf '%s\n' "$manifest_names" | grep -Fxq "$skill_name"; then
         run_or_print rm -rf "$installed"
         if [[ "$dest_root" == "${dest_roots[0]}" ]]; then

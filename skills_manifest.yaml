@@ -106,6 +106,46 @@ skills:
     release_group: private-service
     companion_skills:
       - repository-technical-analysis
+  - name: private-contributor
+    path: skills/cli/contributor
+    status: stable
+    type: overlay
+    repo_scope: cli
+    release_group: cli
+    companion_skills:
+      - tdd
+      - diagnose
+      - repository-technical-analysis
+  - name: private-technical-analysis
+    path: skills/cli/technical-analysis
+    status: stable
+    type: overlay
+    repo_scope: cli
+    release_group: cli
+    companion_skills:
+      - repository-technical-analysis
+  - name: private-parallel-tests
+    path: skills/cli/parallel-tests
+    status: stable
+    type: overlay
+    repo_scope: cli
+    release_group: cli
+    companion_skills:
+      - private-technical-analysis
+      - repository-technical-analysis
+  - name: cli-mr-comment-analysis
+    path: skills/cli/mr-comment-analysis
+    status: stable
+    type: overlay
+    repo_scope: cli
+    release_group: cli
+    companion_skills:
+      - gitlab
+      - gitlab-mr-comment-analysis
+      - private-contributor
+      - private-technical-analysis
+      - repository-technical-analysis
+      - multi-spawn-agent
   - name: jira
     path: skills/core/jira
     status: stable

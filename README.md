@@ -29,12 +29,21 @@ Custom agent skills tracked in git. They install to **Codex** (`~/.codex/skills`
 - `skills/private-service/parallel-tests/`: run private-service unit and integration tests with 10 workers
 - `skills/private-service/mr-comment-analysis/`: private-service overlay that uses `gitlab-mr-comment-analysis` plus repo-specific technical analysis and proposed changes
 
+### CLI product skills
+
+Overlays for the **CLI product** source repository (agent- and IDE-agnostic: works with any assistant using these skills). Layer on generic skills the same way guided-experience overlays do.
+
+- `skills/cli/contributor/`: implementation and validation conventions; pnpm, Turbo, and `package.json` script discovery
+- `skills/cli/technical-analysis/`: investigation and repro commands for the CLI tree
+- `skills/cli/parallel-tests/`: broad suite runs aligned with CI scripts
+- `skills/cli/mr-comment-analysis/`: GitLab MR grouped-comment analysis with repo-specific verdicts and proposed changes
+
 ### Other tracked assets
 
 - `codex-multi-agent-template/`: copy-ready multi-agent starter with `.codex/`, `AGENTS.md`, and prompts
 - `git-hooks/post-commit`: copies committed skills into the configured install roots (default: `~/.codex/skills` and `~/.cursor/skills`)
 
-The private-service skills are overlays. Use them with the matching generic skills when working in that repository.
+The private-service and **CLI product** (`skills/cli/`) skills are overlays. Use them with the matching generic skills when working in those repositories.
 Use `jira` for generic Atlassian/Jira access, including site-specific Jira usage when `~/.cursor/jira.env` or `~/.codex/jira.env` sets `ATLASSIAN_API_BASE_URL=https://example.atlassian.net`.
 Likewise, `gitlab-mr-comment-analysis` is an overlay on `gitlab`: use `gitlab` for generic MR fetch and discussion inspection, and `gitlab-mr-comment-analysis` for grouped unresolved-comment analysis and reporting.
 Use `codex-multi-agent-template/` when you want fixed lead/developer/reviewer/tester scaffolding. Use `multi-spawn-agent` when you want dynamic worker splits driven by a work definition file.
