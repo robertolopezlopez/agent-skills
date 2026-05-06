@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-script_dir="$(cd -- "$(dirname -- "$0")" && pwd)"
-repo_root="$(cd -- "$script_dir/../.." && pwd)"
+# Git runs hooks with the working tree as cwd; resolve repo root reliably when this path is a symlink.
+repo_root="$(git rev-parse --show-toplevel)"
 
-"$repo_root/scripts/sync_skills.sh" --all
+# Install skills for both Codex and Cursor on each commit (do not inherit a narrowed AGENT_SKILLS_SYNC_TARGETS from the user's shell).
+exec env AGENT_SKILLS_SYNC_TARGETS=codex,cursor "$repo_root/scripts/sync_skills.sh" --all

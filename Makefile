@@ -1,4 +1,4 @@
-.PHONY: validate validate-skills validate-artifacts sync-skills install-hooks
+.PHONY: validate validate-skills validate-artifacts sync-skills sync-skills-codex sync-skills-cursor install-hooks
 
 validate:
 	./scripts/validate_repo.sh
@@ -16,6 +16,12 @@ validate-artifacts:
 
 sync-skills:
 	./scripts/sync_skills.sh --all
+
+sync-skills-codex:
+	./scripts/sync_skills.sh --all --codex-only
+
+sync-skills-cursor:
+	./scripts/sync_skills.sh --all --cursor-only
 
 install-hooks:
 	./scripts/install_hooks.sh

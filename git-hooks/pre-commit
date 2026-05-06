@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-script_dir="$(cd -- "$(dirname -- "$0")" && pwd)"
-repo_root="$(cd -- "$script_dir/../.." && pwd)"
+repo_root="$(git rev-parse --show-toplevel)"
 validator="$repo_root/scripts/validate_skill.py"
 manifest_reader="$repo_root/scripts/skill_manifest.py"
 

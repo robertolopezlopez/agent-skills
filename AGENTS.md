@@ -1,17 +1,26 @@
 # AGENTS
 
-This repository is the source of truth for Codex skills.
+This repository is the source of truth for agent skills used with Codex and Cursor.
 
 ## Skill sync rule
 
 Whenever a manifest-declared skill directory changes or a new skill is created:
 
-1. install or update the matching copied skill in `~/.codex/skills/<skill-name>`
-2. keep the installed copy in sync with the repository copy before finishing the task
+1. install or update the matching copied skill under each configured install root (defaults below)
+2. keep each installed copy in sync with the repository copy before finishing the task
+
+Default install locations (see `scripts/sync_skills.sh` for overrides):
+
+- Codex: `~/.codex/skills/<skill-name>` (or `$CODEX_HOME/skills/<skill-name>` when `CODEX_HOME` is set)
+- Cursor personal agent skills: `~/.cursor/skills/<skill-name>` (or `$CURSOR_AGENT_SKILLS_HOME/skills/<skill-name>` — parent of `skills/` defaults to `~/.cursor`)
 
 Whenever a manifest-declared skill directory is deleted or removed from `skills_manifest.yaml`:
 
-1. remove the matching installed skill from `~/.codex/skills/<skill-name>`
+1. remove the matching installed skill from each synced install root listed above
+
+To sync only one stack, use `./scripts/sync_skills.sh --codex-only` or `./scripts/sync_skills.sh --cursor-only`, or set `AGENT_SKILLS_SYNC_TARGETS` to `codex` or `cursor`.
+
+The `git-hooks/post-commit` hook runs `scripts/sync_skills.sh --all` with `AGENT_SKILLS_SYNC_TARGETS=codex,cursor` so each commit refreshes **both** default install roots (update the hook if you need different behavior).
 
 Treat this sync as part of the required workflow for skill changes in this repository.
 
@@ -36,7 +45,7 @@ Allowed:
 - assets
 - companion docs
 
-Do not assume hidden repo context inside a skill. A copied skill should remain usable after sync into `~/.codex/skills/<skill-name>`. Filesystem location inside this repository may differ from installed skill name; the manifest is the source of truth for that mapping.
+Do not assume hidden repo context inside a skill. A copied skill should remain usable after sync into `~/.codex/skills/<skill-name>` and `~/.cursor/skills/<skill-name>` (or the equivalent paths when override env vars are set). Filesystem location inside this repository may differ from installed skill name; the manifest is the source of truth for that mapping.
 
 ## SKILL.md minimum contract
 
@@ -64,7 +73,7 @@ See `docs/skill-schema.md` for the preferred section order and migration guidanc
 - Put repo-specific behavior in overlay skills instead of polluting general skills.
 - Prefer explicit artifact names, file paths, and command examples.
 - Prefer helper scripts and checked-in templates over large repeated prose blocks.
-- Use relative paths that still make sense after the skill is copied into `~/.codex/skills/<skill-name>`.
+- Use relative paths that still make sense after the skill is copied into each install root (`~/.codex/skills/<skill-name>` and `~/.cursor/skills/<skill-name>` by default).
 
 ## Validation rule
 
@@ -72,7 +81,7 @@ Before finishing a task that changes any manifest-declared skill directory or sh
 
 1. validate the changed skill definitions with the repository skill validator
 2. fix validation failures
-3. sync the installed copy in `~/.codex/skills`
+3. sync the installed copies (default: `~/.codex/skills` and `~/.cursor/skills`; see `scripts/sync_skills.sh`)
 
 If a new common rule appears in multiple skills, move it here unless there is a strong reason not to.
 

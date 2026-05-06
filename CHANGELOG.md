@@ -24,10 +24,10 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 ### Changed
 
+- `git-hooks/post-commit` forces `AGENT_SKILLS_SYNC_TARGETS=codex,cursor` and resolves the repo with `git rev-parse`; `git-hooks/pre-commit` uses the same repo resolution for symlink-safe paths
 - top-level skills normalized to the shared schema
 - `scripts/validate_skill.py` now distinguishes hard failures from schema-drift warnings and checks manifest consistency
 - `scripts/validate_repo.sh` now supports `--summary`
-- `scripts/sync_skills.sh` now supports `--changed`, `--dry-run`, and `--verify`
 - `codex-multi-agent-template/AGENTS.md` now has clearer role output, ownership, and handoff rules
 
 ### Notes

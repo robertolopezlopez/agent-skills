@@ -1,6 +1,6 @@
 # Agent Skills
 
-Custom Codex skills tracked in git.
+Custom agent skills tracked in git. They install to **Codex** (`~/.codex/skills`) and **Cursor** (`~/.cursor/skills` for personal agent skills) via `scripts/sync_skills.sh` unless you limit targets with flags or `AGENT_SKILLS_SYNC_TARGETS`.
 
 ## Layout
 
@@ -32,7 +32,7 @@ Custom Codex skills tracked in git.
 ### Other tracked assets
 
 - `codex-multi-agent-template/`: copy-ready multi-agent starter with `.codex/`, `AGENTS.md`, and prompts
-- `git-hooks/post-commit`: copies committed skills into `~/.codex/skills`
+- `git-hooks/post-commit`: copies committed skills into the configured install roots (default: `~/.codex/skills` and `~/.cursor/skills`)
 
 The private-service skills are overlays. Use them with the matching generic skills when working in that repository.
 Use `jira` for generic Atlassian/Jira access, including site-specific Jira usage when `~/.codex/jira.env` sets `ATLASSIAN_API_BASE_URL=https://example.atlassian.net`.
@@ -41,7 +41,7 @@ Use `codex-multi-agent-template/` when you want fixed lead/developer/reviewer/te
 
 ## Philosophy
 
-This repository aims to provide reusable Codex workflows that are:
+This repository aims to provide reusable agent workflows (Codex and Cursor) that are:
 
 - **copy-ready when helpful**: ship runnable templates when users need immediate project scaffolding
 - **flexible when needed**: keep skill logic reusable across repositories and task shapes
@@ -130,14 +130,19 @@ cp git-hooks/post-commit .git/hooks/post-commit
 chmod +x .git/hooks/post-commit
 ```
 
-Bootstrap the shared artifact schema and validator into the installed skills root so installed skill references and bootstrap validation both work correctly:
+Bootstrap the shared artifact schema and validator into each installed skills root so installed skill references and bootstrap validation both work correctly. The usual approach is to run `./scripts/sync_skills.sh --all` from this repository (defaults to both Codex and Cursor); or copy files manually:
 
 ```bash
-mkdir -p ~/.codex/skills ~/.codex/skills/scripts
+mkdir -p ~/.codex/skills ~/.codex/skills/scripts ~/.cursor/skills ~/.cursor/skills/scripts
 cp ARTIFACTS.md ~/.codex/skills/ARTIFACTS.md
 cp scripts/validate_artifact.py ~/.codex/skills/scripts/validate_artifact.py
 chmod +x ~/.codex/skills/scripts/validate_artifact.py
+cp ARTIFACTS.md ~/.cursor/skills/ARTIFACTS.md
+cp scripts/validate_artifact.py ~/.cursor/skills/scripts/validate_artifact.py
+chmod +x ~/.cursor/skills/scripts/validate_artifact.py
 ```
+
+Environment overrides: `CODEX_HOME` (Codex base), `CURSOR_AGENT_SKILLS_HOME` (parent of `skills/`, default `~/.cursor`), `AGENT_SKILLS_SYNC_TARGETS` (`codex`, `cursor`, or `codex,cursor` / `all`). Use `./scripts/sync_skills.sh --codex-only` or `--cursor-only` for a single destination.
 
 ## Multi-Agent Starter Template
 
@@ -174,14 +179,17 @@ For larger tasks, the lead can break work into milestones so review and validati
 Verify the shared installed assets:
 
 ```bash
-test -f ~/.codex/skills/ARTIFACTS.md && echo "ok: installed ARTIFACTS.md" || echo "MISSING: ~/.codex/skills/ARTIFACTS.md"
-test -f ~/.codex/skills/scripts/validate_artifact.py && echo "ok: installed validator" || echo "MISSING: ~/.codex/skills/scripts/validate_artifact.py"
+test -f ~/.codex/skills/ARTIFACTS.md && echo "ok: installed ARTIFACTS.md (codex)" || echo "MISSING: ~/.codex/skills/ARTIFACTS.md"
+test -f ~/.cursor/skills/ARTIFACTS.md && echo "ok: installed ARTIFACTS.md (cursor)" || echo "MISSING: ~/.cursor/skills/ARTIFACTS.md"
+test -f ~/.codex/skills/scripts/validate_artifact.py && echo "ok: installed validator (codex)" || echo "MISSING: ~/.codex/skills/scripts/validate_artifact.py"
+test -f ~/.cursor/skills/scripts/validate_artifact.py && echo "ok: installed validator (cursor)" || echo "MISSING: ~/.cursor/skills/scripts/validate_artifact.py"
 ```
 
 Verify an installed copied skill:
 
 ```bash
-test -f ~/.codex/skills/multi-spawn-agent/SKILL.md && echo "ok: installed multi-spawn-agent" || echo "MISSING: ~/.codex/skills/multi-spawn-agent/SKILL.md"
+test -f ~/.codex/skills/multi-spawn-agent/SKILL.md && echo "ok: installed multi-spawn-agent (codex)" || echo "MISSING"
+test -f ~/.cursor/skills/multi-spawn-agent/SKILL.md && echo "ok: installed multi-spawn-agent (cursor)" || echo "MISSING"
 ```
 
 Verify the post-commit hook is installed:
@@ -192,15 +200,15 @@ test -x .git/hooks/post-commit && echo "ok: post-commit hook" || echo "MISSING: 
 
 ## Behavior
 
-After each commit in this repository, the `post-commit` hook:
+After each commit in this repository, the installed `post-commit` hook runs `scripts/sync_skills.sh --all` with `AGENT_SKILLS_SYNC_TARGETS=codex,cursor`, so **both** Codex and Cursor install roots are updated on every commit. Manual runs can still use `--codex-only`, `--cursor-only`, or a custom `AGENT_SKILLS_SYNC_TARGETS`. Uses `git rev-parse --show-toplevel` so the hook works when `.git/hooks/post-commit` is a symlink.
 
-- copies `ARTIFACTS.md` to `~/.codex/skills/ARTIFACTS.md`
-- copies `scripts/validate_artifact.py` to `~/.codex/skills/scripts/validate_artifact.py`
+- copies `ARTIFACTS.md` and `scripts/validate_artifact.py` into each destination skills tree
 - reads manifest-declared skill directories from `skills_manifest.yaml`
-- removes the matching installed directory in `~/.codex/skills`
-- copies the declared skill directory into `~/.codex/skills/<skill-name>`
+- replaces each `<skill-name>` directory under both `~/.codex/skills` and `~/.cursor/skills`
 
-This keeps this repository as the source of truth while installing real copied directories for Codex discovery.
+This keeps this repository as the source of truth while installing real copied directories for Codex and Cursor agent skill discovery.
+
+Cursor also ships built-in skills under `~/.cursor/skills-cursor/`; this repository only writes your personal manifest skills under `~/.cursor/skills/`.
 
 ## Skill Docs
 
