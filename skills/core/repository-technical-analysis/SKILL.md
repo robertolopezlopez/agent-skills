@@ -88,7 +88,7 @@ Use this skill as the generic investigation layer.
 Common pairings:
 
 - repository-specific overlay skills for local commands, configs, and validation
-- transport skills such as `jira` or `gitlab` when the investigation starts from remote issue or MR context
+- transport skills such as `jira`, `confluence`, or `gitlab` when the investigation starts from remote issue, wiki, or MR context
 
 ## Artifact-Aware Behavior
 

@@ -17,6 +17,8 @@ Custom agent skills tracked in git. They install to **Codex** (`~/.codex/skills`
 - `skills/core/gitlab-mr-comment-analysis/`: reusable GitLab merge request comment-analysis workflow for any GitLab repository
 - `skills/core/jira/`: generic Jira and Atlassian issue access and update workflow through the Jira REST API
   See `skills/core/jira/README.md` for setup, auth expectations, and `jira-api` usage.
+- `skills/core/confluence/`: generic Confluence Cloud wiki access and updates through the Confluence REST API
+  See `skills/core/confluence/README.md` for `atlassian.env` defaults shared with **`jira`**, auth expectations, and helper usage.
 - `skills/core/multi-spawn-agent/`: reusable template for spawning parallel worker agents with disjoint ownership
 - `skills/core/git/`: local Git repository inspection and remote metadata helper
 - `skills/core/git-rebase-conflict-resolver/`: rebase and conflict-resolution workflow
@@ -44,7 +46,8 @@ Overlays for the **CLI product** source repository (agent- and IDE-agnostic: wor
 - `git-hooks/post-commit`: copies committed skills into the configured install roots (default: `~/.codex/skills` and `~/.cursor/skills`)
 
 The private-service and **CLI product** (`skills/cli/`) skills are overlays. Use them with the matching generic skills when working in those repositories.
-Use `jira` for generic Atlassian/Jira access, including site-specific Jira usage when `~/.cursor/jira.env` or `~/.codex/jira.env` sets `ATLASSIAN_API_BASE_URL=https://example.atlassian.net`.
+Use `jira` for generic Atlassian/Jira access, including site-specific Jira usage when **`~/.cursor/atlassian.env`** or **`~/.codex/atlassian.env`** sets `ATLASSIAN_API_BASE_URL=https://example.atlassian.net`.
+Use `confluence` for Confluence Cloud wiki access when **`~/.cursor/atlassian.env`** or **`~/.codex/atlassian.env`** sets the same variables (see `skills/core/confluence/README.md`).
 Likewise, `gitlab-mr-comment-analysis` is an overlay on `gitlab`: use `gitlab` for generic MR fetch and discussion inspection, and `gitlab-mr-comment-analysis` for grouped unresolved-comment analysis and reporting.
 Use `codex-multi-agent-template/` when you want fixed lead/developer/reviewer/tester scaffolding. Use `multi-spawn-agent` when you want dynamic worker splits driven by a work definition file.
 
@@ -62,7 +65,7 @@ This repository aims to provide reusable agent workflows (Codex and Cursor) that
 
 - Use `codex-multi-agent-template/` when you want a fixed project-level starter with `lead`, `developer`, `reviewer`, and `tester`.
 - Use `multi-spawn-agent/` when you want dynamic worker counts, explicit file ownership, or non-standard task splits.
-- Use generic skills such as `diagnose`, `github`, `tdd`, `gitlab`, `jira`, and `repository-technical-analysis` for reusable cross-repo workflows.
+- Use generic skills such as `diagnose`, `github`, `tdd`, `gitlab`, `jira`, `confluence`, and `repository-technical-analysis` for reusable cross-repo workflows.
 - Use `git` for local repository state, remotes, and repository identity inspection.
 - Use `github` for GitHub issue and pull-request fetch, inspection, and normalization.
 - Use `github-issue-triage` for maintainer-facing GitHub issue classification, missing-info detection, and next-state recommendation after issue context has been fetched.
@@ -211,7 +214,7 @@ test -x .git/hooks/post-commit && echo "ok: post-commit hook" || echo "MISSING: 
 
 After each commit in this repository, the installed `post-commit` hook runs `scripts/sync_skills.sh --all` with `AGENT_SKILLS_SYNC_TARGETS=codex,cursor`, so **both** Codex and Cursor install roots are updated on every commit. Manual runs can still use `--codex-only`, `--cursor-only`, or a custom `AGENT_SKILLS_SYNC_TARGETS`. Uses `git rev-parse --show-toplevel` so the hook works when `.git/hooks/post-commit` is a symlink.
 
-- copies `ARTIFACTS.md` and `scripts/validate_artifact.py` into each destination skills tree
+- copies `ARTIFACTS.md`, `scripts/validate_artifact.py`, and `scripts/atlassian-auth.sh` into each destination skills tree
 - reads manifest-declared skill directories from `skills_manifest.yaml`
 - replaces each `<skill-name>` directory under both `~/.codex/skills` and `~/.cursor/skills`
 
@@ -222,6 +225,7 @@ Cursor also ships built-in skills under `~/.cursor/skills-cursor/`; this reposit
 ## Skill Docs
 
 - `skills/core/jira/README.md`: generic Jira setup, auth expectations, base URL behavior, and `jira-api` examples
+- `skills/core/confluence/README.md`: Confluence Cloud setup via **`atlassian.env`**, auth expectations, and REST helpers
 - `ARTIFACTS.md`: shared schema, naming, and section order for local workflow artifacts
 
 ## Local Defaults Files
@@ -231,6 +235,7 @@ Use home-local env files for non-secret skill defaults when a skill documents th
 See the relevant skill `README.md` for the supported variables and precedence rules:
 
 - `skills/core/jira/README.md`
+- `skills/core/confluence/README.md`
 - `skills/private-service/contributor/README.md`
 - `skills/private-service/technical-analysis/README.md`
 - `skills/private-service/parallel-tests/README.md`

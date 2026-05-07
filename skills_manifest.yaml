@@ -1,5 +1,6 @@
 shared_files:
   - ARTIFACTS.md
+  - scripts/atlassian-auth.sh
   - scripts/validate_artifact.py
 
 skills:
@@ -148,6 +149,12 @@ skills:
       - multi-spawn-agent
   - name: jira
     path: skills/core/jira
+    status: stable
+    type: core
+    repo_scope: generic
+    release_group: core
+  - name: confluence
+    path: skills/core/confluence
     status: stable
     type: core
     repo_scope: generic

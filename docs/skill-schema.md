@@ -87,6 +87,7 @@ Responsible for:
 Examples:
 - `gitlab`
 - `jira`
+- `confluence`
 
 ### Workflow skill
 Responsible for:

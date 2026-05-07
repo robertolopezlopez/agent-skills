@@ -7,7 +7,7 @@ Setup and usage notes for the generic `jira` skill.
 This skill lets agents (for example in Codex or Cursor) fetch, summarize, create, and update Jira or Atlassian tickets through the Jira REST API when browser access redirects to login or when API access is more reliable.
 
 Use this skill for generic Jira/Atlassian access.
-For a site-specific Jira instance, set `ATLASSIAN_API_BASE_URL=https://example.atlassian.net` in **`~/.cursor/jira.env`** (preferred for Cursor) or **`~/.codex/jira.env`** (legacy Codex layout), or export it in the environment before invoking the helpers.
+For a site-specific Jira instance, set `ATLASSIAN_API_BASE_URL=https://example.atlassian.net` in **`~/.cursor/atlassian.env`** (preferred for Cursor) or **`~/.codex/atlassian.env`** (Codex-oriented layout), or export it in the environment before invoking the helpers.
 
 ## Files
 
@@ -16,11 +16,12 @@ For a site-specific Jira instance, set `ATLASSIAN_API_BASE_URL=https://example.a
 - `scripts/jira-api`: canonical helper implementation used by the skill
 - `scripts/jira-request`: canonical generic request helper for create/update actions
 - `scripts/bootstrap_jira_artifact.py`: bootstrap and validate a local `task_<issue>.md` artifact from fetched Jira JSON, including comment summary and related-reference hints
-- `scripts/atlassian-auth.sh`: vendored Atlassian auth helper source used to bootstrap the shared installed copy
+
+Atlassian authentication lives in the repository manifest **shared_files** helper (`atlassian-auth.sh` next to `validate_artifact.py` under each skills install root). Sync this repository per **AGENTS.md** so that file is present.
 
 ## Local Defaults File
 
-Use **`~/.cursor/jira.env`** first, then **`~/.codex/jira.env`**, for non-secret local defaults for this skill.
+Use **`~/.cursor/atlassian.env`** first, then **`~/.codex/atlassian.env`**, for non-secret local defaults for this skill.
 
 Example:
 
@@ -32,8 +33,8 @@ Precedence:
 
 1. explicit helper arguments
 2. exported environment variables
-3. `~/.cursor/jira.env`
-4. `~/.codex/jira.env`
+3. `~/.cursor/atlassian.env`
+4. `~/.codex/atlassian.env`
 
 Do not store `ATLASSIAN_API_TOKEN` in this file.
 
@@ -59,12 +60,7 @@ ${ATLASSIAN_API_TOKEN_FILE:-$HOME/.config/.jira/.credentials}
 
 It reads the first line as the token. The environment variable is still preferred.
 
-The skill uses the bundled `scripts/jira-api` and `scripts/jira-request` helpers directly.
-Before running the Jira helper, the skill refreshes shared Atlassian auth logic under:
-
-```text
-${XDG_DATA_HOME:-$HOME/.local/share}/jira/atlassian-auth.sh
-```
+The skill uses the bundled `scripts/jira-api` and `scripts/jira-request` helpers directly. They source the shared Atlassian auth helper from the manifest **shared_files** directory next to `validate_artifact.py` under the skills install root (sync per **AGENTS.md** after cloning or updating).
 
 ## Helper usage
 

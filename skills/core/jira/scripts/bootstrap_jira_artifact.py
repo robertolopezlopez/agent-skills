@@ -62,9 +62,9 @@ def slugify(text: str) -> str:
     return text or "jira-task"
 
 
-JIRA_ENV_CANDIDATES: tuple[Path, ...] = (
-    Path.home() / ".cursor" / "jira.env",
-    Path.home() / ".codex" / "jira.env",
+ATLASSIAN_ENV_CANDIDATES: tuple[Path, ...] = (
+    Path.home() / ".cursor" / "atlassian.env",
+    Path.home() / ".codex" / "atlassian.env",
 )
 
 
@@ -78,7 +78,7 @@ def read_api_base(cli_base: str | None) -> tuple[str | None, Path | None, str]:
     env_inline = (os.environ.get("ATLASSIAN_API_BASE_URL") or "").strip()
     if env_inline:
         return env_inline, None, "env"
-    for env_file in JIRA_ENV_CANDIDATES:
+    for env_file in ATLASSIAN_ENV_CANDIDATES:
         if not env_file.is_file():
             continue
         for line in env_file.read_text().splitlines():
@@ -94,7 +94,7 @@ def describe_defaults_path(source_kind: str, source_file: Path | None) -> str:
         return "(from ATLASSIAN_API_BASE_URL in environment)"
     if source_kind == "file" and source_file is not None:
         return str(source_file)
-    return "; ".join(str(p) for p in JIRA_ENV_CANDIDATES) + " (not found)"
+    return "; ".join(str(p) for p in ATLASSIAN_ENV_CANDIDATES) + " (not found)"
 
 
 def browse_base_from_api_base(api_base: str | None) -> str:

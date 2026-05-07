@@ -42,9 +42,9 @@ Accept, depending on the requested action:
 1. Extract the issue key from the URL or user request.
 2. Accept an optional host + path parameter before the issue key.
 3. Prefer Jira or Atlassian MCP for read and write operations when a suitable MCP server is configured in the session.
-4. If no host + path override is provided for fallback helper use, resolve defaults in this order: exported environment variable, then the first readable defaults file (**`~/.cursor/jira.env`**, then **`~/.codex/jira.env`**), then any built-in helper fallback.
+4. If no host + path override is provided for fallback helper use, resolve defaults in this order: exported environment variable, then the first readable defaults file (**`~/.cursor/atlassian.env`**, then **`~/.codex/atlassian.env`**), then any built-in helper fallback.
    - Prefer `ATLASSIAN_API_BASE_URL` from the exported environment when present.
-   - Otherwise, if `~/.cursor/jira.env` or `~/.codex/jira.env` exists, read the first one found (in that order) for default non-secret Jira settings before invoking the fallback helper.
+   - Otherwise, if `~/.cursor/atlassian.env` or `~/.codex/atlassian.env` exists, read the first one found (in that order) for default non-secret Jira settings before invoking the fallback helper.
    - `ATLASSIAN_API_BASE_URL` in those files may be a site URL like `https://example.atlassian.net`.
    - `ATLASSIAN_API_BASE_URL` in those files may already be an issue API base like `https://example.atlassian.net/rest/api/3/issue/`.
 5. Use `git config user.email` as the Atlassian username for fallback helper auth.
@@ -52,36 +52,30 @@ Accept, depending on the requested action:
    - If it is unset, the shared auth helper may fall back to `${ATLASSIAN_API_TOKEN_FILE:-$HOME/.config/.jira/.credentials}` and read the first line as the token.
    - Prefer the environment variable when available.
 7. Resolve `scripts/jira-api` and `scripts/jira-request` relative to this skill directory for fallback helper use.
-8. Resolve `scripts/atlassian-auth.sh` relative to this skill directory for fallback helper use.
-9. Ensure the shared Atlassian auth helper exists at `${XDG_DATA_HOME:-$HOME/.local/share}/jira/atlassian-auth.sh` before invoking fallback helpers.
-10. Refresh the shared auth helper from the skill copy before invoking `jira-api` or `jira-request`:
-   - `mkdir -p "${XDG_DATA_HOME:-$HOME/.local/share}/jira"`
-   - `cp <resolved-path-to-scripts/atlassian-auth.sh> "${XDG_DATA_HOME:-$HOME/.local/share}/jira/atlassian-auth.sh"`
-   - if the copy fails due to sandbox restrictions, rerun the copy step with escalated permissions
-11. Use the installed shared auth helper from `scripts/jira-api` and `scripts/jira-request`.
-12. If a Jira helper is not executable, run `chmod +x` on the resolved helper path.
-13. If MCP is unavailable or insufficient, invoke the resolved Jira helper path directly:
+8. Ensure manifest **shared_files** from this repository have been synced into the active skills install root so the Atlassian auth helper expected by `jira-api` and `jira-request` exists under that root `scripts/` directory next to `validate_artifact.py` when missing (follow **AGENTS.md** sync rules). The helpers locate and source that file automatically.
+9. If a Jira helper is not executable, run `chmod +x` on the resolved helper path.
+10. If MCP is unavailable or insufficient, invoke the resolved Jira helper path directly:
    - env-configured base: `<resolved-path-to-scripts/jira-api> {ISSUE_KEY}`
    - overridden issue API base: `<resolved-path-to-scripts/jira-api> {HOST_AND_PATH} {ISSUE_KEY}`
-14. When the task needs explicit field selection in fallback helper mode, pass the fields list as the final helper argument.
+11. When the task needs explicit field selection in fallback helper mode, pass the fields list as the final helper argument.
    - env-configured base: `<resolved-path-to-scripts/jira-api> {ISSUE_KEY} {FIELDS}`
    - overridden issue API base: `<resolved-path-to-scripts/jira-api> {HOST_AND_PATH} {ISSUE_KEY} {FIELDS}`
-15. The fallback helper should normalize either:
+12. The fallback helper should normalize either:
    - a site URL like `https://example.atlassian.net`, or
    - an issue API base ending in `/rest/api/3/issue/`
-16. Request only the fields needed for the task. For summaries, prefer:
+13. Request only the fields needed for the task. For summaries, prefer:
 
 ```text
 summary,status,issuetype,priority,assignee,reporter,created,updated,description,comment,labels
 ```
 
-17. If the fallback helper request fails due to sandbox network restrictions, rerun the same helper command with escalated network access.
-18. Summarize the issue from MCP output when available, otherwise from the fallback API response, not from the login page.
-19. For non-read actions, prefer MCP first. If MCP is unavailable or insufficient, invoke the resolved request helper path directly:
+14. If the fallback helper request fails due to sandbox network restrictions, rerun the same helper command with escalated network access.
+15. Summarize the issue from MCP output when available, otherwise from the fallback API response, not from the login page.
+16. For non-read actions, prefer MCP first. If MCP is unavailable or insufficient, invoke the resolved request helper path directly:
    - env-configured base: `<resolved-path-to-scripts/jira-request> METHOD /rest/api/3/... [JSON_BODY_FILE]`
    - overridden site base: `<resolved-path-to-scripts/jira-request> https://example.atlassian.net METHOD /rest/api/3/... [JSON_BODY_FILE]`
-20. When the user asks to bootstrap an artifact from a Jira issue, save the fetched issue JSON from MCP when possible, otherwise from the fallback helper, to a temporary local file and run `scripts/bootstrap_jira_artifact.py`.
-21. Never issue a direct Jira `curl` command from the skill workflow. All Jira HTTP access must go through Jira or Atlassian MCP when available, otherwise through `jira-api` or `jira-request`.
+17. When the user asks to bootstrap an artifact from a Jira issue, save the fetched issue JSON from MCP when possible, otherwise from the fallback helper, to a temporary local file and run `scripts/bootstrap_jira_artifact.py`.
+18. Never issue a direct Jira `curl` command from the skill workflow. All Jira HTTP access must go through Jira or Atlassian MCP when available, otherwise through `jira-api` or `jira-request`.
 
 ## Validation
 
@@ -105,17 +99,14 @@ Use the same normalized issue summary and artifact contract regardless of transp
 The canonical helper implementation lives at `scripts/jira-api`, resolved relative to this skill directory.
 The canonical generic request helper implementation lives at `scripts/jira-request`, resolved relative to this skill directory.
 The canonical artifact bootstrap helper implementation lives at `scripts/bootstrap_jira_artifact.py`, resolved relative to this skill directory.
-The vendored Atlassian auth helper source for this skill lives at `scripts/atlassian-auth.sh`, resolved relative to this skill directory.
-The installed shared Atlassian auth helper should live at `${XDG_DATA_HOME:-$HOME/.local/share}/jira/atlassian-auth.sh`.
+Atlassian authentication behavior is shared with the Confluence skill through the repository manifest **shared_files** helper (same `scripts/` directory as `validate_artifact.py` under each skills install root). Do not duplicate that logic inline in this file or in `scripts/jira-api` or `scripts/jira-request`.
 
 Use the resolved helper path in place for fallback helper execution.
-Refresh the installed shared auth helper from the vendored skill copy before invoking `jira-api`.
-Use **`~/.cursor/jira.env`** first, then **`~/.codex/jira.env`** (legacy), for non-secret defaults such as `ATLASSIAN_API_BASE_URL`; keep tokens out of those files unless the local environment explicitly requires it.
-Do not duplicate Atlassian auth logic inline in this file or in `scripts/jira-api` or `scripts/jira-request`; keep shared auth behavior in `scripts/atlassian-auth.sh` and the installed shared copy.
+Use **`~/.cursor/atlassian.env`** first, then **`~/.codex/atlassian.env`**, for non-secret defaults such as `ATLASSIAN_API_BASE_URL`; keep tokens out of those files unless the local environment explicitly requires it.
 
 ## Local Defaults File
 
-If `~/.cursor/jira.env` or `~/.codex/jira.env` exists, read the first match (in that order) before invoking the fallback Jira helpers to supply default non-secret settings.
+If `~/.cursor/atlassian.env` or `~/.codex/atlassian.env` exists, read the first match (in that order) before invoking the fallback Jira helpers to supply default non-secret settings.
 
 Preferred usage:
 
@@ -127,7 +118,7 @@ Rules:
 
 - treat explicit helper arguments as highest priority
 - treat exported environment variables as higher priority than defaults files
-- use **`~/.cursor/jira.env`**, then **`~/.codex/jira.env`**, for defaults, not for required per-request overrides
+- use **`~/.cursor/atlassian.env`**, then **`~/.codex/atlassian.env`**, for defaults, not for required per-request overrides
 - prefer keeping `ATLASSIAN_API_TOKEN` in the environment or existing credentials flow instead of storing it in a defaults file
 
 ## Fallback Command Pattern
@@ -231,7 +222,7 @@ Reuse the same generic Jira auth and base URL conventions for fallback helper us
 - use `git config user.email` as the Atlassian username
 - use `ATLASSIAN_API_TOKEN` from the environment as the password
 - if it is unset, the shared auth helper may fall back to `${ATLASSIAN_API_TOKEN_FILE:-$HOME/.config/.jira/.credentials}` and read the first line as the token
-- read **`~/.cursor/jira.env`**, then **`~/.codex/jira.env`**, for default non-secret Jira settings when present
+- read **`~/.cursor/atlassian.env`**, then **`~/.codex/atlassian.env`**, for default non-secret Jira settings when present
 - use `ATLASSIAN_API_BASE_URL` from the exported environment first, then from those files in that order, unless an explicit override is provided
 
 ### Generic creation flow
@@ -349,8 +340,8 @@ When rerunning work for the same Jira issue or refreshing a bootstrapped `task_<
 - Prefer Jira or Atlassian MCP when available, otherwise prefer the bundled helper over raw `curl`.
 - Resolve `scripts/jira-api` and `scripts/jira-request` relative to this skill directory and invoke those resolved paths directly instead of relying on `PATH` or copies in other directories.
 - Accept a host + path override before the issue key.
-- When no override is provided for fallback helper use, prefer exported `ATLASSIAN_API_BASE_URL`, then **`~/.cursor/jira.env`**, then **`~/.codex/jira.env`**, to identify the Jira site.
-- Prefer `~/.cursor/jira.env` for Cursor-oriented setups; `~/.codex/jira.env` remains supported for Codex-heavy environments.
+- When no override is provided for fallback helper use, prefer exported `ATLASSIAN_API_BASE_URL`, then **`~/.cursor/atlassian.env`**, then **`~/.codex/atlassian.env`**, to identify the Jira site.
+- Prefer `~/.cursor/atlassian.env` for Cursor-oriented setups; `~/.codex/atlassian.env` remains supported for Codex-heavy environments.
 - Never access Jira with a direct assistant-issued `curl`; use Jira or Atlassian MCP when available, otherwise only run `jira-api` or `jira-request`.
 - If `ATLASSIAN_API_TOKEN` is already set, do not probe `~/.config/.jira/.credentials` just to verify auth.
 - If auth works but the issue is still unavailable, report that the account likely lacks permission to view the ticket.

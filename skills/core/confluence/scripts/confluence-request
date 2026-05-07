@@ -1,0 +1,133 @@
+#!/bin/sh
+set -eu
+
+if [ "$#" -lt 2 ] || [ "$#" -gt 4 ]; then
+  echo "usage: confluence-request [CONFLUENCE_API_ROOT] METHOD PATH [JSON_BODY_FILE]" >&2
+  exit 2
+fi
+
+atlassian_auth_helper=""
+_d=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+while [ -n "$_d" ]; do
+  if [ -r "$_d/scripts/atlassian-auth.sh" ]; then
+    atlassian_auth_helper=$_d/scripts/atlassian-auth.sh
+    break
+  fi
+  [ "$_d" = "/" ] && break
+  _d=$(dirname "$_d")
+done
+if [ -z "$atlassian_auth_helper" ]; then
+  echo "could not find scripts/atlassian-auth.sh next to the agent-skills manifest helpers (install/sync repo copies)" >&2
+  exit 1
+fi
+
+# shellcheck source=/dev/null
+. "$atlassian_auth_helper"
+
+normalize_confluence_api_root() {
+  raw=${1%/}
+  case "$raw" in
+    */wiki/rest/api/v2)
+      printf '%s\n' "$raw"
+      ;;
+    */wiki/rest/api/v2/)
+      printf '%s\n' "${raw%/}"
+      ;;
+    http://*|https://*)
+      printf '%s/wiki/rest/api/v2\n' "$raw"
+      ;;
+    *)
+      printf '%s\n' "$raw"
+      ;;
+  esac
+}
+
+read_confluence_root_from_atlassian_env_files() {
+  cf_base=
+  site_base=
+  for env_file in "${HOME}/.cursor/atlassian.env" "${HOME}/.codex/atlassian.env"; do
+    [ -r "$env_file" ] || continue
+    while IFS= read -r line || [ -n "$line" ]; do
+      case "$line" in
+        \#*) ;;
+        ATLASSIAN_CONFLUENCE_API_BASE_URL=*)
+          cf_base=${line#ATLASSIAN_CONFLUENCE_API_BASE_URL=}
+          ;;
+        ATLASSIAN_API_BASE_URL=*)
+          if [ -z "$site_base" ]; then
+            site_base=${line#ATLASSIAN_API_BASE_URL=}
+          fi
+          ;;
+      esac
+    done < "$env_file"
+  done
+  if [ -n "$cf_base" ]; then
+    printf '%s\n' "$cf_base"
+    return 0
+  fi
+  if [ -n "$site_base" ]; then
+    printf '%s\n' "$site_base"
+    return 0
+  fi
+  return 1
+}
+
+resolve_confluence_api_root() {
+  if [ -n "${ATLASSIAN_CONFLUENCE_API_BASE_URL:-}" ]; then
+    normalize_confluence_api_root "$ATLASSIAN_CONFLUENCE_API_BASE_URL"
+    return 0
+  fi
+  if [ -n "${ATLASSIAN_API_BASE_URL:-}" ]; then
+    normalize_confluence_api_root "$ATLASSIAN_API_BASE_URL"
+    return 0
+  fi
+  if src=$(read_confluence_root_from_atlassian_env_files); then
+    normalize_confluence_api_root "$src"
+    return 0
+  fi
+  echo "set ATLASSIAN_CONFLUENCE_API_BASE_URL or ATLASSIAN_API_BASE_URL, or pass CONFLUENCE_API_ROOT" >&2
+  echo "defaults file: ~/.cursor/atlassian.env then ~/.codex/atlassian.env" >&2
+  exit 2
+}
+
+case "$1" in
+  http://*|https://*)
+    api_root=$(normalize_confluence_api_root "$1")
+    method=$2
+    path=$3
+    body_file=${4:-}
+    ;;
+  *)
+    api_root=$(resolve_confluence_api_root)
+    method=$1
+    path=$2
+    body_file=${3:-}
+    ;;
+esac
+
+case "$path" in
+  /*)
+    request_url=$api_root$path
+    ;;
+  *)
+    request_url=$api_root/$path
+    ;;
+esac
+
+atlassian_require_auth
+
+if [ -n "$body_file" ]; then
+  exec curl -sS \
+    -X "$method" \
+    -u "$ATLASSIAN_AUTH_USERPASS" \
+    -H 'Accept: application/json' \
+    -H 'Content-Type: application/json' \
+    --data @"$body_file" \
+    "$request_url"
+fi
+
+exec curl -sS \
+  -X "$method" \
+  -u "$ATLASSIAN_AUTH_USERPASS" \
+  -H 'Accept: application/json' \
+  "$request_url"

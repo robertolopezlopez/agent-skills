@@ -87,7 +87,7 @@ Common pairings:
 
 - repo-specific overlay skills for local commands, defaults, and validation
 - `repository-technical-analysis` when the task is investigation-heavy before implementation
-- transport skills such as `jira` or `gitlab` when the work starts from remote issue or MR context
+- transport skills such as `jira`, `confluence`, or `gitlab` when the work starts from remote issue, wiki, or MR context
 
 ## Artifact-Aware Behavior
 
