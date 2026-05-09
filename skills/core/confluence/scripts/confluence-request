@@ -28,13 +28,20 @@ normalize_confluence_api_root() {
   raw=${1%/}
   case "$raw" in
     */wiki/rest/api/v2)
-      printf '%s\n' "$raw"
+      printf '%s/wiki/api/v2\n' "${raw%%/wiki/rest/api/v2}"
       ;;
     */wiki/rest/api/v2/)
+      r=${raw%/}
+      printf '%s/wiki/api/v2\n' "${r%%/wiki/rest/api/v2}"
+      ;;
+    */wiki/api/v2)
+      printf '%s\n' "$raw"
+      ;;
+    */wiki/api/v2/)
       printf '%s\n' "${raw%/}"
       ;;
     http://*|https://*)
-      printf '%s/wiki/rest/api/v2\n' "$raw"
+      printf '%s/wiki/api/v2\n' "$raw"
       ;;
     *)
       printf '%s\n' "$raw"
