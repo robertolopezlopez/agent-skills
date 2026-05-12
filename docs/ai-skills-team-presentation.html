@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Agent Skills — Team Overview</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --surface: #1a2332;
+      --text: #e8ecf1;
+      --muted: #8b9bb4;
+      --accent: #3d9cf0;
+      --accent-dim: #2563a8;
+      --success: #34d399;
+      --slide-max-w: 56rem;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      font-family: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    .deck {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1.5rem 5rem;
+    }
+
+    .slide {
+      display: none;
+      width: 100%;
+      max-width: var(--slide-max-w);
+      animation: fadeIn 0.35s ease;
+    }
+
+    .slide.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h1 {
+      font-size: clamp(1.75rem, 4vw, 2.5rem);
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      margin: 0 0 0.75rem;
+      line-height: 1.15;
+    }
+
+    h2 {
+      font-size: clamp(1.35rem, 3vw, 1.85rem);
+      font-weight: 600;
+      margin: 0 0 1rem;
+      color: var(--accent);
+    }
+
+    h3 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin: 1.25rem 0 0.5rem;
+      color: var(--text);
+    }
+
+    p, li {
+      font-size: 1.05rem;
+      color: var(--muted);
+    }
+
+    p.lead {
+      font-size: 1.2rem;
+      color: var(--text);
+    }
+
+    ul {
+      margin: 0.5rem 0 1rem;
+      padding-left: 1.35rem;
+    }
+
+    li + li {
+      margin-top: 0.35rem;
+    }
+
+    .tagline {
+      font-size: 0.95rem;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+    }
+
+    .card {
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      margin: 1rem 0;
+      border: 1px solid rgba(61, 156, 240, 0.15);
+    }
+
+    .grid-2 {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    @media (min-width: 640px) {
+      .grid-2 {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .pill {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      background: rgba(61, 156, 240, 0.2);
+      color: var(--accent);
+      margin-bottom: 0.75rem;
+    }
+
+    .skill-list {
+      font-size: 0.88rem;
+      color: var(--muted);
+      line-height: 1.65;
+      columns: 2;
+      column-gap: 1.5rem;
+    }
+
+    @media (max-width: 520px) {
+      .skill-list { columns: 1; }
+    }
+
+    .skill-list code {
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 0.84rem;
+      color: var(--success);
+      background: rgba(52, 211, 153, 0.08);
+      padding: 0.08rem 0.35rem;
+      border-radius: 4px;
+    }
+
+    footer.nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.85rem 1.25rem;
+      background: rgba(15, 20, 25, 0.92);
+      border-top: 1px solid rgba(139, 155, 180, 0.12);
+      backdrop-filter: blur(8px);
+    }
+
+    footer.nav button {
+      font-family: inherit;
+      font-size: 0.9rem;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--accent-dim);
+      background: var(--surface);
+      color: var(--accent);
+      cursor: pointer;
+    }
+
+    footer.nav button:hover:not(:disabled) {
+      background: rgba(61, 156, 240, 0.15);
+    }
+
+    footer.nav button:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .progress {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    kbd {
+      font-family: inherit;
+      font-size: 0.75em;
+      padding: 0.1rem 0.4rem;
+      border-radius: 4px;
+      border: 1px solid var(--muted);
+      background: var(--surface);
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: underline;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 3px;
+    }
+
+    a:hover {
+      color: #6bb4f5;
+    }
+
+    pre.example-prompt {
+      margin: 1rem 0 0;
+      padding: 1rem 1.1rem;
+      background: var(--surface);
+      border: 1px solid rgba(61, 156, 240, 0.2);
+      border-radius: 10px;
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 0.82rem;
+      line-height: 1.6;
+      color: var(--text);
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+  </style>
+</head>
+<body>
+  <main class="deck" id="deck">
+    <!-- 1 -->
+    <section class="slide active" data-slide="1">
+      <span class="pill">Introduction</span>
+      <h1>AI agent skills</h1>
+      <p class="tagline">Reusable playbooks that teach assistants how we work—so output is faster, safer, and aligned with team practice.</p>
+      <p class="lead">This deck introduces what skills are, why they matter for software engineering, and how <strong style="color: var(--text)">my personal set of skills</strong> packages them for Codex and Cursor.</p>
+    </section>
+
+    <!-- 2 -->
+    <section class="slide" data-slide="2">
+      <span class="pill">What is a skill?</span>
+      <h2>Persistent instructions, not one-off prompts</h2>
+      <div class="card">
+        <p class="lead" style="margin: 0 0 0.75rem">A <strong style="color: var(--text)">skill</strong> is a structured document (often <code style="color: var(--success)">SKILL.md</code> with frontmatter) that defines:</p>
+        <ul>
+          <li>When to use it (description and triggers)</li>
+          <li>Inputs, workflow steps, validation, and artifacts</li>
+          <li>Safety notes and companion skills for chaining</li>
+        </ul>
+      </div>
+      <p>Skills turn fragile “please remember to…” chats into <strong style="color: var(--text)">versioned, shareable capability</strong> the whole team can adopt.</p>
+    </section>
+
+    <!-- 3 — Self-improving artifacts -->
+    <section class="slide" data-slide="3">
+      <span class="pill">Self-improving skills</span>
+      <h2>Local Markdown artifacts carry lessons forward</h2>
+      <p><strong style="color: var(--text)">Skills can be designed</strong> to be <strong style="color: var(--text)">self-improving</strong> over repeat runs: they read and update <strong style="color: var(--text)">workspace Markdown files</strong> (not the installed <code style="color: var(--success)">SKILL.md</code> itself) so context compounds in the repo you are working in. The same pattern applies to <strong style="color: var(--text)">overlays</strong>—for example <code style="color: var(--success)">private-technical-analysis</code> sits on <code style="color: var(--success)">repository-technical-analysis</code> for the CLI project tree (pnpm/Turbo, package scripts, CI parity) and keeps analysis artifacts consistent with the shared schema (e.g. <code style="color: var(--success)">ARTIFACTS.md</code>).</p>
+      <div class="card">
+        <h3 style="margin-top: 0">What gets preserved</h3>
+        <ul style="margin-bottom: 0">
+          <li><strong style="color: var(--text)">Follow-ups</strong> — open threads, blockers, and what to verify next</li>
+          <li><strong style="color: var(--text)">Possible improvements</strong> — candidates for cleanup, tests, or refactors</li>
+          <li><strong style="color: var(--text)">Lessons for next time</strong> — short heuristics from confirmed evidence (e.g. “when X, check Y first”), with stale notes marked when reality changes</li>
+        </ul>
+      </div>
+      <p class="tagline" style="margin-bottom: 0">Live data (MR threads, CI, tickets) is refreshed on each run; durable sections in artifacts like <code style="color: var(--success)">analysis_*.md</code>, <code style="color: var(--success)">review_mr_*.md</code>, or <code style="color: var(--success)">work_plan_mr_*.md</code> stay useful across sessions. Because they live in the <strong style="color: var(--text)">same workspace tree</strong>, the agent can <strong style="color: var(--text)">read them anytime</strong>—and many skills tell it to <strong style="color: var(--text)">open an existing artifact first</strong> before refetching live data. For follow-on chats you can still <strong style="color: var(--text)">@-mention, attach, or leave files open</strong> when you want those lessons pulled to the front of context instead of relying on search alone.</p>
+    </section>
+
+    <!-- 4 -->
+    <section class="slide" data-slide="4">
+      <span class="pill">General overview</span>
+      <h2>How skills fit the AI-assisted workflow</h2>
+      <div class="grid-2">
+        <div class="card">
+          <h3 style="margin-top: 0">For individuals</h3>
+          <ul>
+            <li>Repeatable workflows without re-explaining context each session</li>
+            <li>Consistent commands, file paths, and review expectations</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3 style="margin-top: 0">For the team</h3>
+          <ul>
+            <li>One source of truth in git—review and improve like code</li>
+            <li>Onboarding: new members inherit the same agent behavior</li>
+          </ul>
+        </div>
+      </div>
+      <p>Skills complement IDEs and models: they shape <strong style="color: var(--text)">process and quality</strong>, not raw model knowledge.</p>
+    </section>
+
+    <!-- 5 -->
+    <section class="slide" data-slide="5">
+      <span class="pill">Impact</span>
+      <h2>How skills accelerate software engineers</h2>
+      <ul>
+        <li><strong style="color: var(--text)">Shorter cycle time</strong> — Investigation, tests, and PR/MR workflows start from documented commands and repo conventions instead of improvisation.</li>
+        <li><strong style="color: var(--text)">Higher signal</strong> — Skills bias assistants toward evidence: reproduction steps, logs, diffs, and named artifacts.</li>
+        <li><strong style="color: var(--text)">Safer changes</strong> — Scoped edits, validation hooks, and explicit safety notes reduce drive-by refactors and risky automation.</li>
+        <li><strong style="color: var(--text)">Composable depth</strong> — Generic skills (e.g. GitLab fetch) stack with overlays (e.g. CLI-specific PR analysis) for the right level of detail per repository.</li>
+        <li><strong style="color: var(--text)">Parallel work</strong> — Planning and multi-agent templates make it explicit who reads, who writes, and how to merge results.</li>
+      </ul>
+    </section>
+
+    <!-- 6 — AGENTS.md -->
+    <section class="slide" data-slide="6">
+      <span class="pill">AGENTS.md</span>
+      <h2>Repository constitution for agents</h2>
+      <p>A root-level <code style="color: var(--success)">AGENTS.md</code> is the <strong style="color: var(--text)">repo-wide policy layer</strong> for Codex, Cursor, and anyone else automating in the tree. Prefer putting shared rules there instead of pasting the same constraints into every chat or every skill.</p>
+      <div class="card">
+        <h3 style="margin-top: 0">What it usually covers</h3>
+        <ul style="margin-bottom: 0">
+          <li><strong style="color: var(--text)">Workflow gates</strong> — e.g. validate skill or docs changes, sync install paths, run agreed checks before a task counts as done</li>
+          <li><strong style="color: var(--text)">Contracts</strong> — how skills are named, where they live, and minimum expectations for <code style="color: var(--success)">SKILL.md</code> (or equivalent)</li>
+          <li><strong style="color: var(--text)">Design principles</strong> — modularity, scoped edits, evidence-backed outputs, safe parallel work</li>
+        </ul>
+      </div>
+      <p class="tagline" style="margin-bottom: 0"><strong style="color: var(--text)">Gap today:</strong> the <strong style="color: var(--text)">CLI project</strong> and <strong style="color: var(--text)">GAF</strong> repositories still do not include an <code style="color: var(--success)">AGENTS.md</code>—adding one would align agent behavior with the same bar we use here. Example: <a href="https://github.com/robertolopezlopez/agent-skills/blob/main/AGENTS.md" rel="noopener noreferrer" target="_blank"><code style="color: var(--success)">agent-skills/AGENTS.md</code></a>.</p>
+    </section>
+
+    <!-- 7 -->
+    <section class="slide" data-slide="7">
+      <span class="pill">My personal skills</span>
+      <h2>My personal skills in one picture</h2>
+      <p class="tagline" style="margin-top: -0.35rem; margin-bottom: 1rem"><a href="https://github.com/robertolopezlopez/agent-skills" rel="noopener noreferrer" target="_blank">github.com/robertolopezlopez/agent-skills</a></p>
+      <div class="card">
+        <ul style="margin-bottom: 0">
+          <li><strong style="color: var(--text)">Manifest</strong> — <code style="color: var(--success); font-size: 0.9em">skills_manifest.yaml</code> lists every installable skill with a stable name and path.</li>
+          <li><strong style="color: var(--text)">Sync</strong> — <code style="color: var(--success); font-size: 0.9em">scripts/sync_skills.sh</code> copies skills to Codex and Cursor install roots (or targets you choose).</li>
+          <li><strong style="color: var(--text)">Contract</strong> — Each skill is self-contained: after sync, it should still work from <code style="color: var(--success); font-size: 0.9em">~/.codex/skills/…</code> or <code style="color: var(--success); font-size: 0.9em">~/.cursor/skills/…</code>.</li>
+        </ul>
+      </div>
+      <p>Philosophy: <strong style="color: var(--text)">modular</strong>, <strong style="color: var(--text)">evidence-based</strong>, <strong style="color: var(--text)">scoped</strong>, and <strong style="color: var(--text)">parallel where safe</strong>—matching how we want humans and agents to ship software.</p>
+      <p class="tagline" style="margin-bottom: 0">I also treat the catalog as <strong style="color: var(--text)">living documentation</strong>: I keep improving the set of skills with <strong style="color: var(--text)">new core capabilities</strong>, <strong style="color: var(--text)">new repo overlays</strong>, and <strong style="color: var(--text)">ongoing tweaks</strong> to skills that already exist—so the defaults track real workflows instead of freezing in place.</p>
+    </section>
+
+    <!-- 8 -->
+    <section class="slide" data-slide="8">
+      <span class="pill">Core skills</span>
+      <h2>Cross-repo building blocks</h2>
+      <p>Stable <strong style="color: var(--text)">core</strong> skills (generic, reusable across repositories):</p>
+      <div class="skill-list">
+        <p><code>branch-change-reviewer</code> · <code>diagnose</code> · <code>git</code> · <code>git-rebase-conflict-resolver</code></p>
+        <p><code>github</code> · <code>github-issue-triage</code> · <code>gitlab</code> · <code>gitlab-mr-comment-analysis</code></p>
+        <p><code>jira</code> · <code>confluence</code> · <code>circleci</code></p>
+        <p><code>multi-spawn-agent</code> · <code>plan-issues</code></p>
+        <p><code>python-fastapi-contributor</code> · <code>tdd</code> · <code>repository-technical-analysis</code></p>
+      </div>
+      <p style="margin-top: 1rem">Use these for transport (GitHub, GitLab, Jira), investigation, test-first delivery, CI insight, and structured planning.</p>
+      <div class="card" style="margin-top: 1rem">
+        <h3 style="margin-top: 0">Spotlight</h3>
+        <ul style="margin-bottom: 0">
+          <li><strong style="color: var(--text)"><code style="color: var(--success)">branch-change-reviewer</code></strong> — diff the current branch against a target (default <code style="color: var(--success)">origin/main</code>), write a Markdown review (e.g. <code style="color: var(--success)">review_feature-branch.md</code>), <strong style="color: var(--text)">without</strong> editing code—style, architecture, tests, regressions.</li>
+          <li><strong style="color: var(--text)"><code style="color: var(--success)">git-rebase-conflict-resolver</code></strong> — rebase onto a target (default <code style="color: var(--success)">origin/main</code>), resolve conflicts while keeping compatible intent from both sides, finish stuck rebases, then validate with the repo’s real lint, format, and test commands.</li>
+          <li><strong style="color: var(--text)"><code style="color: var(--success)">github-issue-triage</code></strong> — maintainer-facing triage <strong style="color: var(--text)">after</strong> issue context is fetched with <code style="color: var(--success)">github</code>: category, recommended next state, missing details, and clear follow-ons—not just listing comments.</li>
+        </ul>
+      </div>
+      <p class="tagline" style="margin-top: 0.85rem; margin-bottom: 0"><strong style="color: var(--text)">Next:</strong> once investigation has narrowed scope, see <code style="color: var(--success)">plan-issues</code> for turning analysis into an execution-ready breakdown.</p>
+    </section>
+
+    <!-- 9 — plan-issues -->
+    <section class="slide" data-slide="9">
+      <span class="pill">Planning</span>
+      <h2>After analysis: <code style="color: var(--success)">plan-issues</code></h2>
+      <p class="tagline" style="margin-top: -0.35rem; margin-bottom: 1rem">When <code style="color: var(--success)">repository-technical-analysis</code> has produced enough clarity on scope and evidence, this skill picks up the story.</p>
+      <div class="card">
+        <p style="margin: 0 0 0.75rem"><strong style="color: var(--text)">plan-issues</strong> decomposes the work into <strong style="color: var(--text)">ordered, dependency-aware vertical slices</strong> that are ready to execute—without treating “start coding” as the only handoff.</p>
+        <p style="margin: 0 0 0.75rem"><strong style="color: var(--text)">What you get:</strong> a concise summary of the scoped change, numbered slices with purpose and separation, explicit <strong style="color: var(--text)">dependencies and blockers</strong>, which slices need a <strong style="color: var(--text)">human decision</strong> vs which suit an agent, a recommended execution order, pointers to sensible next skills, and (when useful) a file such as <code style="color: var(--success)">work_plan_&lt;relevant_name&gt;.md</code>.</p>
+        <p style="margin: 0; font-size: 0.95rem"><strong style="color: var(--text)">Typical follow-ups:</strong> <code style="color: var(--success)">private-contributor</code> to implement against the CLI overlay conventions, and <code style="color: var(--success)">tdd</code> when each slice should ship through a test-first red-green loop. <code style="color: var(--success)">multi-spawn-agent</code> fits when multiple workers can own disjoint slices.</p>
+      </div>
+    </section>
+
+    <!-- 10 — Overlays -->
+    <section class="slide" data-slide="10">
+      <span class="pill">Overlays</span>
+      <h2>Repository-specific depth on top of core skills</h2>
+      <p>An <strong style="color: var(--text)">overlay</strong> is a skill scoped to <strong style="color: var(--text)">one codebase or product tree</strong>. It does not replace generic skills—it <strong style="color: var(--text)">narrows</strong> them: correct package managers and scripts, layout anchors, how tests map to CI, and what artifacts should look like for <em>that</em> repo. Use an overlay only when your checkout matches the repo it describes.</p>
+      <div class="card">
+        <h3 style="margin-top: 0">How layers stack (examples)</h3>
+        <ul style="margin-bottom: 0; font-size: 0.95rem">
+          <li><code style="color: var(--success)">repository-technical-analysis</code> + <code style="color: var(--success)">private-technical-analysis</code> — investigation with CLI monorepo repro commands and artifact shape.</li>
+          <li><code style="color: var(--success)">gitlab-mr-comment-analysis</code> + <code style="color: var(--success)">private-pr-comment-analysis</code> — grouped review issues with CLI-specific verdicts and proposed fixes.</li>
+          <li><code style="color: var(--success)">tdd</code> or <code style="color: var(--success)">plan-issues</code> + <code style="color: var(--success)">private-contributor</code> — delivery and validation using the CLI project’s real scripts and conventions.</li>
+        </ul>
+      </div>
+      <div class="card" style="margin-top: 1rem">
+        <h3 style="margin-top: 0">Example pack: CLI project (TypeScript monorepo)</h3>
+        <p style="margin: 0 0 0.65rem; font-size: 0.95rem"><strong style="color: var(--text)">Example:</strong> understand the project structure and glue (Makefile, <code style="color: var(--success)">package.json</code>), test execution, and use the checkout itself when responding to PR review feedback—so judgments and proposed fixes reference real files and commands, not generic boilerplate.</p>
+        <ul style="margin: 0; font-size: 0.92rem; line-height: 1.55">
+          <li><code style="color: var(--success)">private-contributor</code> — implement and validate using local script conventions (not generic guesses).</li>
+          <li><code style="color: var(--success)">private-technical-analysis</code> — narrow reproduction and analysis paths for the CLI tree; align artifacts with shared schema.</li>
+          <li><code style="color: var(--success)">private-parallel-tests</code> — broad suites using the same shapes CI uses.</li>
+          <li><code style="color: var(--success)">private-pr-comment-analysis</code> — MR/PR comment grouping plus CLI-specific technical judgment and suggested responses.</li>
+        </ul>
+      </div>
+      <p class="tagline" style="margin-bottom: 0">The catalog also includes overlays for <strong style="color: var(--text)">other repositories</strong> (same idea: core transport/workflow skill + repo pack). Prefer adding <strong style="color: var(--text)">thin overlays</strong> over forking huge generic skills—shared rules stay in core or <code style="color: var(--success)">AGENTS.md</code>.</p>
+    </section>
+
+    <!-- 11 -->
+    <section class="slide" data-slide="11">
+      <span class="pill">Reuse</span>
+      <h2>How can you reuse my experience</h2>
+      <p><strong style="color: var(--text)">Setup and install</strong> (clone, <code style="color: var(--success)">scripts/sync_skills.sh</code>, optional <code style="color: var(--success)">git-hooks/post-commit</code>, env overrides like <code style="color: var(--success)">AGENT_SKILLS_SYNC_TARGETS</code>, and how to verify your install) are spelled out in <a href="https://github.com/robertolopezlopez/agent-skills?tab=readme-ov-file#install" rel="noopener noreferrer" target="_blank"><code style="color: var(--success)">README.md</code></a>—see the <strong style="color: var(--text)">Install</strong>, <strong style="color: var(--text)">Verify Local Setup</strong>, and <strong style="color: var(--text)">Behavior</strong> sections.</p>
+      <ul>
+        <li>Fork or clone <a href="https://github.com/robertolopezlopez/agent-skills" rel="noopener noreferrer" target="_blank"><strong style="color: var(--text)">agent-skills</strong></a> and follow <code style="color: var(--success)">README.md</code> so your Codex/Cursor skill trees stay in sync with the manifest.</li>
+        <li>In the agent chat, <strong style="color: var(--text)">name skills explicitly</strong> when you want a playbook applied (e.g. “use <code style="color: var(--success)">gitlab-mr-comment-analysis</code> for MR 123”).</li>
+        <li>Wire <strong style="color: var(--text)">overlays</strong> only in the repos they describe; keep <strong style="color: var(--text)">tokens in env</strong>, not in skills or prompts.</li>
+        <li>Improve or fork the catalog via PR; treat each <code style="color: var(--success)">SKILL.md</code> like shared team docs.</li>
+      </ul>
+      <p class="tagline" style="margin-top: 1rem; margin-bottom: 0"><strong style="color: var(--text)">Feel free to contribute</strong> to the repository—fixes, new skills, and doc tweaks all help everyone. ;-)</p>
+      <p class="tagline" style="margin-top: 0.65rem; margin-bottom: 0">Optional: <code style="color: var(--success)">codex-multi-agent-template/</code> for fixed multi-agent roles, or <code style="color: var(--success)">multi-spawn-agent</code> for dynamic worker splits—also described from the repo root in <code style="color: var(--success)">README.md</code>.</p>
+    </section>
+
+    <!-- 12 — Secrets -->
+    <section class="slide" data-slide="12">
+      <span class="pill">Secrets &amp; auth</span>
+      <h2>Store credentials locally—not in skills or prompts</h2>
+      <p>Transport skills and MCP reach <strong style="color: var(--text)">GitHub</strong>, <strong style="color: var(--text)">GitLab</strong>, <strong style="color: var(--text)">Jira</strong>, <strong style="color: var(--text)">Confluence</strong>, <strong style="color: var(--text)">CircleCI</strong>, and similar APIs. Authentication should live in <strong style="color: var(--text)">environment variables</strong> or small <strong style="color: var(--text)">local dotenv files</strong> the agent host loads—never in committed <code style="color: var(--success)">SKILL.md</code>, team wiki, or copy-pasted chat.</p>
+      <div class="card">
+        <h3 style="margin-top: 0">Typical patterns</h3>
+        <ul style="margin-bottom: 0">
+          <li><strong style="color: var(--text)">Atlassian (Jira + Confluence)</strong> — <code style="color: var(--success)">~/.cursor/atlassian.env</code> or <code style="color: var(--success)">~/.codex/atlassian.env</code> with e.g. <code style="color: var(--success)">ATLASSIAN_API_TOKEN</code> and site base URL (see each skill’s README).</li>
+          <li><strong style="color: var(--text)">GitHub / GitLab</strong> — host or CLI auth (<code style="color: var(--success)">gh</code>, <code style="color: var(--success)">glab</code>) or tokens in env, as documented for MCP and fallbacks.</li>
+          <li><strong style="color: var(--text)">CircleCI</strong> — API token in env (e.g. <code style="color: var(--success)">CIRCLE_TOKEN</code>) for the <code style="color: var(--success)">circleci</code> skill and MCP.</li>
+          <li><strong style="color: var(--text)">Project-only secrets</strong> — a gitignored <code style="color: var(--success)">.env</code> at repo root if policy allows; do not commit it; align with your secret manager if the org requires it.</li>
+        </ul>
+      </div>
+      <p class="tagline" style="margin-bottom: 0">Skills assume secrets exist on the machine/session; they describe <em>what</em> to call, not <em>what your password is</em>. Prefer least privilege, rotation, and team standards over shared long-lived tokens in Slack.</p>
+    </section>
+
+    <!-- 13 — Chaining skills -->
+    <section class="slide" data-slide="13">
+      <span class="pill">Chaining skills</span>
+      <h2>One short prompt, several skills</h2>
+      <p>You are not limited to one skill per message. In a <strong style="color: var(--text)">single prompt</strong>, spell out the workflow end-to-end and <strong style="color: var(--text)">name the skills</strong> (or the capabilities they represent). The agent can run through transport steps, state changes, and analysis in order—as long as inputs, order, and expected <strong style="color: var(--text)">artifacts</strong> are explicit.</p>
+      <div class="card">
+        <h3 style="margin-top: 0">What to include</h3>
+        <ul style="margin-bottom: 0">
+          <li><strong style="color: var(--text)">Ordered steps</strong> — e.g. update tracker state, then investigate the repo</li>
+          <li><strong style="color: var(--text)">Identifiers</strong> — issue keys, branches, paths</li>
+          <li><strong style="color: var(--text)">Output contract</strong> — where to write the Markdown artifact (path + filename)</li>
+        </ul>
+      </div>
+      <h3 style="margin-top: 1.25rem; margin-bottom: 0.35rem; font-size: 1rem; color: var(--muted)">Example prompt</h3>
+      <pre class="example-prompt">jira — transition CLI-1234 to In Progress (use our board’s valid transition).
+
+repository-technical-analysis — in this repo, tie findings to CLI-1234 and write ./analysis_CLI-1234.md (evidence, open questions, next steps).</pre>
+      <p class="tagline" style="margin-top: 0.9rem; margin-bottom: 0">Jira transitions are project-specific; adjust the status name if your board uses something else. Auth for Jira stays in your env files, not in the prompt.</p>
+    </section>
+
+    <!-- 14 — Plugins -->
+    <section class="slide" data-slide="14">
+      <span class="pill">Plugins & extensions</span>
+      <h2>Extras that pair well with skills</h2>
+      <p><strong style="color: var(--text)">Skills</strong> encode workflow and conventions. <strong style="color: var(--text)">MCP servers</strong>, <strong style="color: var(--text)">plugins</strong>, and <strong style="color: var(--text)">community packs</strong> extend what the host can reach or how it behaves—worth curating so the baseline matches how you work.</p>
+      <div class="card">
+        <h3 style="margin-top: 0">MCP servers (transport)</h3>
+        <p style="margin: 0 0 0.75rem"><strong style="color: var(--text)">Model Context Protocol</strong> servers give agents structured access to external systems. Many of these skills are written to <strong style="color: var(--text)">prefer MCP first</strong> on the transport layer, then fall back to helpers or CLIs when MCP is missing.</p>
+        <p style="margin: 0; font-size: 0.95rem">Examples in this catalog: the <code style="color: var(--success)">github</code> and <code style="color: var(--success)">gitlab</code> skills default to <strong style="color: var(--text)">GitHub MCP</strong> / <strong style="color: var(--text)">GitLab MCP</strong> for issues, PRs/MRs, and review metadata; <code style="color: var(--success)">jira</code> and <code style="color: var(--success)">confluence</code> lean on <strong style="color: var(--text)">Jira or Atlassian MCP</strong> before REST helpers. Configure the servers your team trusts; the skills stay the same.</p>
+      </div>
+      <div class="card" style="margin-top: 1rem">
+        <h3 style="margin-top: 0">Example: Caveman</h3>
+        <p style="margin: 0 0 0.75rem"><a href="https://github.com/JuliusBrussee/caveman" rel="noopener noreferrer" target="_blank">JuliusBrussee/caveman</a> is a Claude Code–oriented skill pack that leans on ultra-compact “caveman” phrasing so the model uses fewer tokens while still getting the job done—useful when you want shorter agent turns and lower context burn (evaluate fit for your team’s tone and compliance needs).</p>
+        <p style="margin: 0; font-size: 0.95rem">Treat third-party plugins and packs like any dependency: read the README, know what data they touch, and prefer pinned versions or forks you trust.</p>
+      </div>
+      <p class="tagline" style="margin-bottom: 0">Layer in editor extensions, internal tools, or other host tweaks as needed—keep transport (MCP) and workflow (skills) logically separate when you reason about risk.</p>
+    </section>
+
+    <!-- 15 -->
+    <section class="slide" data-slide="15">
+      <span class="pill">Close</span>
+      <h2>Summary</h2>
+      <div class="card">
+        <ul style="margin: 0">
+          <li>Skills package <strong style="color: var(--text)">how</strong> we work—not just <strong style="color: var(--text)">what</strong> we want built.</li>
+          <li>They improve speed, consistency, and safety for real engineering tasks.</li>
+          <li><a href="https://github.com/robertolopezlopez/agent-skills" rel="noopener noreferrer" target="_blank"><strong style="color: var(--text)">My personal skills</strong> <span style="color: var(--muted); font-weight: 400">(github.com/robertolopezlopez/agent-skills)</span></a> are organized as <strong style="color: var(--text)">core + overlays</strong>, synced to agents, validated like any other source.</li>
+          <li>The set is <strong style="color: var(--text)">actively maintained</strong>: new core skills, new overlays, and refinements to existing skills as tools and team practice evolve.</li>
+          <li>A typical depth path: <code style="color: var(--success)">repository-technical-analysis</code> → <code style="color: var(--success)">plan-issues</code> → <code style="color: var(--success)">private-contributor</code> / <code style="color: var(--success)">tdd</code>, with local Markdown artifacts holding follow-ups and lessons.</li>
+          <li>You can chain several named skills in <strong style="color: var(--text)">one prompt</strong> when steps, IDs, and output files are explicit.</li>
+        </ul>
+      </div>
+      <p class="lead" style="margin-top: 1.25rem">Questions? Let’s align on which skills we standardize on per squad and how we review changes to shared playbooks.</p>
+    </section>
+  </main>
+
+  <footer class="nav">
+    <button type="button" id="prev" aria-label="Previous slide">← Previous</button>
+    <span class="progress" id="progress">1 / 15</span>
+    <button type="button" id="next" aria-label="Next slide">Next →</button>
+  </footer>
+
+  <script>
+    (function () {
+      const slides = Array.from(document.querySelectorAll(".slide"));
+      const total = slides.length;
+      let index = 0;
+
+      const prevBtn = document.getElementById("prev");
+      const nextBtn = document.getElementById("next");
+      const progressEl = document.getElementById("progress");
+
+      function show(i) {
+        index = Math.max(0, Math.min(i, total - 1));
+        slides.forEach((s, j) => s.classList.toggle("active", j === index));
+        progressEl.textContent = index + 1 + " / " + total;
+        prevBtn.disabled = index === 0;
+        nextBtn.disabled = index === total - 1;
+      }
+
+      prevBtn.addEventListener("click", function () { show(index - 1); });
+      nextBtn.addEventListener("click", function () { show(index + 1); });
+
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "ArrowRight" || e.key === " ") {
+          e.preventDefault();
+          show(index + 1);
+        } else if (e.key === "ArrowLeft") {
+          e.preventDefault();
+          show(index - 1);
+        } else if (e.key === "Home") {
+          show(0);
+        } else if (e.key === "End") {
+          show(total - 1);
+        }
+      });
+
+      show(0);
+    })();
+  </script>
+</body>
+</html>
