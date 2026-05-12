@@ -46,6 +46,38 @@ def load_manifest(path: Path) -> dict[str, object]:
     return {"shared_files": shared_files, "skills": skills}
 
 
+def parse_csv_set(raw: str) -> set[str]:
+    parts = [p.strip() for p in raw.replace("\n", ",").split(",")]
+    return {p for p in parts if p}
+
+
+def should_install_skill(
+    skill: dict[str, str],
+    exclude_release_groups: set[str],
+    exclude_skill_names: set[str],
+) -> bool:
+    if skill["name"] in exclude_skill_names:
+        return False
+    rg = (skill.get("release_group") or "").strip()
+    if rg and rg in exclude_release_groups:
+        return False
+    return True
+
+
+def filter_installable_skills(
+    manifest: dict[str, object],
+    exclude_release_groups: set[str],
+    exclude_skill_names: set[str],
+) -> list[dict[str, str]]:
+    skills = manifest["skills"]
+    assert isinstance(skills, list)
+    return [
+        s
+        for s in skills
+        if should_install_skill(s, exclude_release_groups, exclude_skill_names)
+    ]
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Read the repo skills manifest.")
     parser.add_argument(
@@ -54,6 +86,7 @@ def main() -> None:
             "list-skill-paths",
             "list-skill-names",
             "list-skill-name-paths",
+            "list-excluded-skill-names",
             "list-shared-files",
             "summary",
             "summary-by-group",
@@ -68,19 +101,44 @@ def main() -> None:
         "--manifest",
         default=str(Path(__file__).resolve().parents[1] / "skills_manifest.yaml"),
     )
+    parser.add_argument(
+        "--exclude-release-groups",
+        default="",
+        help=(
+            "Comma-separated release_group values to omit from install-oriented listings "
+            "(list-skill-* and list-excluded-skill-names)."
+        ),
+    )
+    parser.add_argument(
+        "--exclude-skill-names",
+        default="",
+        help=(
+            "Comma-separated skill names to omit from install-oriented listings "
+            "(list-skill-* and list-excluded-skill-names)."
+        ),
+    )
     args = parser.parse_args()
 
     manifest = load_manifest(Path(args.manifest))
+    exclude_groups = parse_csv_set(args.exclude_release_groups)
+    exclude_names = parse_csv_set(args.exclude_skill_names)
+    installable = filter_installable_skills(manifest, exclude_groups, exclude_names)
 
     if args.command == "list-skill-paths":
-        for skill in manifest["skills"]:
+        for skill in installable:
             print(skill["path"])
     elif args.command == "list-skill-names":
-        for skill in manifest["skills"]:
+        for skill in installable:
             print(skill["name"])
     elif args.command == "list-skill-name-paths":
-        for skill in manifest["skills"]:
+        for skill in installable:
             print(f"{skill['name']}\t{skill['path']}")
+    elif args.command == "list-excluded-skill-names":
+        skills = manifest["skills"]
+        assert isinstance(skills, list)
+        for skill in skills:
+            if not should_install_skill(skill, exclude_groups, exclude_names):
+                print(skill["name"])
     elif args.command == "list-shared-files":
         for shared_file in manifest["shared_files"]:
             print(shared_file)

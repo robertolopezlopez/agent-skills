@@ -7,6 +7,14 @@ manifest_reader="$repo_root/scripts/skill_manifest.py"
 codex_skills_root="${CODEX_HOME:-$HOME/.codex}/skills"
 cursor_skills_root="${CURSOR_AGENT_SKILLS_HOME:-$HOME/.cursor}/skills"
 
+manifest_filter_args=()
+if [[ -n "${AGENT_SKILLS_EXCLUDE_RELEASE_GROUPS:-}" ]]; then
+  manifest_filter_args+=(--exclude-release-groups "$AGENT_SKILLS_EXCLUDE_RELEASE_GROUPS")
+fi
+if [[ -n "${AGENT_SKILLS_EXCLUDE_SKILL_NAMES:-}" ]]; then
+  manifest_filter_args+=(--exclude-skill-names "$AGENT_SKILLS_EXCLUDE_SKILL_NAMES")
+fi
+
 usage() {
   cat <<'EOH'
 Usage: sync_skills.sh [--all] [--changed] [--dry-run] [--verify] [--delete-missing]
@@ -24,6 +32,10 @@ Environment:
   AGENT_SKILLS_SYNC_TARGETS   Codex-and-Cursor sync scope when no target flags:
                               codex | cursor | codex,cursor | all | both
                               (default: codex,cursor)
+  AGENT_SKILLS_EXCLUDE_RELEASE_GROUPS   Comma-separated manifest release_group values
+                              to skip installing (and remove from targets if present).
+                              Example: private-service
+  AGENT_SKILLS_EXCLUDE_SKILL_NAMES      Comma-separated exact skill names to skip.
 
 Options:
   --all             Sync all manifest-declared skills and shared helper files (default).
@@ -139,7 +151,11 @@ run_or_print() {
 }
 
 collect_skill_entries() {
-  "$manifest_reader" list-skill-name-paths
+  if [[ ${#manifest_filter_args[@]} -eq 0 ]]; then
+    "$manifest_reader" list-skill-name-paths
+  else
+    "$manifest_reader" list-skill-name-paths "${manifest_filter_args[@]}"
+  fi
 }
 
 collect_shared_files() {
@@ -195,10 +211,21 @@ sync_to_destination() {
       run_or_print rm -rf "$dest_root/$skill_name"
       run_or_print cp -R "$skill_dir" "$dest_root/$skill_name"
     done < <(collect_skill_entries)
+
+    if [[ ${#manifest_filter_args[@]} -gt 0 ]]; then
+      while IFS= read -r excluded_name; do
+        [[ -n "$excluded_name" ]] || continue
+        run_or_print rm -rf "$dest_root/$excluded_name"
+      done < <("$manifest_reader" list-excluded-skill-names "${manifest_filter_args[@]}")
+    fi
   fi
 
   if [[ "$delete_missing" == true ]]; then
-    manifest_names="$($manifest_reader list-skill-names)"
+    if [[ ${#manifest_filter_args[@]} -eq 0 ]]; then
+      manifest_names="$("$manifest_reader" list-skill-names)"
+    else
+      manifest_names="$("$manifest_reader" list-skill-names "${manifest_filter_args[@]}")"
+    fi
     shopt -s nullglob
     for installed in "$dest_root"/*; do
       [[ -d "$installed" ]] || continue

@@ -156,6 +156,18 @@ chmod +x ~/.cursor/skills/scripts/validate_artifact.py
 
 Environment overrides: `CODEX_HOME` (Codex base), `CURSOR_AGENT_SKILLS_HOME` (parent of `skills/`, default `~/.cursor`), `AGENT_SKILLS_SYNC_TARGETS` (`codex`, `cursor`, or `codex,cursor` / `all`). Use `./scripts/sync_skills.sh --codex-only` or `--cursor-only` for a single destination.
 
+Optional **install filters** (skip copying whole manifest groups or named skills—excluded directories are removed from each sync target if they were installed earlier):
+
+- `AGENT_SKILLS_EXCLUDE_RELEASE_GROUPS` — comma-separated `release_group` values from `skills_manifest.yaml`. Each value drops **every** skill with that `release_group`. Current manifest values:
+  - **`core`** — generic cross-repo skills (e.g. `github`, `gitlab`, `jira`, `repository-technical-analysis`, `tdd`, …).
+  - **`cli`** — CLI product overlays (`private-contributor`, `private-technical-analysis`, `private-parallel-tests`, `private-pr-comment-analysis`).
+  - **`private-service`** — private-service overlays (`private-service-*`).
+  
+  Examples: `private-service` only; `private-service,cli` omits both packs. To list groups and member skills after manifest changes, run: `python3 scripts/skill_manifest.py summary-by-group --group-by release_group`.
+- `AGENT_SKILLS_EXCLUDE_SKILL_NAMES` — comma-separated exact manifest `name` entries.
+
+The `post-commit` hook does not set these; export them in your environment or wrap `sync_skills.sh` if you want narrower installs by default. See `scripts/sync_skills.sh` usage for details.
+
 ## Multi-Agent Starter Template
 
 To bootstrap a target project with a fixed Codex multi-agent setup:

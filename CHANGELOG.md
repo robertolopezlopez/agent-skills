@@ -22,7 +22,7 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 - reusable work-plan template in `templates/work_plan.md`
 - repo command shortcuts in `Makefile`
 - skills manifest in `skills_manifest.yaml`
-- manifest reader in `scripts/skill_manifest.py`
+- manifest reader in `scripts/skill_manifest.py` with optional install filters (`--exclude-release-groups`, `--exclude-skill-names`, `list-excluded-skill-names`); `scripts/sync_skills.sh` reads `AGENT_SKILLS_EXCLUDE_RELEASE_GROUPS` / `AGENT_SKILLS_EXCLUDE_SKILL_NAMES` to omit manifest groups or skill names and remove them from install roots when present
 
 ### Changed
 
