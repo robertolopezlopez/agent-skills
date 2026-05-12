@@ -16,7 +16,7 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 ### Added
 
 - core `confluence` skill (`skills/core/confluence/`) for Confluence Cloud REST access via helpers; reads non-secret defaults from **`~/.cursor/atlassian.env`** then **`~/.codex/atlassian.env`**
-- CLI product overlay skills under `skills/cli/` (`private-contributor`, `private-technical-analysis`, `private-parallel-tests`, `cli-mr-comment-analysis`), agent- and IDE-agnostic, declared in `skills_manifest.yaml`
+- CLI product overlay skills under `skills/cli/` (`private-contributor`, `private-technical-analysis`, `private-parallel-tests`, `private-pr-comment-analysis`), agent- and IDE-agnostic, declared in `skills_manifest.yaml`
 - shared skill schema guidance in `docs/skill-schema.md`
 - release/change guidance in `docs/release-change-guidance.md`
 - reusable work-plan template in `templates/work_plan.md`
@@ -26,6 +26,7 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 ### Changed
 
+- Renamed **`cli-mr-comment-analysis`** → **`private-pr-comment-analysis`** (directory `skills/cli/mr-comment-analysis/` → `skills/cli/pr-comment-analysis/`). Remove stale installs with `./scripts/sync_skills.sh --all --verify --delete-missing`.
 - Atlassian auth is a single manifest **shared_files** script (`scripts/atlassian-auth.sh`); `jira` and `confluence` helpers source it from the skills install root `scripts/` directory next to `validate_artifact.py` instead of copying to `$HOME/.local/share/jira/`
 - `scripts/sync_skills.sh --delete-missing` skips the non-skill `scripts/` directory under each install root (it carries shared helpers such as `validate_artifact.py`)
 - CLI overlay skills: `private-prefix-*` → `cli-*`, directory `skills/private-prefix/` → `skills/cli/`, manifest `repo_scope` / `release_group` → `cli`; prose is agent- and IDE-agnostic

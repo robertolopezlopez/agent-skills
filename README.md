@@ -38,7 +38,7 @@ Overlays for the **CLI product** source repository (agent- and IDE-agnostic: wor
 - `skills/cli/contributor/`: implementation and validation conventions; pnpm, Turbo, and `package.json` script discovery
 - `skills/cli/technical-analysis/`: investigation and repro commands for the CLI tree
 - `skills/cli/parallel-tests/`: broad suite runs aligned with CI scripts
-- `skills/cli/mr-comment-analysis/`: GitLab MR grouped-comment analysis with repo-specific verdicts and proposed changes
+- `skills/cli/pr-comment-analysis/`: GitLab MR grouped-comment analysis with repo-specific verdicts and proposed changes (`private-pr-comment-analysis`)
 
 ### Other tracked assets
 

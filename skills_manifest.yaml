@@ -136,8 +136,8 @@ skills:
     companion_skills:
       - private-technical-analysis
       - repository-technical-analysis
-  - name: cli-mr-comment-analysis
-    path: skills/cli/mr-comment-analysis
+  - name: private-pr-comment-analysis
+    path: skills/cli/pr-comment-analysis
     status: stable
     type: overlay
     repo_scope: cli
