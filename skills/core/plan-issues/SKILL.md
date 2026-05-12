@@ -24,7 +24,7 @@ Do not use this skill when:
 - the main task is broad investigation or root-cause analysis; use `repository-technical-analysis`
 - the main task is debugging or reproducing a concrete failure; use `diagnose`
 - the main task is implementation through a test-first loop; use `tdd`
-- the main task is only transport access to GitHub, GitLab, Jira, or Confluence
+- the main task is only transport access to GitHub, GitLab, Jira, Confluence, or CircleCI
 - the change is still too vague to decompose confidently
 - a repository-specific overlay already fully defines the planning workflow
 
@@ -34,7 +34,7 @@ Accept any of:
 
 - a scoped task or change request
 - a local planning artifact
-- a GitHub, GitLab, Jira, or Confluence item whose scope is already clear
+- a GitHub, GitLab, Jira, Confluence, or CircleCI item whose scope is already clear
 - a feature, fix, or refactor description with enough detail to split into work items
 - an already-approved plan that needs execution slicing
 
@@ -43,7 +43,7 @@ Accept any of:
 - Read `AGENTS.md`, `README.md`, `Makefile`, and repo-specific contributor docs when present.
 - If a local artifact exists for the task, read it first.
 - Reuse `repository-technical-analysis` first if the problem or scope is still unclear.
-- Reuse transport skills first if the plan depends on remote issue or MR context that has not yet been fetched.
+- Reuse transport skills first if the plan depends on remote issue, MR, or CI run context that has not yet been fetched.
 
 ## Workflow
 
@@ -106,7 +106,7 @@ Common pairings:
 - `multi-spawn-agent` when the breakdown is ready for delegated execution
 - `tdd` when individual slices should be implemented test-first
 - repository-specific contributor skills for local commands and validation
-- transport skills such as `github`, `gitlab`, `jira`, or `confluence` when remote context is needed first
+- transport skills such as `github`, `gitlab`, `jira`, `confluence`, or `circleci` when remote context is needed first
 
 ## Safety Notes
 

@@ -117,6 +117,7 @@ skills:
       - tdd
       - diagnose
       - repository-technical-analysis
+      - circleci
   - name: private-technical-analysis
     path: skills/cli/technical-analysis
     status: stable
@@ -125,6 +126,7 @@ skills:
     release_group: cli
     companion_skills:
       - repository-technical-analysis
+      - circleci
   - name: private-parallel-tests
     path: skills/cli/parallel-tests
     status: stable
@@ -159,6 +161,16 @@ skills:
     type: core
     repo_scope: generic
     release_group: core
+  - name: circleci
+    path: skills/core/circleci
+    status: stable
+    type: core
+    repo_scope: generic
+    release_group: core
+    companion_skills:
+      - git
+      - repository-technical-analysis
+      - diagnose
   - name: multi-spawn-agent
     path: skills/core/multi-spawn-agent
     status: stable
@@ -178,6 +190,7 @@ skills:
       - github
       - gitlab
       - jira
+      - circleci
   - name: python-fastapi-contributor
     path: skills/core/python-fastapi-contributor
     status: stable

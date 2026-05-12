@@ -1,0 +1,111 @@
+#!/bin/sh
+set -eu
+#
+# CircleCI API v2 helper. Installed next to SKILL.md under ~/.codex/skills/circleci
+# or ~/.cursor/skills/circleci after sync (see agent-skills AGENTS.md).
+
+if [ "$#" -lt 2 ] || [ "$#" -gt 4 ]; then
+  echo "usage: circleci-request [CIRCLECI_API_ROOT] METHOD PATH [JSON_BODY_FILE]" >&2
+  exit 2
+fi
+
+normalize_api_root() {
+  printf '%s\n' "${1%/}"
+}
+
+resolve_circleci_api_root() {
+  if [ -n "${CIRCLECI_API_BASE_URL:-}" ]; then
+    normalize_api_root "$CIRCLECI_API_BASE_URL"
+    return 0
+  fi
+  for env_file in "${HOME}/.cursor/circleci.env" "${HOME}/.codex/circleci.env"; do
+    [ -r "$env_file" ] || continue
+    while IFS= read -r line || [ -n "$line" ]; do
+      case "$line" in
+        \#*) ;;
+        CIRCLECI_API_BASE_URL=*)
+          normalize_api_root "${line#CIRCLECI_API_BASE_URL=}"
+          return 0
+          ;;
+      esac
+    done < "$env_file"
+  done
+  printf '%s\n' "https://circleci.com/api/v2"
+}
+
+circleci_token_from_env_files() {
+  for env_file in "${HOME}/.cursor/circleci.env" "${HOME}/.codex/circleci.env"; do
+    [ -r "$env_file" ] || continue
+    while IFS= read -r line || [ -n "$line" ]; do
+      case "$line" in
+        \#*) ;;
+        CIRCLE_TOKEN=*)
+          printf '%s\n' "${line#*=}"
+          return 0
+          ;;
+        CIRCLECI_TOKEN=*)
+          printf '%s\n' "${line#*=}"
+          return 0
+          ;;
+      esac
+    done < "$env_file"
+  done
+  return 1
+}
+
+require_circleci_token() {
+  token=${CIRCLE_TOKEN:-}
+  if [ -z "$token" ]; then
+    token=${CIRCLECI_TOKEN:-}
+  fi
+  if [ -z "$token" ]; then
+    if ! token=$(circleci_token_from_env_files); then
+      echo "set CIRCLE_TOKEN or CIRCLECI_TOKEN, or define one in ~/.cursor/circleci.env then ~/.codex/circleci.env" >&2
+      exit 1
+    fi
+  fi
+  CIRCLECI_HTTP_TOKEN=$token
+  export CIRCLECI_HTTP_TOKEN
+}
+
+case "$1" in
+  http://*|https://*)
+    api_root=$(normalize_api_root "$1")
+    method=$2
+    path=$3
+    body_file=${4:-}
+    ;;
+  *)
+    api_root=$(resolve_circleci_api_root)
+    method=$1
+    path=$2
+    body_file=${3:-}
+    ;;
+esac
+
+case "$path" in
+  /*)
+    request_url=$api_root$path
+    ;;
+  *)
+    request_url=$api_root/$path
+    ;;
+esac
+
+require_circleci_token
+
+if [ -n "$body_file" ]; then
+  exec curl -sS \
+    -X "$method" \
+    -H "Circle-Token: $CIRCLECI_HTTP_TOKEN" \
+    -H 'Accept: application/json' \
+    -H 'Content-Type: application/json' \
+    --data @"$body_file" \
+    "$request_url"
+fi
+
+exec curl -sS \
+  -X "$method" \
+  -H "Circle-Token: $CIRCLECI_HTTP_TOKEN" \
+  -H 'Accept: application/json' \
+  "$request_url"
