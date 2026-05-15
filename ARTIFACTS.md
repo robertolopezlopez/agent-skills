@@ -39,14 +39,20 @@ Preferred file names:
 - Jira issue bootstrap: `task_<issue>.md`
 - GitLab MR review bootstrap: `review_mr_<iid>.md`
 - GitLab MR investigation bootstrap: `analysis_mr_<iid>.md`
-- GitLab grouped comment plan: `work_plan_mr_<iid>.md`
-- Per-issue MR analysis: `analysis_mr_<iid>_issue_<nn>.md`
-- Consolidated MR report: `mr_<iid>_comment_report.md`
 - GitHub PR review bootstrap: `review_pr_<number>.md`
 - GitHub PR investigation bootstrap: `analysis_pr_<number>.md`
-- GitHub grouped comment plan: `work_plan_pr_<number>.md`
-- Per-issue PR analysis: `analysis_pr_<number>_issue_<nn>.md`
-- Consolidated PR report: `pr_<number>_comment_report.md`
+
+**Grouped MR/PR comment analysis** lives **inside** the corresponding review or analysis artifact under:
+
+- `## Grouped unresolved comments`
+- stable subsections `### issue_01`, `### issue_02`, …
+
+Legacy split filenames (older workflows) may still appear in checkouts and validators:
+
+- `work_plan_mr_<iid>.md`, `analysis_mr_<iid>_issue_<nn>.md`, `mr_<iid>_comment_report.md`
+- `work_plan_pr_<number>.md`, `analysis_pr_<number>_issue_<nn>.md`, `pr_<number>_comment_report.md`
+
+Prefer merging durable content from legacy files into the main artifact, then deleting the splits once merged.
 
 ## Content Rules
 
@@ -60,7 +66,7 @@ Preferred file names:
 
 - `jira` bootstraps `task_<issue>.md`
 - `gitlab` bootstraps `review_mr_<iid>.md` or `analysis_mr_<iid>.md`
-- `gitlab-mr-comment-analysis` consumes MR bootstrap artifacts, refreshes live MR state, and writes grouped issue outputs
+- `gitlab-mr-comment-analysis` refreshes live MR state and writes grouped unresolved threads **into** `review_mr_<iid>.md` or `analysis_mr_<iid>.md` (subsections under `## Grouped unresolved comments`)
 - `github` prepares normalized PR context; bootstrap filenames such as `review_pr_<number>.md` follow this schema when written locally
-- `github-pr-comment-analysis` consumes PR bootstrap artifacts, refreshes live PR state, and writes grouped issue outputs
+- `github-pr-comment-analysis` refreshes live PR state and writes grouped unresolved threads **into** `review_pr_<number>.md` or `analysis_pr_<number>.md` (same subsection contract)
 - repository-specific overlay skills should reuse these artifacts when possible instead of recreating context

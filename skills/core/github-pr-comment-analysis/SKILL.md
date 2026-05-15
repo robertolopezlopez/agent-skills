@@ -2,11 +2,13 @@
 name: github-pr-comment-analysis
 description: >-
   Analyze GitHub pull requests comment-by-comment. Consume PR context from `github`, skip resolved
-  threads, group related actionable unresolved comments into `work_plan_pr_<PR>.md`, preserve full
-  plan history, track PR/comment/analysis links plus proposed solution and reply-waiting status,
-  optionally support a quick-fix mode for selected grouped issues such as `fix 2 and 5 now`,
-  optionally split grouped issues across subagents when explicitly authorized, clean stale prior-run
-  analysis/report files, and produce a short final report.
+  threads, group actionable unresolved comments into subsections inside the main PR Markdown artifact
+  (prefer `review_pr_<PR>.md`; use `analysis_pr_<PR>.md` when that file is the working artifact),
+  preserve full plan history there, track PR/comment anchors plus proposed solution and reply-waiting
+  status, optionally support quick-fix mode for selected grouped issues such as `fix 2 and 5 now`,
+  optionally split grouped issues across subagents when explicitly authorized with disjoint subsection
+  ownership in the same file, migrate legacy split artifacts into the main file when present,
+  and produce a short final report on-screen.
 ---
 
 # GitHub PR Comment Analysis
@@ -14,15 +16,25 @@ description: >-
 Use this skill from a GitHub repository root when the user wants a pull request analyzed comment-by-comment.
 Use this skill as a workflow-specific overlay for `github`.
 
+## Single main artifact
+
+**Do not create separate work-plan, per-issue, or consolidated-report Markdown files** (no `work_plan_pr_<PR>.md`, `analysis_pr_<PR>_issue_<NN>.md`, or `pr_<PR>_comment_report.md` for new runs).
+
+Put everything into **one** PR artifact:
+
+1. Prefer **`review_pr_<PR>.md`** as the canonical combined bootstrap + grouped-comment workspace.
+2. If the session uses **`analysis_pr_<PR>.md`** instead (investigation-heavy bootstrap or user-provided file only), enrich **that** file with the same grouped-comment sections—do not create a parallel `review_pr_<PR>.md` unless the user asks.
+
+Resolve `<PR>` from live `github` context (`pr_number`) before naming paths.
+
 ## When to Use
 
 Use this skill when the user wants to:
 
 - analyze a GitHub PR comment-by-comment
-- group actionable unresolved review comments into issues
-- create or refresh `work_plan_pr_<PR>.md`
-- create or refresh `pr_<PR>_comment_report.md`
-- run quick-fix analysis for selected grouped issues
+- group actionable unresolved review threads **inside the main PR artifact**
+- preserve grouped-issue history and reply/waiting state in that same file
+- run quick-fix analysis for selected grouped issues **by subsection**
 
 ## When Not to Use
 
@@ -37,8 +49,8 @@ Do not use this skill when:
 
 - Read the repository `AGENTS.md` before running commands.
 - Consume normalized PR context from `github`.
-- Treat `github` as the transport boundary. Consume its normalized PR context whether it came from GitHub MCP or fallback `gh` / `gh api`.
-- If the user provides a local PR artifact such as `review_pr_<PR>.md` or `analysis_pr_<PR>.md`, read it first and reuse its PR link, repository, assumptions, and open questions as bootstrap context.
+- Treat `github` as the transport boundary whether data came from GitHub MCP or fallback `gh` / `gh api`.
+- Open or create the **single main artifact** (`review_pr_<PR>.md` by preference; otherwise `analysis_pr_<PR>.md` per rules above). If missing, bootstrap minimal PR framing consistent with `../ARTIFACTS.md`, then continue.
 - Do not duplicate PR parsing, repository identity resolution, or GitHub transport logic here.
 - Use `multi-spawn-agent` only when the user has explicitly authorized subagents or parallel agent work.
 - Pair this skill with a repository-specific analysis skill when the user wants code-aware technical conclusions or proposed fixes.
@@ -48,260 +60,137 @@ Do not use this skill when:
 Accept, in order of preference:
 
 - normalized PR context already resolved by `github`
-- or a local PR artifact such as `review_pr_<PR>.md` or `analysis_pr_<PR>.md`
-- or a raw PR number like `123` when context already establishes `pull_request`
+- or an existing local PR artifact (`review_pr_<PR>.md` or `analysis_pr_<PR>.md`)
+- or a raw PR number when context already establishes `pull_request`
 - or a PR URL
-- optional grouped-issue selection from the current session, such as:
-  - numbered grouped issues from the latest on-screen summary
-  - stable grouped issue labels like `issue_02`
+- optional grouped-issue selection (numbered index or stable labels such as `issue_02`)
 
-If the input is a local PR artifact, read it first, extract the canonical `pr_number` and PR link, then refresh live PR context through `github` before comment analysis.
-If the input is only a raw PR number or PR URL, resolve it through `github` first (verify `pull_request` vs `issue`) and then continue with this skill.
-Extract and reuse the canonical `pr_number` consistently in filenames and reporting.
+If starting from a local artifact, read it first, extract canonical `pr_number` and PR link, then refresh through `github` before grouping.
+
+Resolve ambiguity between issue vs PR per `github` rules before fetching.
+
+## Section layout inside the main artifact
+
+Append or refresh grouped-comment material **after** canonical bootstrap sections from `../ARTIFACTS.md`. Use:
+
+```text
+## Grouped unresolved comments
+
+Short-lived session index (optional): numbered picks → stable labels (`issue_01`, …).
+
+### issue_01 — <short title>
+
+Stable `### issue_*` headings anchor reruns and quick-fix mode.
+
+For each grouped issue subsection keep:
+
+- stable issue label
+- PR link and direct comment/review links when available
+- authors
+- short problem statement
+- short proposed solution when inferable
+- reply/waiting status (`answered_waiting_for_author_feedback` when applicable)
+- affected files or modules when known
+- grouped comment summary
+- technical analysis (concise; defer deeper repo analysis to overlays when paired)
+- verdict
+- proposed changes (high level)
+- recommended next action
+- confidence and open questions
+- optional durable extras on reruns: Follow-up Findings, Improvement Candidates, Reviewer Pattern Notes, Common Fix Shapes, Thread Outcome
+
+Add compact **History** bullets when prior snapshots must remain inspectable.
+
+```
+
+Session numbering lives beside stable headings; subsection slug (`issue_01`) is durable.
 
 ## Modes
 
-Use one of two modes:
-
 ### Full analysis mode
 
-Default when the user asks to analyze a PR, review unresolved comments, group issues, or produce artifacts.
+Default when grouping or refreshing all actionable unresolved threads.
 
 ### Quick-fix mode
 
-Use when the user explicitly asks to address only specific grouped issues, for example:
+When scope narrows (`fix 2 and 5`, `issue_03`, …):
 
-- `fix 2 and 5`
-- `address issue_03`
-- `handle only issues 1 and 4`
-
-Quick-fix mode should:
-
-- refresh live PR context through `github`
-- resolve the selected grouped issues against the latest grouped summary
-- limit analysis to the selected grouped issues
-- avoid rebuilding the full PR report unless the user asks for a full rerun
-- hand off only the selected grouped issues to the repository-specific companion workflow when technical conclusions or code changes are needed
+- refresh PR threads through `github`
+- map picks via session index or regenerate index
+- touch only selected `### issue_*` blocks inside `## Grouped unresolved comments`
 
 ## Companion Skills
 
-Use this skill as the workflow and grouping layer on top of `github`.
-
 Common pairings:
 
-- `github` for transport, PR identity, thread state, and comment-link normalization
-- repository-specific analysis skills for code-aware conclusions or proposed fixes
-- `multi-spawn-agent` only when the user has explicitly authorized subagents or parallel work
+- `github` for transport and normalized threads
+- repository-specific analysis skills for deeper conclusions or patches
+- `multi-spawn-agent` only when explicitly authorized
 
 ## Workflow
 
-1. Start in the target repository root.
-2. If a local PR artifact was provided, read it first and preserve any useful bootstrap context such as repository path, assumptions, prior plan notes, or open questions.
-3. Refresh and consume live PR context resolved by `github`, including:
-   - `pr_number`
-   - `pr_link`
-   - repository reference (`owner`, `name`)
-   - normalized threads and comments (including PR review comments, reviews, and PR conversation comments as surfaced by `github`)
-   - direct comment links when available
-   - thread status such as actionable unresolved thread, resolved thread, and `answered_waiting_for_author_feedback`
-   - without depending on whether `github` used GitHub MCP or fallback `gh`
-4. Filter the normalized thread set to actionable unresolved review issues.
-5. Group related comments together when they refer to the same underlying issue.
-6. Build a stable session-local numbered summary for grouped issues after grouping is complete.
-   - Use numbering only as a user-selection convenience layer for the current session.
-   - Do not replace stable issue labels such as `issue_01` in artifacts.
-   - When the user later says `fix 2 and 5`, resolve those numbers against the latest numbered grouped-issue summary in the current session.
-7. If prior `work_plan_pr_<PR>.md` or `analysis_pr_<PR>_issue_<NN>.md` files already exist, preserve durable learned sections such as `Follow-up Findings`, `Improvement Candidates`, `Reviewer Pattern Notes`, `Common Fix Shapes`, and `Thread Outcome` for still-matching unresolved grouped issues, explicitly mark stale patterns, and promote repeated confirmed reviewer themes into reusable heuristics.
-8. Build `work_plan_pr_<PR>.md` with one section per grouped issue. For each grouped issue, record:
-   - a stable issue label such as `issue_01`
-   - one or more comment labels such as `comment_01`, `comment_02`
-   - author
-   - short problem statement
-   - short proposed solution statement when inferable from the thread
-   - comment status, including whether you have already answered and are waiting for feedback from the comment author
-   - affected file or module when known
-   - PR link
-   - direct PR comment link for each included comment when available
-   - analysis file link such as `analysis_pr_<PR>_issue_01.md`
-   - a history section that keeps prior plan states instead of replacing them with only the latest snapshot
-9. If the user selects specific grouped issues by session-local number or stable issue label:
-   - resolve the selection against the refreshed grouped issue set
-   - map each selected number to its stable issue label
-   - analyze only the selected grouped issues
-   - skip unrelated unresolved grouped issues
-   - avoid rebuilding unrelated per-issue files unless the user asks for a full rerun
-10. Do not analyze resolved comments.
-11. Ignore pure automation notes or clearly non-actionable chatter unless the user asks for them.
-12. If follow-on analysis will run in parallel and subagents are explicitly authorized, split grouped issues into independent worker scopes using `work_plan_pr_<PR>.md` as the source of truth.
-13. Remove stale files from previous runs for the same PR before the final report:
-    - remove `pr_<PR>_comment_report.md`
-    - remove any `analysis_pr_<PR>_*.md` files that are not linked from the current `work_plan_pr_<PR>.md`
-14. Create a consolidated report file named `pr_<PR>_comment_report.md` unless quick-fix mode is active and the user asked for selected grouped issues only.
-15. Show an on-screen report with 2-3 lines per analyzed grouped issue plus the path to its Markdown file.
-    - In full analysis mode, number each grouped issue in the on-screen summary.
-    - In quick-fix mode, show the selected session-local numbers and their mapped stable issue labels.
-
-## Worker Requirements
-
-Each grouped-issue analysis must:
-
-- only cover actionable unresolved comments assigned in `work_plan_pr_<PR>.md`
-- record whether you have already replied and are waiting for feedback from the comment author
-- write one Markdown file per assigned grouped issue
-- leave repository-specific technical analysis and proposed code changes to the companion skill for that repository
-
-Use this per-issue file shape:
-
-```text
-analysis_pr_<PR>_issue_<NN>.md
-```
-
-Each file should contain:
-
-1. PR and issue label
-2. PR link
-3. direct PR comment links when available
-4. reply status, including `answered_waiting_for_author_feedback` when applicable
-5. grouped comment summary
-6. affected files or modules
-7. technical analysis
-8. verdict
-9. proposed changes
-10. recommended next action
-11. confidence and open questions
-12. optional follow-up findings
-13. optional improvement candidates
-14. optional reviewer pattern notes
-15. optional common fix shapes
-16. optional thread outcome
+1. Start at repository root.
+2. Resolve `pr_number`; choose `review_pr_<PR>.md` vs `analysis_pr_<PR>.md` per **Single main artifact**.
+3. Read the artifact; keep upstream bootstrap sections coherent.
+4. Refresh PR review/conversation state through `github`.
+5. Filter to actionable unresolved items unless asked otherwise.
+6. Group related threads/comments sharing one issue.
+7. If legacy split files exist (`work_plan_pr_<PR>.md`, `analysis_pr_<PR>_issue_*.md`, `pr_<PR>_comment_report.md`), merge durable notes into `### issue_*`, then remove legacy files after successful merge.
+8. Upsert `## Grouped unresolved comments` and subsections **only in the main artifact**.
+9. Preserve or mark stale bullets intentionally on reruns.
+10. Skip automation noise unless requested.
+11. Finish with on-screen summary + single artifact path.
 
 ## Parallel Worker Template
 
-When subagents are allowed, use a `work_plan_pr_<PR>.md`-driven split like this:
+Authorize parallel work only with strict subsection ownership:
 
 ```text
-Use github-pr-comment-analysis plus the repository-specific companion skills.
+Main artifact: review_pr_<PR>.md (or analysis_pr_<PR>.md when session-scoped).
 
-Read work_plan_pr_<PR>.md first.
+Workers edit ONLY assigned ### issue_<label> blocks under ## Grouped unresolved comments.
 
-Spawn N parallel worker agents with fork_context: true, where N is based on the number of independent actionable unresolved grouped issues.
+No edits to other subsections or bootstrap headers.
 
-For each worker:
-- read work_plan_pr_<PR>.md
-- own exactly the grouped issues assigned in `work_plan_pr_<PR>.md`
-- create the assigned analysis_pr_<PR>_issue_<NN>.md files
-- do not modify other workers' analysis files
-- apply the repository-specific analysis workflow for the assigned issues
-- return: summary, files changed, and validation run
+Serialize if subsection overlap risk exists.
 
-After all workers finish:
-- remove stale `analysis_pr_<PR>_*.md` and `pr_<PR>_comment_report.md` files from previous runs that are not part of the current plan
-- create `pr_<PR>_comment_report.md`
-- show a screen summary with 2-3 lines per grouped issue and the corresponding Markdown path
+Final screen summary cites the one artifact path.
 ```
 
 ## Selection Resolution Rules
 
-When the user refers to grouped issues by number:
+Prefer latest session index inside `## Grouped unresolved comments`; regenerate when ambiguous.
 
-1. Prefer the numbering from the latest on-screen grouped-issue summary in the current session.
-2. If numbering is stale, missing, or ambiguous, regenerate a fresh numbered grouped-issue summary before proceeding.
-3. Resolve each selected number to its stable issue label such as `issue_02`.
-4. Use the stable issue label in filenames, artifacts, and follow-on analysis.
-
-When the user refers to grouped issues by stable label such as `issue_03`, use that label directly.
+Always map to stable `issue_*` labels before editing.
 
 ## Quick-Fix Output
 
-In quick-fix mode, the minimum output is:
-
-1. selected grouped-issue numbers or labels
-2. mapped stable issue labels
-3. short problem summary per selected grouped issue
-4. proposed change summary
-5. recommended next action
-6. paths to any updated analysis files
-
-Do not regenerate `pr_<PR>_comment_report.md` or unrelated issue files unless the user asks for a full PR refresh.
-
-## Reporting
-
-Create `pr_<PR>_comment_report.md` with:
-
-1. PR identifier
-2. list of analyzed grouped issues
-3. one short section per grouped issue
-4. link or path to each `analysis_pr_<PR>_issue_<NN>.md`
-5. overall themes, repeated failure modes, or shared root causes when known
-
-For `work_plan_pr_<PR>.md`, include:
-
-1. PR identifier and PR link
-2. one entry per actionable unresolved grouped issue
-3. direct PR comment links for all comments included in each grouped issue when available
-4. short proposed solution statement for each grouped issue
-5. reply/waiting status for each grouped issue, including whether you are waiting for author feedback
-6. analysis file link for each grouped issue
-7. status tracking for each analysis
-8. a running history log that preserves previous plan states instead of replacing them
-9. optional follow-up findings for grouped issues that persist across reruns
-10. optional improvement candidates for grouped issues or repeated reviewer themes
-11. optional reviewer pattern notes for repeated author preferences or recurring review themes
-12. optional common fix shapes for issues that repeatedly resolve in the same way
-13. optional thread outcome for grouped issues that were later accepted, redirected, or superseded
-
-For the final on-screen report, list each grouped issue with:
-
-- session-local grouped-issue number
-- issue label
-- 2-3 line summary
-- verdict
-- short proposed changes summary
-- reply/waiting status when relevant
-- Markdown file path
-
-In quick-fix mode, the on-screen report may be limited to the selected grouped issues only.
+Deliver selections, summaries, next actions, and confirm updates landed in the **single main artifact path**.
 
 ## Validation
 
-- Always refresh live PR comments and thread status through `github` before grouping issues.
-- Keep grouped-issue numbering session-local and map it back to stable issue labels in artifacts.
-- Exclude resolved comments unless the user explicitly asks for them.
-- Keep filenames, issue labels, and report structure stable across reruns.
+- Refresh via `github` before rewriting grouped sections.
+- Stable `### issue_*` headings across reruns.
+- Exactly one PR Markdown carries grouped-comment results unless user directs otherwise.
 
 ## Outputs / Artifacts
 
-This skill may create or update:
+Creates or updates **only**:
 
-- `work_plan_pr_<PR>.md`
-- `analysis_pr_<PR>_issue_<NN>.md`
-- `pr_<PR>_comment_report.md`
+- `review_pr_<PR>.md` **or** `analysis_pr_<PR>.md`
 
-It should also return:
-
-- grouped-issue summaries
-- issue-number to stable-label mappings
-- selected issue paths in quick-fix mode
-- reply/waiting status when relevant
+Return grouped summaries on-screen.
 
 ## Artifact-Aware Behavior
 
-When the user provides a GitHub bootstrap artifact such as `review_pr_<PR>.md` or `analysis_pr_<PR>.md`:
+Remote PR state wins after refresh—never trust cached prose alone.
 
-- read the artifact first for task framing and prior assumptions
-- do not trust it as the source of truth for current discussion state
-- always refresh live PR comments and thread status through `github` before grouping issues
-- keep output filenames based on the canonical live `pr_number`
+Preserve core schema sections per `../ARTIFACTS.md`.
 
-This keeps artifact reuse additive while preserving the existing `github`-driven contract for PR identity and thread normalization.
-When enriching an existing bootstrap artifact, preserve the shared core sections documented in `../ARTIFACTS.md`.
-When rerunning analysis for the same PR, preserve local learned sections such as `Follow-up Findings`, `Improvement Candidates`, `Reviewer Pattern Notes`, `Common Fix Shapes`, and `Thread Outcome` for unresolved grouped issues that still match the refreshed live PR context.
-Keep learned sections short, operational, and tied to observed reviewer behavior rather than generic advice.
-When the same reviewer or theme repeats, prefer heuristics phrased like `when reviewer flags X, verify Y before replying`.
-Keep grouped-issue analysis, filenames, and report structure transport-agnostic so downstream artifacts stay stable when `github` switches between MCP and fallback transport.
+Keep transport normalization delegated to `github`; keep grouped-comment prose reviewer-grounded.
 
 ## Safety Notes
 
-- Do not duplicate GitHub transport or repository-resolution logic here; consume it from `github`.
-- Do not analyze resolved comments unless the user asks for them.
-- Use `multi-spawn-agent` only when subagents are explicitly authorized.
+- Do not fork duplicate GitHub transport logic here.
+- Skip resolved threads unless explicitly requested.
+- Subagents only when explicitly authorized.

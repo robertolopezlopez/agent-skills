@@ -1,27 +1,15 @@
 # github-pr-comment-analysis
 
-The `github-pr-comment-analysis` skill analyzes actionable unresolved GitHub pull request comments.
+The `github-pr-comment-analysis` skill analyzes actionable unresolved GitHub pull request comments **inside the main PR artifact** (`review_pr_<PR>.md` by default, or `analysis_pr_<PR>.md` when that is the working file).
+
+See `SKILL.md`.
 
 ## Optional artifact input
 
-This skill can start from a local GitHub bootstrap artifact such as:
+Start from `review_pr_<PR>.md` or `analysis_pr_<PR>.md`:
 
-- `review_pr_<PR>.md`
-- `analysis_pr_<PR>.md`
+- read first for framing
+- refresh live PR context through `github`
+- upsert grouped threads under `## Grouped unresolved comments` with stable `### issue_*` subsections—no separate work-plan or per-issue files for new runs
 
-When an artifact is provided, the skill:
-
-- reads it first for context and prior assumptions
-- then refreshes live PR context through `github`
-- keeps `github` as the source of truth for PR identity, comment state, and normalized threads
-
-This is additive only. Existing workflows that start directly from `github`, a PR number, or a PR URL continue to work the same way.
-
-Artifacts reused by this skill should follow the shared schema in `../ARTIFACTS.md`.
-
-When rerun on the same PR, this skill may preserve local learned sections such as:
-
-- `## Follow-up Findings`
-- `## Improvement Candidates`
-
-for still-relevant grouped issues while refreshing live PR comment state through `github`.
+Artifacts follow `../ARTIFACTS.md`. Legacy split files (`work_plan_pr_*`, etc.) should be merged into the main artifact when encountered.
