@@ -20,7 +20,7 @@ CORE_SECTIONS = [
     '## Description',
     '## Actionable Context',
 ]
-DETAIL_SECTIONS = {'## Jira Details', '## GitLab Details'}
+DETAIL_SECTIONS = {'## Jira Details', '## GitLab Details', '## GitHub Details'}
 NAME_PATTERNS = [
     re.compile(r'^task_[a-z0-9][a-z0-9-]*\.md$'),
     re.compile(r'^review_mr_\d+\.md$'),
@@ -28,6 +28,11 @@ NAME_PATTERNS = [
     re.compile(r'^work_plan_mr_\d+\.md$'),
     re.compile(r'^analysis_mr_\d+_issue_\d+\.md$'),
     re.compile(r'^mr_\d+_comment_report\.md$'),
+    re.compile(r'^review_pr_\d+\.md$'),
+    re.compile(r'^analysis_pr_\d+\.md$'),
+    re.compile(r'^work_plan_pr_\d+\.md$'),
+    re.compile(r'^analysis_pr_\d+_issue_\d+\.md$'),
+    re.compile(r'^pr_\d+_comment_report\.md$'),
 ]
 
 
@@ -51,7 +56,9 @@ def validate_core_sections(headings: list[str]) -> list[str]:
             errors.append(f'missing section: {section}')
     detail_positions = [i for i, h in enumerate(headings) if h in DETAIL_SECTIONS]
     if not detail_positions:
-        errors.append('missing domain details section: one of ## Jira Details or ## GitLab Details')
+        errors.append(
+            'missing domain details section: one of ## Jira Details, ## GitLab Details, or ## GitHub Details'
+        )
     if errors:
         return errors
 

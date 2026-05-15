@@ -15,6 +15,7 @@ Custom agent skills tracked in git. They install to **Codex** (`~/.codex/skills`
 - `skills/core/repository-technical-analysis/`: reusable investigation-first workflow for code repositories
 - `skills/core/gitlab/`: generic GitLab merge request fetch and discussion-inspection workflow
 - `skills/core/gitlab-mr-comment-analysis/`: reusable GitLab merge request comment-analysis workflow for any GitLab repository
+- `skills/core/github-pr-comment-analysis/`: reusable GitHub pull request comment-analysis workflow for any GitHub repository (`github` transport)
 - `skills/core/jira/`: generic Jira and Atlassian issue access and update workflow through the Jira REST API
   See `skills/core/jira/README.md` for setup, auth expectations, and `jira-api` usage.
 - `skills/core/confluence/`: generic Confluence Cloud wiki access and updates through the Confluence REST API
@@ -38,7 +39,7 @@ Overlays for the **CLI product** source repository (agent- and IDE-agnostic: wor
 - `skills/cli/contributor/`: implementation and validation conventions; pnpm, Turbo, and `package.json` script discovery
 - `skills/cli/technical-analysis/`: investigation and repro commands for the CLI tree
 - `skills/cli/parallel-tests/`: broad suite runs aligned with CI scripts
-- `skills/cli/pr-comment-analysis/`: GitLab MR grouped-comment analysis with repo-specific verdicts and proposed changes (`private-pr-comment-analysis`)
+- `skills/cli/pr-comment-analysis/`: GitHub PR grouped-comment analysis with repo-specific verdicts and proposed changes (`private-pr-comment-analysis`)
 
 ### Other tracked assets
 
@@ -49,6 +50,7 @@ The private-service and **CLI product** (`skills/cli/`) skills are overlays. Use
 Use `jira` for generic Atlassian/Jira access, including site-specific Jira usage when **`~/.cursor/atlassian.env`** or **`~/.codex/atlassian.env`** sets `ATLASSIAN_API_BASE_URL=https://example.atlassian.net`.
 Use `confluence` for Confluence Cloud wiki access when **`~/.cursor/atlassian.env`** or **`~/.codex/atlassian.env`** sets the same variables (see `skills/core/confluence/README.md`).
 Likewise, `gitlab-mr-comment-analysis` is an overlay on `gitlab`: use `gitlab` for generic MR fetch and discussion inspection, and `gitlab-mr-comment-analysis` for grouped unresolved-comment analysis and reporting.
+`github-pr-comment-analysis` is the GitHub analogue on top of `github`: use `github` for PR fetch and thread normalization, and `github-pr-comment-analysis` for grouped unresolved-comment plans and reports (`work_plan_pr_*`, `pr_*_comment_report.md`).
 Use `codex-multi-agent-template/` when you want fixed lead/developer/reviewer/tester scaffolding. Use `multi-spawn-agent` when you want dynamic worker splits driven by a work definition file.
 
 ## Philosophy
@@ -68,6 +70,7 @@ This repository aims to provide reusable agent workflows (Codex and Cursor) that
 - Use generic skills such as `diagnose`, `github`, `tdd`, `gitlab`, `jira`, `confluence`, and `repository-technical-analysis` for reusable cross-repo workflows.
 - Use `git` for local repository state, remotes, and repository identity inspection.
 - Use `github` for GitHub issue and pull-request fetch, inspection, and normalization.
+- Use `github-pr-comment-analysis` for grouped unresolved PR review-thread analysis and local work-plan artifacts after PR context has been fetched or normalized via `github`.
 - Use `github-issue-triage` for maintainer-facing GitHub issue classification, missing-info detection, and next-state recommendation after issue context has been fetched.
 - Use `repository-technical-analysis` or `diagnose` when GitHub issue triage requires technical evidence before a confident next-state recommendation.
 - Use `diagnose` for tight debugging loops with a concrete failing behavior, repro, or regression signal.

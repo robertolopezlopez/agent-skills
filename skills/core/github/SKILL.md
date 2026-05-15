@@ -25,7 +25,7 @@ Use this skill when the user wants to:
 Do not use this skill when:
 
 - the task is only local Git repository inspection; use `git`
-- the task is primarily issue-triage workflow, maintainer policy, or planning; use a future GitHub workflow overlay
+- the task is primarily issue-triage workflow, maintainer policy, or planning; use `github-issue-triage` or another workflow overlay instead of only this skill
 - the task is primarily updating GitHub state rather than fetching or normalizing context
 - the task is primarily repository-specific technical analysis or code changes; use the appropriate analysis or contributor skill after fetching GitHub context
 - the repository is not hosted on GitHub
@@ -87,10 +87,11 @@ Use this skill as the transport and normalization layer.
 Common pairings:
 
 - `git` for local repository identity and remote inspection
+- `github-pr-comment-analysis` when the user wants PR comments grouped into actionable issues and work-plan artifacts
+- `github-issue-triage` when the task is maintainer-facing issue triage
 - `repository-technical-analysis` when GitHub issue or PR context leads into technical investigation
 - `diagnose` when a fetched GitHub bug report leads into focused debugging
 - `tdd` when a fetched GitHub issue or PR leads into test-first implementation
-- future GitHub workflow overlays for triage, planning, or PR-comment analysis
 
 ## Workflow
 

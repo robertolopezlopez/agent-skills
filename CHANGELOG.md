@@ -15,7 +15,7 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 ### Added
 
-- core `confluence` skill (`skills/core/confluence/`) for Confluence Cloud REST access via helpers; reads non-secret defaults from **`~/.cursor/atlassian.env`** then **`~/.codex/atlassian.env`**
+- core `github-pr-comment-analysis` skill (`skills/core/github-pr-comment-analysis/`) mirroring `gitlab-mr-comment-analysis` for GitHub PRs (`work_plan_pr_<number>.md`, `analysis_pr_*`, `pr_*_comment_report.md`)
 - CLI product overlay skills under `skills/cli/` (`private-contributor`, `private-technical-analysis`, `private-parallel-tests`, `private-pr-comment-analysis`), agent- and IDE-agnostic, declared in `skills_manifest.yaml`
 - shared skill schema guidance in `docs/skill-schema.md`
 - release/change guidance in `docs/release-change-guidance.md`
@@ -26,6 +26,7 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 ### Changed
 
+- **`private-pr-comment-analysis`** targets **GitHub** pull requests (`github` transport, **`github-pr-comment-analysis`** grouping); manifest **companion_skills** no longer lists `gitlab` / `gitlab-mr-comment-analysis`
 - Renamed **`cli-mr-comment-analysis`** → **`private-pr-comment-analysis`** (directory `skills/cli/mr-comment-analysis/` → `skills/cli/pr-comment-analysis/`). Remove stale installs with `./scripts/sync_skills.sh --all --verify --delete-missing`.
 - Atlassian auth is a single manifest **shared_files** script (`scripts/atlassian-auth.sh`); `jira` and `confluence` helpers source it from the skills install root `scripts/` directory next to `validate_artifact.py` instead of copying to `$HOME/.local/share/jira/`
 - `scripts/sync_skills.sh --delete-missing` skips the non-skill `scripts/` directory under each install root (it carries shared helpers such as `validate_artifact.py`)

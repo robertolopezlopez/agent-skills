@@ -38,9 +38,19 @@ skills:
     release_group: core
     companion_skills:
       - git
+      - github-pr-comment-analysis
       - repository-technical-analysis
       - diagnose
       - tdd
+  - name: github-pr-comment-analysis
+    path: skills/core/github-pr-comment-analysis
+    status: stable
+    type: core
+    repo_scope: generic
+    release_group: core
+    companion_skills:
+      - github
+      - multi-spawn-agent
   - name: gitlab
     path: skills/core/gitlab
     status: stable
@@ -143,8 +153,8 @@ skills:
     repo_scope: cli
     release_group: cli
     companion_skills:
-      - gitlab
-      - gitlab-mr-comment-analysis
+      - github
+      - github-pr-comment-analysis
       - private-contributor
       - private-technical-analysis
       - repository-technical-analysis

@@ -351,7 +351,7 @@
       <p>Stable <strong style="color: var(--text)">core</strong> skills (generic, reusable across repositories):</p>
       <div class="skill-list">
         <p><code>branch-change-reviewer</code> · <code>diagnose</code> · <code>git</code> · <code>git-rebase-conflict-resolver</code></p>
-        <p><code>github</code> · <code>github-issue-triage</code> · <code>gitlab</code> · <code>gitlab-mr-comment-analysis</code></p>
+        <p><code>github</code> · <code>github-issue-triage</code> · <code>github-pr-comment-analysis</code> · <code>gitlab</code> · <code>gitlab-mr-comment-analysis</code></p>
         <p><code>jira</code> · <code>confluence</code> · <code>circleci</code></p>
         <p><code>multi-spawn-agent</code> · <code>plan-issues</code></p>
         <p><code>python-fastapi-contributor</code> · <code>tdd</code> · <code>repository-technical-analysis</code></p>
@@ -389,7 +389,7 @@
         <h3 style="margin-top: 0">How layers stack (examples)</h3>
         <ul style="margin-bottom: 0; font-size: 0.95rem">
           <li><code style="color: var(--success)">repository-technical-analysis</code> + <code style="color: var(--success)">private-technical-analysis</code> — investigation with CLI monorepo repro commands and artifact shape.</li>
-          <li><code style="color: var(--success)">gitlab-mr-comment-analysis</code> + <code style="color: var(--success)">private-pr-comment-analysis</code> — grouped review issues with CLI-specific verdicts and proposed fixes.</li>
+          <li><code style="color: var(--success)">github</code> + <code style="color: var(--success)">github-pr-comment-analysis</code> + <code style="color: var(--success)">private-pr-comment-analysis</code> — grouped GitHub PR review issues with CLI-specific verdicts and proposed fixes.</li>
           <li><code style="color: var(--success)">tdd</code> or <code style="color: var(--success)">plan-issues</code> + <code style="color: var(--success)">private-contributor</code> — delivery and validation using the CLI project’s real scripts and conventions.</li>
         </ul>
       </div>
@@ -400,7 +400,7 @@
           <li><code style="color: var(--success)">private-contributor</code> — implement and validate using local script conventions (not generic guesses).</li>
           <li><code style="color: var(--success)">private-technical-analysis</code> — narrow reproduction and analysis paths for the CLI tree; align artifacts with shared schema.</li>
           <li><code style="color: var(--success)">private-parallel-tests</code> — broad suites using the same shapes CI uses.</li>
-          <li><code style="color: var(--success)">private-pr-comment-analysis</code> — MR/PR comment grouping plus CLI-specific technical judgment and suggested responses.</li>
+          <li><code style="color: var(--success)">private-pr-comment-analysis</code> — GitHub PR comment grouping plus CLI-specific technical judgment and suggested responses.</li>
         </ul>
       </div>
       <p class="tagline" style="margin-bottom: 0">The catalog also includes overlays for <strong style="color: var(--text)">other repositories</strong> (same idea: core transport/workflow skill + repo pack). Prefer adding <strong style="color: var(--text)">thin overlays</strong> over forking huge generic skills—shared rules stay in core or <code style="color: var(--success)">AGENTS.md</code>.</p>
@@ -413,7 +413,7 @@
       <p><strong style="color: var(--text)">Setup and install</strong> (clone, <code style="color: var(--success)">scripts/sync_skills.sh</code>, optional <code style="color: var(--success)">git-hooks/post-commit</code>, env overrides like <code style="color: var(--success)">AGENT_SKILLS_SYNC_TARGETS</code>, and how to verify your install) are spelled out in <a href="https://github.com/robertolopezlopez/agent-skills?tab=readme-ov-file#install" rel="noopener noreferrer" target="_blank"><code style="color: var(--success)">README.md</code></a>—see the <strong style="color: var(--text)">Install</strong>, <strong style="color: var(--text)">Verify Local Setup</strong>, and <strong style="color: var(--text)">Behavior</strong> sections.</p>
       <ul>
         <li>Fork or clone <a href="https://github.com/robertolopezlopez/agent-skills" rel="noopener noreferrer" target="_blank"><strong style="color: var(--text)">agent-skills</strong></a> and follow <code style="color: var(--success)">README.md</code> so your Codex/Cursor skill trees stay in sync with the manifest.</li>
-        <li>In the agent chat, <strong style="color: var(--text)">name skills explicitly</strong> when you want a playbook applied (e.g. “use <code style="color: var(--success)">gitlab-mr-comment-analysis</code> for MR 123”).</li>
+        <li>In the agent chat, <strong style="color: var(--text)">name skills explicitly</strong> when you want a playbook applied (e.g. “use <code style="color: var(--success)">gitlab-mr-comment-analysis</code> for MR 123” or “use <code style="color: var(--success)">github-pr-comment-analysis</code> for PR 456”).</li>
         <li>Wire <strong style="color: var(--text)">overlays</strong> only in the repos they describe; keep <strong style="color: var(--text)">tokens in env</strong>, not in skills or prompts.</li>
         <li>Improve or fork the catalog via PR; treat each <code style="color: var(--success)">SKILL.md</code> like shared team docs.</li>
       </ul>

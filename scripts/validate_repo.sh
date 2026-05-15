@@ -43,7 +43,7 @@ while IFS= read -r path; do
   [[ -n "$path" ]] && artifact_paths+=("$path")
 done < <(
   find "$repo_root" -maxdepth 1 -type f \
-    \( -name 'task_*.md' -o -name 'review_mr_*.md' -o -name 'analysis_mr_*.md' -o -name 'work_plan_mr_*.md' -o -name 'mr_*_comment_report.md' \) \
+    \( -name 'task_*.md' -o -name 'review_mr_*.md' -o -name 'analysis_mr_*.md' -o -name 'work_plan_mr_*.md' -o -name 'mr_*_comment_report.md' -o -name 'review_pr_*.md' -o -name 'analysis_pr_*.md' -o -name 'work_plan_pr_*.md' -o -name 'pr_*_comment_report.md' \) \
     | sort
 )
 
