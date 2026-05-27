@@ -26,6 +26,7 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 ### Changed
 
+- **Artifact placement:** shipped `ARTIFACTS.md` and updated skills prefer new local Markdown under `_artifacts_/<meaningful_id>/` (see `ARTIFACTS.md` for id precedence and legacy root-level compatibility). **Workflow change:** `bootstrap_jira_artifact.py` defaults to `_artifacts_/<issue-key>/…` when `--output` is omitted; `bootstrap_gitlab_artifact.py` defaults to `_artifacts_/mr-<iid>/…` when `--output` is omitted
 - **`gitlab-mr-comment-analysis`** and **`github-pr-comment-analysis`** write grouped threads **inside** the main MR/PR Markdown artifact (`review_mr_*` / `review_pr_*`, or `analysis_mr_*` / `analysis_pr_*`) under `## Grouped unresolved comments`; standalone `work_plan_*`, per-issue splits, and `*_comment_report.md` outputs are legacy-only for migration
 - **`private-pr-comment-analysis`** targets **GitHub** pull requests (`github` transport, **`github-pr-comment-analysis`** grouping); manifest **companion_skills** no longer lists `gitlab` / `gitlab-mr-comment-analysis`
 - Renamed **`cli-mr-comment-analysis`** → **`private-pr-comment-analysis`** (directory `skills/cli/mr-comment-analysis/` → `skills/cli/pr-comment-analysis/`). Remove stale installs with `./scripts/sync_skills.sh --all --verify --delete-missing`.

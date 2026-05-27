@@ -159,21 +159,29 @@ Generic request helper with explicit site override:
 <resolved-path-to-scripts/jira-request> https://example.atlassian.net POST /rest/api/3/issue /tmp/create-issue.json
 ```
 
-Artifact bootstrap helper:
+Artifact bootstrap helper (default output under `_artifacts_/<issue-key>/`):
 
 ```bash
 <resolved-path-to-scripts/bootstrap_jira_artifact.py> --issue PROJ-123 --json /tmp/proj-123.json
 ```
 
-Artifact bootstrap helper with explicit output:
+Default path when `--output` is omitted:
+
+```text
+_artifacts_/PROJ-123/task_proj-123.md
+```
+
+Artifact bootstrap helper with explicit output (user or repo rules override the default directory):
 
 ```bash
-<resolved-path-to-scripts/bootstrap_jira_artifact.py> --issue PROJ-123 --json /tmp/proj-123.json --output task_proj-123.md --overwrite
+<resolved-path-to-scripts/bootstrap_jira_artifact.py> --issue PROJ-123 --json /tmp/proj-123.json --output _artifacts_/PROJ-123/task_proj-123.md --overwrite
 ```
 
 ## Artifact Bootstrap Workflow
 
 Use this workflow when the user asks to bootstrap an artifact, create a task file from a Jira issue, or fill a local `task_<issue>.md` file from Jira.
+
+Prefer new artifacts under `_artifacts_/<meaningful_id>/` at the repository root (see repo `ARTIFACTS.md`). For Jira bootstrap, `meaningful_id` defaults to the issue key (filesystem-safe), e.g. `_artifacts_/PROJ-123/task_proj-123.md`. Honor explicit user `--output` paths or repo `AGENTS.md` overrides.
 
 1. Fetch the issue with Jira or Atlassian MCP when available, otherwise with `jira-api`, requesting the summary fields set:
 
@@ -184,7 +192,7 @@ summary,status,issuetype,priority,assignee,reporter,created,updated,description,
 2. Save the fetched JSON to a temporary local file.
 3. Run `scripts/bootstrap_jira_artifact.py` with the issue key and JSON path.
 4. Let the bootstrap helper extract comment summary and related-reference hints from the fetched Jira JSON.
-5. If a local `task_<issue>.md` already exists, preserve durable local sections such as `Follow-up Findings`, `Improvement Candidates`, `Implementation Notes`, `Similar Prior Issues`, `Resolved Unknowns`, `Next Best Step`, or `Common Ticket Pattern` while refreshing Jira-sourced sections from live data.
+5. If a local artifact already exists at the resolved output path (default `_artifacts_/<issue-key>/task_<issue>.md`, or an explicit `--output`), preserve durable local sections such as `Follow-up Findings`, `Improvement Candidates`, `Implementation Notes`, `Similar Prior Issues`, `Resolved Unknowns`, `Next Best Step`, or `Common Ticket Pattern` while refreshing Jira-sourced sections from live data.
 6. Let the bootstrap helper validate the generated artifact against the shared schema.
 7. Write the artifact using the shared section order documented in `../ARTIFACTS.md`.
 8. Report the local artifact path and the most actionable next step.
@@ -202,7 +210,8 @@ This skill should return the most useful normalized Jira result for the task, su
 
 When artifact bootstrap is requested, this skill may also write:
 
-- `task_<issue>.md`
+- `_artifacts_/<issue-key>/task_<issue>.md` by default (e.g. `_artifacts_/PROJ-123/task_proj-123.md`)
+- an explicit `--output` path when the user or repo rules override the default
 
 ## Create Workflow
 
@@ -309,7 +318,7 @@ Use this skill as the Jira transport and normalization layer.
 Common pairings:
 
 - repository-specific overlay skills for project-local issue conventions
-- local task artifacts such as `task_<issue>.md` for downstream implementation or analysis
+- local task artifacts such as `_artifacts_/<issue-key>/task_<issue>.md` for downstream implementation or analysis
 
 ## Safety Notes
 
@@ -325,7 +334,7 @@ Keep those details out of the generic `jira` skill.
 
 ## Artifact-Aware Self-Improving Behavior
 
-When rerunning work for the same Jira issue or refreshing a bootstrapped `task_<issue>.md` artifact:
+When rerunning work for the same Jira issue or refreshing a bootstrapped artifact (default `_artifacts_/<issue-key>/task_<issue>.md`):
 
 - read the existing local artifact first when it exists
 - preserve durable learned sections such as `## Implementation Notes`, `## Similar Prior Issues`, `## Resolved Unknowns`, `## Next Best Step`, and `## Common Ticket Pattern` when they still match the current issue and local evidence

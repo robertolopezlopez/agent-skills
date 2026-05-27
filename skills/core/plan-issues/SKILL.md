@@ -41,7 +41,7 @@ Accept any of:
 ## First Read
 
 - Read `AGENTS.md`, `README.md`, `Makefile`, and repo-specific contributor docs when present.
-- If a local artifact exists for the task, read it first.
+- If a local artifact exists for the task (prefer `_artifacts_/<meaningful_id>/` paths per repo `ARTIFACTS.md`; legacy root-level files remain valid), read it first.
 - Reuse `repository-technical-analysis` first if the problem or scope is still unclear.
 - Reuse transport skills first if the plan depends on remote issue, MR, or CI run context that has not yet been fetched.
 
@@ -94,7 +94,7 @@ Return:
 
 When the work is non-trivial, this skill may also write:
 
-- `work_plan_<relevant_name>.md`
+- `_artifacts_/<meaningful_id>/work_plan_<relevant_name>.md` for new plans (see repo `ARTIFACTS.md`; extend existing paths in place)
 
 ## Companion Skills
 

@@ -39,7 +39,7 @@ Accept any of:
 ## First Read
 
 - Read `AGENTS.md`, `README.md`, `Makefile`, and repo-specific contributor docs when present.
-- If a local artifact exists for the task, read it first.
+- If a local artifact exists for the task (prefer `_artifacts_/<meaningful_id>/` paths per repo `ARTIFACTS.md`; legacy root-level files remain valid), read it first.
 - Reuse repository-specific contributor skills for local commands and validation.
 - Reuse `repository-technical-analysis` or `diagnose` first when the behavior or failure mode is still unclear.
 
@@ -95,7 +95,7 @@ Return:
 
 When the work is non-trivial, this skill may also write:
 
-- `analysis_<relevant_name>.md`
+- `_artifacts_/<meaningful_id>/analysis_<relevant_name>.md` for new artifacts (see repo `ARTIFACTS.md`; extend existing paths in place)
 
 ## Companion Skills
 

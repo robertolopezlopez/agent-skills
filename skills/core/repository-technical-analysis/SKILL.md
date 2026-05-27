@@ -1,6 +1,6 @@
 ---
 name: repository-technical-analysis
-description: Use this when performing technical analysis in a code repository, including test failure investigation, root-cause analysis, architecture inspection, incident debugging, regression triage, or performance analysis. Covers evidence-first investigation, targeted reproduction, root-cause grouping, and concise recommendations.
+description: Use this when performing technical analysis in a code repository, including test failure investigation, root-cause analysis, architecture inspection, incident debugging, regression triage, or performance analysis. Covers evidence-first investigation, targeted reproduction, root-cause grouping, and concise recommendations. Non-trivial analysis writes to `_artifacts_/<meaningful_id>/analysis_<relevant_name>.md` by default; legacy root-level analysis files remain valid.
 ---
 
 # Repository Technical Analysis
@@ -25,11 +25,22 @@ Do not use this skill when:
 - a repository-specific overlay alone already fully defines the needed workflow
 - the user only wants code changes with no meaningful investigation component
 
+## Inputs
+
+- Accept an optional output file path (absolute or relative).
+- Accept an optional `meaningful_id` or tracker key when the user provides one.
+- Accept an optional local workflow artifact such as `_artifacts_/…/task_<issue>.md`, `review_mr_<MR>.md`, or `analysis_mr_<MR>.md`.
+- If the user provides an output file, use it.
+- If the user does not provide one and the investigation is non-trivial, write under `_artifacts_/<meaningful_id>/` per repository `ARTIFACTS.md`:
+  - default basename: `analysis_<relevant_name>.md` (ticket slug, failure surface, branch topic, or similar)
+  - default `meaningful_id`: tracker key from a provided task artifact or user input when present; else `pr-<n>` / `mr-<iid>` when PR/MR context is clear; else a sanitized branch or topic slug aligned with `<relevant_name>`
+- **Legacy:** an existing root-level `analysis_<relevant_name>.md` (or other user path) already present remains valid—open and extend it instead of relocating unless the user asks to migrate.
+
 ## First Read
 
 - Read local workflow and contributor docs first when they exist: `AGENTS.md`, `README`, `CONTRIBUTING.md`, `Makefile`, and `pyproject.toml`.
 - Prefer evidence collection before proposing fixes.
-- If the user provides a local workflow artifact such as `task_<issue>.md`, `review_mr_<MR>.md`, or `analysis_mr_<MR>.md`, read it first and reuse its links, assumptions, prior plan, and open questions as investigation anchors.
+- If the user provides a local workflow artifact, read it first and reuse its links, assumptions, prior plan, and open questions as investigation anchors.
 - Do not edit code until the failure mode or hypothesis is clear enough to defend.
 
 ## Workflow
@@ -41,8 +52,8 @@ Use this loop for technical analysis tasks:
 3. Use any relevant local material as research input, including repositories, notes, logs, and prior analysis files.
 4. Fetch online material when needed, including documentation or API references.
 5. Run the tests, scripts, benchmarks, or reproduction steps that best isolate the issue.
-6. When rerunning or extending an existing `analysis_<relevant_name>.md`, preserve durable learned sections such as `Follow-up Findings`, `Improvement Candidates`, `Root Cause Lessons`, `Known Patterns`, `Dead Ends Tried`, `Fastest Reliable Repro`, or `Next-Time Checks` when they still match current evidence, explicitly mark stale heuristics, and promote repeated confirmed observations into reusable checks.
-7. Write the analysis incrementally to `analysis_<relevant_name>.md` when the investigation is non-trivial.
+6. When rerunning or extending an existing analysis artifact (`_artifacts_/…/analysis_<relevant_name>.md` by preference, or a legacy root-level file when already in use), preserve durable learned sections such as `Follow-up Findings`, `Improvement Candidates`, `Root Cause Lessons`, `Known Patterns`, `Dead Ends Tried`, `Fastest Reliable Repro`, or `Next-Time Checks` when they still match current evidence, explicitly mark stale heuristics, and promote repeated confirmed observations into reusable checks.
+7. Write the analysis incrementally to `_artifacts_/<meaningful_id>/analysis_<relevant_name>.md` when the investigation is non-trivial and no explicit or legacy path is already in use.
 8. Iterate until the findings are confirmed, reduced to a small set of defensible hypotheses, or blocked by a clearly stated dependency.
 
 ## Investigation Rules
@@ -74,7 +85,7 @@ Technical analysis output should usually include:
 
 When the work is non-trivial, this skill may also write or enrich:
 
-- `analysis_<relevant_name>.md`
+- `_artifacts_/<meaningful_id>/analysis_<relevant_name>.md` for new runs (legacy root-level `analysis_<relevant_name>.md` paths remain valid when already in use)
 
 ## General Notes
 
@@ -111,7 +122,7 @@ This is additive only and does not replace the normal evidence-first analysis wo
 
 When rerunning analysis for the same problem or artifact:
 
-- read the existing `analysis_<relevant_name>.md` first
+- read the existing analysis artifact first (`_artifacts_/…/analysis_<relevant_name>.md` by preference, or a legacy root-level file when that is where prior work lives)
 - preserve local learned sections such as `## Follow-up Findings`, `## Improvement Candidates`, and optional `## Root Cause Lessons` when they still match current evidence
 - preserve optional reusable sections such as `## Known Patterns`, `## Dead Ends Tried`, `## Fastest Reliable Repro`, and `## Next-Time Checks` when they still match current evidence
 - refresh live evidence from the repository, logs, tests, traces, and documents before concluding

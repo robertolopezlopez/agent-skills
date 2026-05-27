@@ -29,7 +29,7 @@ Do not use this skill when:
 
 ## First Read
 
-- Read the repository `AGENTS.md` before running commands.
+- Read the repository `AGENTS.md` and `ARTIFACTS.md` (artifact directory conventions) before running commands.
 - Prefer GitLab MCP for MR overview, comments, discussions, and structured metadata when a GitLab MCP server is configured in the session.
 - Fall back to `glab mr view` for MR overview and comments when GitLab MCP is unavailable or cannot provide the needed data.
 - Fall back to `glab api` when structured discussion data is needed and GitLab MCP is unavailable or insufficient.
@@ -124,8 +124,9 @@ Common pairings:
 16. Keep GitLab-specific fetch, discussion, link-handling, and normalization logic here. Leave grouping, reporting scaffolds, and repository-specific technical analysis to companion skills.
 
 17. When the user explicitly asks to bootstrap a local artifact for the MR, keep the existing fetch behavior and additionally:
+   - resolve `meaningful_id` (default `mr-<MR>` unless a tracker key or repo rule applies; explicit user paths win)
    - fetch MR JSON with GitLab MCP when possible, otherwise with fallback `glab api`
-   - run `scripts/bootstrap_gitlab_artifact.py`
+   - run `scripts/bootstrap_gitlab_artifact.py` with `--output` under `_artifacts_/<meaningful_id>/` when not overridden
    - return the local artifact path and suggested next action
 18. Keep artifact bootstrap optional and additive so existing companion skills can keep using the same `gitlab` context contract unchanged.
 19. Return normalized MR context for downstream skills.
@@ -187,19 +188,23 @@ glab api /projects/<encoded_project_path>/merge_requests/<MR>/notes
 glab api /projects/<encoded_project_path>/merge_requests/<MR>
 ```
 
-Optional fallback artifact bootstrap after fetching MR JSON:
+Optional fallback artifact bootstrap after fetching MR JSON (default output under `_artifacts_/mr-<MR>/`; pass `--output` explicitly when the user or repo rules specify a different path):
 
 ```bash
+mkdir -p _artifacts_/mr-<MR>
 glab api /projects/<project_id>/merge_requests/<MR> > /tmp/mr_<MR>.json
-python3 gitlab/scripts/bootstrap_gitlab_artifact.py --json /tmp/mr_<MR>.json --mr <MR>
+python3 gitlab/scripts/bootstrap_gitlab_artifact.py --json /tmp/mr_<MR>.json --mr <MR> --output _artifacts_/mr-<MR>/review_mr_<MR>.md
 ```
 
 When using `encoded_project_path` instead of `project_id`:
 
 ```bash
+mkdir -p _artifacts_/mr-<MR>
 glab api /projects/<encoded_project_path>/merge_requests/<MR> > /tmp/mr_<MR>.json
-python3 gitlab/scripts/bootstrap_gitlab_artifact.py --json /tmp/mr_<MR>.json --mr <MR>
+python3 gitlab/scripts/bootstrap_gitlab_artifact.py --json /tmp/mr_<MR>.json --mr <MR> --output _artifacts_/mr-<MR>/review_mr_<MR>.md
 ```
+
+For investigation-heavy bootstrap, use `--type analysis` and `--output _artifacts_/mr-<MR>/analysis_mr_<MR>.md` instead.
 
 Decision rule:
 
@@ -237,10 +242,12 @@ This skill should return normalized MR context for downstream skills, including 
 - thread status and comment links
 - transport notes that matter for reruns
 
-When artifact bootstrap is requested, this skill may also write:
+When artifact bootstrap is requested, this skill may also write under `_artifacts_/<meaningful_id>/` (default `meaningful_id`: `mr-<MR>`):
 
-- `review_mr_<MR>.md`
-- `analysis_mr_<MR>.md`
+- `_artifacts_/<meaningful_id>/review_mr_<MR>.md`
+- `_artifacts_/<meaningful_id>/analysis_mr_<MR>.md`
+
+**Legacy:** existing root-level `review_mr_<MR>.md` or `analysis_mr_<MR>.md` files remain valid—refresh in place instead of relocating unless the user asks to migrate.
 
 ## Safety Notes
 
@@ -261,21 +268,24 @@ When rerunning GitLab MR fetch or inspection for the same host, project, or MR f
 
 When the user explicitly asks to create a local artifact from an MR, create either:
 
-- `review_mr_<MR>.md` for normal review work
-- `analysis_mr_<MR>.md` for investigation-heavy work
+- `_artifacts_/<meaningful_id>/review_mr_<MR>.md` for normal review work
+- `_artifacts_/<meaningful_id>/analysis_mr_<MR>.md` for investigation-heavy work
+
+Default `meaningful_id` is `mr-<MR>` unless a tracker key or repo `AGENTS.md` rule applies. Explicit user paths always win. Prefer `_artifacts_/<meaningful_id>/` for **new** artifacts; open and extend legacy root-level files when they already exist.
 
 Recommended flow:
 
 1. resolve the MR IID with the normal workflow
-2. fetch MR JSON with GitLab MCP when possible, otherwise with fallback `glab api`
-3. run `scripts/bootstrap_gitlab_artifact.py`
-4. let the bootstrap helper validate the generated artifact against the shared schema
-5. if a local review artifact already exists, preserve local sections such as `Follow-up Findings` and `Improvement Candidates` while refreshing GitLab-derived sections from live MR data
-6. write the artifact using the shared section order documented in `../ARTIFACTS.md`
-7. report the artifact path and next suggested action
+2. choose `meaningful_id` (default `mr-<MR>`)
+3. fetch MR JSON with GitLab MCP when possible, otherwise with fallback `glab api`
+4. run `scripts/bootstrap_gitlab_artifact.py` with MR JSON (`--mr` / `--json` as today); omit `--output` to use the script default `_artifacts_/mr-<MR>/review_mr_<MR>.md` or `_artifacts_/mr-<MR>/analysis_mr_<MR>.md` from `--type`, or pass `--output` when the user or repo rules need a non-default location
+5. let the bootstrap helper validate the generated artifact against the shared schema
+6. if a local review artifact already exists (under `_artifacts_/` or at repo root), preserve local sections such as `Follow-up Findings` and `Improvement Candidates` while refreshing GitLab-derived sections from live MR data
+7. write the artifact using the shared section order documented in `../ARTIFACTS.md`
+8. report the artifact path and next suggested action
 
 Example requests:
 
 - `Use gitlab to bootstrap an artifact for MR 123`
-- `Use gitlab to fetch MR 123 and fill review_mr_123.md`
+- `Use gitlab to fetch MR 123 and fill _artifacts_/mr-123/review_mr_123.md`
 - `Bootstrap a local review artifact from https://example.com/group/project/-/merge_requests/123`

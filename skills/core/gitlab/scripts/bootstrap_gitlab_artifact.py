@@ -85,6 +85,11 @@ def validate_artifact(output: Path) -> None:
     subprocess.run(['python3', str(validator), str(output)], check=True)
 
 
+def default_output_path(iid: str, artifact_type: str) -> Path:
+    prefix = "review" if artifact_type == "review" else "analysis"
+    return Path("_artifacts_") / f"mr-{iid}" / f"{prefix}_mr_{iid}.md"
+
+
 def build_content(mr: dict[str, Any], artifact_type: str, defaults_files: list[str], preserved_sections: dict[str, str]) -> str:
     iid = mr.get("iid", "")
     title = mr.get("title") or ""
@@ -180,7 +185,13 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Create a local markdown artifact from GitLab MR JSON.")
     parser.add_argument("--json", required=True, help="Path to GitLab MR JSON fetched via glab api.")
     parser.add_argument("--mr", help="Merge request IID override.")
-    parser.add_argument("--output", help="Output markdown path. Defaults to review_mr_<iid>.md or analysis_mr_<iid>.md.")
+    parser.add_argument(
+        "--output",
+        help=(
+            "Output markdown path. Defaults to _artifacts_/mr-<iid>/review_mr_<iid>.md "
+            "or _artifacts_/mr-<iid>/analysis_mr_<iid>.md."
+        ),
+    )
     parser.add_argument("--type", choices=["review", "analysis"], default="review", help="Artifact type.")
     parser.add_argument("--defaults-file", action="append", default=[], help="Defaults files recorded in the artifact.")
     parser.add_argument("--overwrite", action="store_true", help="Overwrite output if it exists.")
@@ -194,13 +205,13 @@ def main() -> None:
     if not iid:
         raise SystemExit("missing MR IID in JSON and no --mr override provided")
 
-    prefix = "review" if args.type == "review" else "analysis"
-    output = Path(args.output or f"{prefix}_mr_{iid}.md")
+    output = Path(args.output) if args.output else default_output_path(iid, args.type)
     preserved_sections = parse_preserved_sections(output) if output.exists() else {}
     if output.exists() and not args.overwrite:
         raise SystemExit(f"refusing to overwrite existing file: {output}")
 
     content = build_content(mr=mr, artifact_type=args.type, defaults_files=args.defaults_file, preserved_sections=preserved_sections)
+    output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(content)
     validate_artifact(output)
     print(output)

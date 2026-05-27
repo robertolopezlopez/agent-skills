@@ -3,7 +3,7 @@ name: github-pr-comment-analysis
 description: >-
   Analyze GitHub pull requests comment-by-comment. Consume PR context from `github`, skip resolved
   threads, group actionable unresolved comments into subsections inside the main PR Markdown artifact
-  (prefer `review_pr_<PR>.md`; use `analysis_pr_<PR>.md` when that file is the working artifact),
+  (prefer `_artifacts_/<meaningful_id>/review_pr_<PR>.md`; use `analysis_pr_<PR>.md` when that file is the working artifact),
   preserve full plan history there, track PR/comment anchors plus proposed solution and reply-waiting
   status, optionally support quick-fix mode for selected grouped issues such as `fix 2 and 5 now`,
   optionally split grouped issues across subagents when explicitly authorized with disjoint subsection
@@ -20,12 +20,12 @@ Use this skill as a workflow-specific overlay for `github`.
 
 **Do not create separate work-plan, per-issue, or consolidated-report Markdown files** (no `work_plan_pr_<PR>.md`, `analysis_pr_<PR>_issue_<NN>.md`, or `pr_<PR>_comment_report.md` for new runs).
 
-Put everything into **one** PR artifact:
+Put everything into **one** PR artifact under `_artifacts_/<meaningful_id>/` per repository `ARTIFACTS.md` (default `meaningful_id`: `pr-<PR>` unless a tracker key or repo rule applies; explicit user paths win):
 
-1. Prefer **`review_pr_<PR>.md`** as the canonical combined bootstrap + grouped-comment workspace.
-2. If the session uses **`analysis_pr_<PR>.md`** instead (investigation-heavy bootstrap or user-provided file only), enrich **that** file with the same grouped-comment sections—do not create a parallel `review_pr_<PR>.md` unless the user asks.
+1. Prefer **`_artifacts_/<meaningful_id>/review_pr_<PR>.md`** as the canonical combined bootstrap + grouped-comment workspace.
+2. If the session uses **`_artifacts_/<meaningful_id>/analysis_pr_<PR>.md`** instead (investigation-heavy bootstrap or user-provided file only), enrich **that** file with the same grouped-comment sections—do not create a parallel `review_pr_<PR>.md` unless the user asks.
 
-Resolve `<PR>` from live `github` context (`pr_number`) before naming paths.
+Resolve `<PR>` from live `github` context (`pr_number`) before naming paths. **Legacy:** root-level `review_pr_<PR>.md` or `analysis_pr_<PR>.md` already present remain valid—open and extend them instead of relocating.
 
 ## When to Use
 
@@ -50,7 +50,7 @@ Do not use this skill when:
 - Read the repository `AGENTS.md` before running commands.
 - Consume normalized PR context from `github`.
 - Treat `github` as the transport boundary whether data came from GitHub MCP or fallback `gh` / `gh api`.
-- Open or create the **single main artifact** (`review_pr_<PR>.md` by preference; otherwise `analysis_pr_<PR>.md` per rules above). If missing, bootstrap minimal PR framing consistent with `../ARTIFACTS.md`, then continue.
+- Open or create the **single main artifact** at `_artifacts_/<meaningful_id>/review_pr_<PR>.md` by preference (otherwise `_artifacts_/<meaningful_id>/analysis_pr_<PR>.md`, or an existing legacy root-level file). If missing, bootstrap minimal PR framing consistent with `../ARTIFACTS.md` under `_artifacts_/`, then continue.
 - Do not duplicate PR parsing, repository identity resolution, or GitHub transport logic here.
 - Use `multi-spawn-agent` only when the user has explicitly authorized subagents or parallel agent work.
 - Pair this skill with a repository-specific analysis skill when the user wants code-aware technical conclusions or proposed fixes.
@@ -60,7 +60,7 @@ Do not use this skill when:
 Accept, in order of preference:
 
 - normalized PR context already resolved by `github`
-- or an existing local PR artifact (`review_pr_<PR>.md` or `analysis_pr_<PR>.md`)
+- or an existing local PR artifact (`_artifacts_/…/review_pr_<PR>.md`, `_artifacts_/…/analysis_pr_<PR>.md`, or legacy root-level equivalents)
 - or a raw PR number when context already establishes `pull_request`
 - or a PR URL
 - optional grouped-issue selection (numbered index or stable labels such as `issue_02`)
@@ -130,7 +130,7 @@ Common pairings:
 ## Workflow
 
 1. Start at repository root.
-2. Resolve `pr_number`; choose `review_pr_<PR>.md` vs `analysis_pr_<PR>.md` per **Single main artifact**.
+2. Resolve `pr_number` and `meaningful_id` (default `pr-<PR>`); choose `_artifacts_/<meaningful_id>/review_pr_<PR>.md` vs `_artifacts_/<meaningful_id>/analysis_pr_<PR>.md` per **Single main artifact**, or reuse a legacy root-level file when already present.
 3. Read the artifact; keep upstream bootstrap sections coherent.
 4. Refresh PR review/conversation state through `github`.
 5. Filter to actionable unresolved items unless asked otherwise.
@@ -139,14 +139,14 @@ Common pairings:
 8. Upsert `## Grouped unresolved comments` and subsections **only in the main artifact**.
 9. Preserve or mark stale bullets intentionally on reruns.
 10. Skip automation noise unless requested.
-11. Finish with on-screen summary + single artifact path.
+11. Finish with on-screen summary citing the **full path** to the single main artifact (e.g. `_artifacts_/pr-336/review_pr_336.md`).
 
 ## Parallel Worker Template
 
 Authorize parallel work only with strict subsection ownership:
 
 ```text
-Main artifact: review_pr_<PR>.md (or analysis_pr_<PR>.md when session-scoped).
+Main artifact: _artifacts_/<meaningful_id>/review_pr_<PR>.md (or analysis_pr_<PR>.md when session-scoped; legacy root paths when already open).
 
 Workers edit ONLY assigned ### issue_<label> blocks under ## Grouped unresolved comments.
 
@@ -175,11 +175,12 @@ Deliver selections, summaries, next actions, and confirm updates landed in the *
 
 ## Outputs / Artifacts
 
-Creates or updates **only**:
+Creates or updates **only** the single main artifact:
 
-- `review_pr_<PR>.md` **or** `analysis_pr_<PR>.md`
+- `_artifacts_/<meaningful_id>/review_pr_<PR>.md` **or** `_artifacts_/<meaningful_id>/analysis_pr_<PR>.md` (preferred for new sessions)
+- legacy root-level `review_pr_<PR>.md` or `analysis_pr_<PR>.md` when that file is already the working artifact
 
-Return grouped summaries on-screen.
+Return grouped summaries on-screen plus the artifact’s full path.
 
 ## Artifact-Aware Behavior
 

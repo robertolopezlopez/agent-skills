@@ -62,6 +62,18 @@ def slugify(text: str) -> str:
     return text or "jira-task"
 
 
+def filesystem_safe_meaningful_id(issue: str) -> str:
+    cleaned = issue.strip()
+    safe = re.sub(r'[<>:"/\\|?*\s]+', "-", cleaned)
+    safe = re.sub(r"-+", "-", safe).strip("-./")
+    return safe or slugify(issue)
+
+
+def default_output_path(issue: str) -> Path:
+    meaningful_id = filesystem_safe_meaningful_id(issue)
+    return Path("_artifacts_") / meaningful_id / f"task_{slugify(issue)}.md"
+
+
 ATLASSIAN_ENV_CANDIDATES: tuple[Path, ...] = (
     Path.home() / ".cursor" / "atlassian.env",
     Path.home() / ".codex" / "atlassian.env",
@@ -294,12 +306,13 @@ def main() -> None:
     api_base, api_defaults_file, source_kind = read_api_base(args.api_base)
     browse_url = f"{browse_base_from_api_base(api_base)}/browse/{issue}"
     defaults_path = describe_defaults_path(source_kind, api_defaults_file)
-    output = Path(args.output or f"task_{slugify(issue)}.md")
+    output = Path(args.output) if args.output else default_output_path(issue)
     preserved_sections = parse_preserved_sections(output) if output.exists() else {}
 
     if output.exists() and not args.overwrite:
         raise SystemExit(f"refusing to overwrite existing file: {output}")
 
+    output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(build_content(issue, fields, browse_url, defaults_path, preserved_sections))
     validate_artifact(output)
     print(output)
