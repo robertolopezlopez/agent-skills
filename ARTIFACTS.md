@@ -41,6 +41,21 @@ Shorthand used in skills:
 
 When unsure: if the fact would still be true after `cd` into a different repository, use **`$GLOBAL/`**.
 
+### User phrase: "the artifacts directory"
+
+When the user says **"the artifacts directory"** (or similar: "artifact path", "save to artifacts", "write the analysis md"):
+
+1. Resolve **`$ARTIFACTS/<meaningful_id>/`** for the active ticket, PR, MR, or branch — not in-repo **`_artifacts_/`** unless they explicitly ask for that.
+2. Use **`$GLOBAL/<topic>/`** for cross-repo reference material.
+3. When the repo or **`meaningful_id`** is unclear, resolve paths with **`scripts/resolve_artifact_path.py`** (installed under each skills root after sync).
+4. Read existing files in the target folder before creating duplicates; extend in place when an analysis or review artifact already exists.
+
+**Cursor:** optional always-on rule from **`templates/cursor/rules/agent-artifacts-directory.mdc`**, installed with **`scripts/bootstrap_agent_artifacts.sh --cursor-rule`**.
+
+**Codex:** same semantics live in repo and project **`AGENTS.md`** (no `.mdc` format).
+
+Store index at **`$AGENT_ARTIFACTS_HOME/README.md`**, bootstrapped from **`templates/agent-artifacts/README.md`**.
+
 ### Defaults and overrides
 
 Resolve **`AGENT_ARTIFACTS_HOME`** in this order:
@@ -51,10 +66,10 @@ Resolve **`AGENT_ARTIFACTS_HOME`** in this order:
 
 Resolve **`<repo-key>`** in this order:
 
-1. **`git remote get-url origin`** → sanitized host/org/repo (e.g. `github-com-org-cli`)
+1. **`git remote get-url origin`** → sanitized host/org/repo (e.g. `github.com-snyk-cli`)
 2. else sanitized basename of the repository root directory
 
-Helper (installed next to other shared scripts under each skills root):
+Helper (installed next to other shared scripts under each skills root). Examples use the Cursor path; on Codex replace with **`~/.codex/skills/scripts/`**:
 
 ```bash
 python3 ~/.cursor/skills/scripts/resolve_artifact_path.py --global-artifacts-root
@@ -180,14 +195,16 @@ Resolution order for **new writes**:
 - GitHub PR review bootstrap: `review_pr_<number>.md`
 - GitHub PR investigation bootstrap: `analysis_pr_<number>.md`
 - Repository / branch investigations: existing patterns such as `analysis_<relevant_name>.md` or `review_<sanitized-branch>.md` — place them under **`$ARTIFACTS/<meaningful_id>/`** unless the artifact already exists elsewhere
+- Informal working drafts: `fix_draft_<topic>.md` (same folder; not validated by default)
 
 Equivalent paths at repo root or under in-repo **`_artifacts_/`** are still tolerated for legacy workflows; **`$ARTIFACTS/...`** remains the preference for newly created files.
 
 Full examples (external store; home and repo-key vary by machine):
 
+- `$AGENT_ARTIFACTS_HOME/README.md` (store index; see **`scripts/bootstrap_agent_artifacts.sh`**)
 - `$GLOBAL/snyk-repo-ownership/repo-snyk-docker-registry-v2-client.md`
 - `$GLOBAL/NEXT_TIME_CHECKS.md`
-- `$ARTIFACTS/CLI-123/task_CLI-123.md`
+- `$ARTIFACTS/github.com-snyk-cli/CLI-123/task_CLI-123.md`
 - `$ARTIFACTS/mr-1447/review_mr_1447.md`
 - `$ARTIFACTS/pr-336/review_pr_336.md`
 - `$ARTIFACTS/feature-auth-guard/review_feature-auth-guard.md` (branch-based branch review layouts)

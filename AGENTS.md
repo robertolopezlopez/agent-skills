@@ -93,6 +93,14 @@ Skills synced under **`~/.cursor/skills/`** use **`~/.cursor/`** for local defau
 
 **Agents must not read defaults files directly** — invoke bundled helpers (`jira-api`, `confluence-api`, `circleci-request`, …) or bootstrap scripts, which load the runtime-appropriate file via **`scripts/agent-config.sh`**. Do not probe the other runtime's config home unless the user is debugging cross-runtime setup.
 
+## Artifacts directory phrase
+
+When the user says **"the artifacts directory"** (or similar), resolve **`$ARTIFACTS/<meaningful_id>/`** via **`scripts/resolve_artifact_path.py`** — not in-repo **`_artifacts_/`** unless they explicitly ask. Cross-repo material belongs under **`$GLOBAL/`**. Read existing files in the target folder before creating duplicates.
+
+- **Cursor (optional):** install **`templates/cursor/rules/agent-artifacts-directory.mdc`** with **`./scripts/bootstrap_agent_artifacts.sh --cursor-rule`**
+- **Codex:** this section plus **`ARTIFACTS.md`** carry the same contract (Codex has no `.mdc` rules format)
+- **One-time store setup:** **`./scripts/bootstrap_agent_artifacts.sh`** creates **`$AGENT_ARTIFACTS_HOME/README.md`** and scaffolds **`$GLOBAL/NEXT_TIME_CHECKS.md`** when missing
+
 ## Learn-daily playbook
 
 Portable lessons split by scope (see **`ARTIFACTS.md`**):

@@ -74,6 +74,7 @@ Before substantive work:
 
 Run when the user wants the playbook but it is missing, or **`AGENTS.md`** does not point agents at it:
 
+0. **Bootstrap the external store (once per machine)** — from the agent-skills repository run **`./scripts/bootstrap_agent_artifacts.sh`** (add **`--cursor-rule`** on Cursor for the "artifacts directory" phrase). Creates **`$AGENT_ARTIFACTS_HOME/README.md`** and **`$GLOBAL/NEXT_TIME_CHECKS.md`** when absent. Set **`AGENT_ARTIFACTS_HOME`** first when Cursor and Codex should share one store.
 1. **Create the playbook file** — Resolve **`$ARTIFACTS/`** for the active repository (see **`ARTIFACTS.md`**). Create **`$ARTIFACTS/NEXT_TIME_CHECKS.md`**. Start with stable scaffold only:
    - `# Next-time checks`
    - `## How to use` — one short paragraph: agents read at **session start** (with **Learn Daily**); humans **prune** stale bullets periodically; bullets stay **compressed** and carry a **`(source: …)`** tag (ticket, PR path, etc.).
@@ -88,7 +89,7 @@ Treat these as hygiene after 1–2 exist:
 
 - **Operate the loop:** ticket detail under **`$ARTIFACTS/<meaningful_id>/`**; cross-repo reference cards under **`$GLOBAL/<topic>/`**; recurring cross-repo lines to **`$GLOBAL/NEXT_TIME_CHECKS.md`**; repo-only lines to **`$ARTIFACTS/NEXT_TIME_CHECKS.md`**.
 - **Resolve store location explicitly** — default **`AGENT_ARTIFACTS_HOME`**; confirm with **`resolve_artifact_path.py --repo-artifacts-root`** when paths are unclear.
-- Optional index file under **`$ARTIFACTS/README.md`** when many subfolders accumulate.
+- Optional store index: **`$AGENT_ARTIFACTS_HOME/README.md`** (from **`bootstrap_agent_artifacts.sh`**)
 - **Periodic purge:** merge duplicates, delete stale bullets; **promote** twice-seen patterns to project **`AGENTS.md`** or project rules.
 - **Tune this skill:** after the habit proves stable on a repo, move repo quirks into project **`AGENTS.md`** and keep SKILL generic.
 

@@ -1,0 +1,46 @@
+---
+description: Resolve "the artifacts directory" to the external agent-artifacts store ($AGENT_ARTIFACTS_HOME)
+alwaysApply: true
+---
+
+# Artifacts directory
+
+When the user says **"the artifacts directory"** (or similar: "artifact path", "save to artifacts", "write the analysis md"):
+
+1. Use the **relevant subdirectory** under **`$AGENT_ARTIFACTS_HOME`**, not in-repo **`_artifacts_/`** unless they explicitly ask for that.
+2. Default home: exported **`AGENT_ARTIFACTS_HOME`**, else **`~/.cursor/agent-artifacts`** when **`~/.cursor`** exists, else **`~/.codex/agent-artifacts`**.
+3. Cross-repo knowledge belongs under **`$AGENT_ARTIFACTS_HOME/_global/`** (`$GLOBAL/`).
+
+## Path shape
+
+```text
+$AGENT_ARTIFACTS_HOME/<repo-key>/<meaningful_id>/
+$AGENT_ARTIFACTS_HOME/_global/<topic>/
+```
+
+- **`<repo-key>`** — from `git remote get-url origin` (e.g. `github.com-snyk-cli`), or sanitized repo folder name.
+- **`<meaningful_id>`** — from context: Jira key (`CLI-1474`), PR/MR id (`pr-336`, `mr-1447`), branch/topic slug, etc.
+
+## Examples
+
+| Context | Path |
+|---------|------|
+| CLI-1474 on snyk/cli | `$AGENT_ARTIFACTS_HOME/github.com-snyk-cli/CLI-1474/` |
+| MR 1447 on snyk/cli | `$AGENT_ARTIFACTS_HOME/github.com-snyk-cli/mr-1447/` |
+| Cross-repo notes | `$AGENT_ARTIFACTS_HOME/_global/` |
+
+## Resolution
+
+When the repo or id is unclear, run (Cursor skills root shown; Codex uses `~/.codex/skills/scripts/`):
+
+```bash
+python3 ~/.cursor/skills/scripts/resolve_artifact_path.py --repo-artifacts-root
+python3 ~/.cursor/skills/scripts/resolve_artifact_path.py --meaningful-id <ID> --basename <file>.md
+python3 ~/.cursor/skills/scripts/resolve_artifact_path.py --global-artifacts-root
+python3 ~/.cursor/skills/scripts/resolve_artifact_path.py --scope global \
+  --meaningful-id <topic> --basename <file>.md
+```
+
+Read existing files in the target directory before creating duplicates. Prefer extending an existing analysis/review artifact in place.
+
+Schema: **`~/.cursor/skills/ARTIFACTS.md`** (or **`~/.codex/skills/ARTIFACTS.md`** on Codex).

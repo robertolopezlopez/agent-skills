@@ -161,6 +161,16 @@ chmod +x ~/.cursor/skills/scripts/resolve_artifact_path.py ~/.cursor/skills/scri
 
 Durable workflow artifacts default outside project checkouts under **`$AGENT_ARTIFACTS_HOME/<repo-key>/`** (see **`ARTIFACTS.md`**). Override with **`AGENT_ARTIFACTS_HOME`** when needed.
 
+**One-time machine bootstrap** (after syncing skills):
+
+```bash
+./scripts/bootstrap_agent_artifacts.sh --cursor-rule   # Cursor: store README + optional phrase rule
+./scripts/bootstrap_agent_artifacts.sh                   # Codex-only or shared store without Cursor rule
+AGENT_ARTIFACTS_HOME=~/agent-artifacts ./scripts/bootstrap_agent_artifacts.sh   # unified store for both runtimes
+```
+
+Creates **`$AGENT_ARTIFACTS_HOME/README.md`**, scaffolds **`$GLOBAL/NEXT_TIME_CHECKS.md`**, and optionally installs **`~/.cursor/rules/agent-artifacts-directory.mdc`**. Idempotent unless **`--overwrite`**.
+
 Environment overrides: `CODEX_HOME` (Codex base), `CURSOR_AGENT_SKILLS_HOME` (parent of `skills/`, default `~/.cursor`), `AGENT_ARTIFACTS_HOME` (external artifact store root), `AGENT_SKILLS_SYNC_TARGETS` (`codex`, `cursor`, or `codex,cursor` / `all`). Use `./scripts/sync_skills.sh --codex-only` or `--cursor-only` for a single destination.
 
 Optional **install filters** (skip copying whole manifest groups or named skills—excluded directories are removed from each sync target if they were installed earlier):

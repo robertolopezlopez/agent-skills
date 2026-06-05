@@ -15,6 +15,9 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 ### Added
 
+- **`templates/agent-artifacts/`** and **`templates/cursor/rules/agent-artifacts-directory.mdc`**: portable store index and Cursor phrase rule for "the artifacts directory"
+- **`scripts/bootstrap_agent_artifacts.sh`**: one-time bootstrap for **`$AGENT_ARTIFACTS_HOME/README.md`**, **`$GLOBAL/NEXT_TIME_CHECKS.md`**, and optional Cursor rule (Codex uses **`AGENTS.md`** + **`ARTIFACTS.md`** for the same contract)
+
 - **`$GLOBAL/`** cross-repository artifact scope under **`$AGENT_ARTIFACTS_HOME/_global/`** for org-wide knowledge (team ownership, internal tooling) accessible from any checkout; **`resolve_artifact_path.py`** flags **`--global-artifacts-root`**, **`--global-next-time-checks`**, **`--scope global`**
 - **`scripts/agent-config.sh`** and **`scripts/agent_config.py`**: runtime-aware config home resolution so Cursor installs use **`~/.cursor/`** defaults only (Codex uses **`~/.codex/`**); transport skill docs no longer instruct agents to read both trees
 
