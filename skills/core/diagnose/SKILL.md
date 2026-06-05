@@ -43,7 +43,7 @@ Accept any of:
 ## First Read
 
 - Read `AGENTS.md`, `README.md`, `Makefile`, and any repo-specific contributor docs first when present.
-- If the user provides a local artifact such as `_artifacts_/<meaningful_id>/analysis_<name>.md` (or legacy root-level `analysis_<name>.md`), read it first.
+- If the user provides a local artifact such as `$ARTIFACTS/<meaningful_id>/analysis_<name>.md` (or legacy root-level `analysis_<name>.md`), read it first.
 - Reuse `repository-technical-analysis` expectations for evidence, confidence labels, and blockers.
 - Do not edit code until the repro and failure mode are clear enough to defend.
 
@@ -101,7 +101,7 @@ Return:
 
 When the work is non-trivial, this skill may also write:
 
-- `_artifacts_/<meaningful_id>/analysis_<relevant_name>.md` for new artifacts (see repo `ARTIFACTS.md`; extend existing paths in place)
+- `$ARTIFACTS/<meaningful_id>/analysis_<relevant_name>.md` for new artifacts (see repo `ARTIFACTS.md`; extend existing paths in place)
 
 ## Companion Skills
 

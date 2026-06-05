@@ -29,7 +29,7 @@ Do not use this skill when:
 - Read local contributor docs first when they exist: `AGENTS.md`, `README`, `CONTRIBUTING.md`, `Makefile`, and `pyproject.toml`.
 - Prefer repo-native tooling and scripts over ad hoc command variants.
 - Keep comments minimal and only explain non-obvious constraints or patterns.
-- If the user provides a local workflow artifact such as `_artifacts_/<meaningful_id>/task_<issue>.md`, `review_mr_<MR>.md`, or `analysis_mr_<MR>.md` (or legacy root-level equivalents), read it first and reuse its repository, links, assumptions, plan, and open questions before changing code.
+- If the user provides a local workflow artifact such as `$ARTIFACTS/<meaningful_id>/task_<issue>.md`, `review_mr_<MR>.md`, or `analysis_mr_<MR>.md` (or legacy root-level equivalents), read it first and reuse its repository, links, assumptions, plan, and open questions before changing code.
 - Do not revert unrelated user changes in the worktree.
 
 ## Workflow
@@ -68,7 +68,7 @@ This skill should usually produce:
 3. concise summary of what changed and why
 4. pull request or merge request text when requested
 
-When a local workflow artifact is being used, this skill may also enrich files under `_artifacts_/<meaningful_id>/` (see repo `ARTIFACTS.md` for `meaningful_id` and basenames):
+When a local workflow artifact is being used, this skill may also enrich files under `$ARTIFACTS/<meaningful_id>/` (see repo `ARTIFACTS.md` for `meaningful_id` and basenames):
 
 - `task_<issue>.md`
 - `review_mr_<MR>.md`
@@ -93,7 +93,7 @@ Common pairings:
 
 When a local workflow artifact is provided:
 
-- prefer `_artifacts_/<meaningful_id>/` for new artifacts; open and extend existing root-level files in place unless the user asks to migrate
+- prefer `$ARTIFACTS/<meaningful_id>/` for new artifacts; open and extend existing root-level files in place unless the user asks to migrate
 - read it first for durable context and task framing
 - reuse its repository path, context links, assumptions, initial plan, and open questions
 - still validate decisions against the current code, tests, and repository docs before editing

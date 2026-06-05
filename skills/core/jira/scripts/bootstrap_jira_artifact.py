@@ -69,9 +69,79 @@ def filesystem_safe_meaningful_id(issue: str) -> str:
     return safe or slugify(issue)
 
 
+def resolve_resolver_script() -> Path | None:
+    candidates = [
+        Path(__file__).resolve().parents[4] / "scripts" / "resolve_artifact_path.py",
+        Path.home() / ".cursor" / "skills" / "scripts" / "resolve_artifact_path.py",
+        Path.home() / ".codex" / "skills" / "scripts" / "resolve_artifact_path.py",
+    ]
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate
+    return None
+
+
+def find_repo_root() -> Path:
+    current = Path.cwd().resolve()
+    for candidate in [current, *current.parents]:
+        if (candidate / ".git").exists():
+            return candidate
+    return current
+
+
+def resolve_default_output_path(meaningful_id: str, basename: str) -> Path:
+    resolver = resolve_resolver_script()
+    if resolver is None:
+        return Path("_artifacts_") / meaningful_id / basename
+    repo_root = find_repo_root()
+    result = subprocess.run(
+        [
+            "python3",
+            str(resolver),
+            "--repo-root",
+            str(repo_root),
+            "--meaningful-id",
+            meaningful_id,
+            "--basename",
+            basename,
+        ],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    return Path(result.stdout.strip())
+
+
+def resolve_existing_output_path(meaningful_id: str, basename: str) -> Path | None:
+    resolver = resolve_resolver_script()
+    if resolver is None:
+        legacy = Path("_artifacts_") / meaningful_id / basename
+        return legacy if legacy.is_file() else None
+    repo_root = find_repo_root()
+    result = subprocess.run(
+        [
+            "python3",
+            str(resolver),
+            "--repo-root",
+            str(repo_root),
+            "--find-existing",
+            "--meaningful-id",
+            meaningful_id,
+            "--basename",
+            basename,
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        return None
+    return Path(result.stdout.strip())
+
+
 def default_output_path(issue: str) -> Path:
     meaningful_id = filesystem_safe_meaningful_id(issue)
-    return Path("_artifacts_") / meaningful_id / f"task_{slugify(issue)}.md"
+    return resolve_default_output_path(meaningful_id, f"task_{slugify(issue)}.md")
 
 
 ATLASSIAN_ENV_CANDIDATES: tuple[Path, ...] = (
@@ -307,7 +377,12 @@ def main() -> None:
     browse_url = f"{browse_base_from_api_base(api_base)}/browse/{issue}"
     defaults_path = describe_defaults_path(source_kind, api_defaults_file)
     output = Path(args.output) if args.output else default_output_path(issue)
-    preserved_sections = parse_preserved_sections(output) if output.exists() else {}
+    existing = resolve_existing_output_path(
+        filesystem_safe_meaningful_id(issue),
+        f"task_{slugify(issue)}.md",
+    )
+    preserved_source = existing if existing is not None else output
+    preserved_sections = parse_preserved_sections(preserved_source) if preserved_source.exists() else {}
 
     if output.exists() and not args.overwrite:
         raise SystemExit(f"refusing to overwrite existing file: {output}")

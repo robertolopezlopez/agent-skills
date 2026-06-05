@@ -1,6 +1,8 @@
 shared_files:
   - ARTIFACTS.md
   - scripts/atlassian-auth.sh
+  - scripts/migrate_legacy_artifacts.py
+  - scripts/resolve_artifact_path.py
   - scripts/validate_artifact.py
 
 skills:
@@ -181,6 +183,12 @@ skills:
       - git
       - repository-technical-analysis
       - diagnose
+  - name: learn-daily
+    path: skills/core/learn-daily
+    status: stable
+    type: core
+    repo_scope: generic
+    release_group: core
   - name: multi-spawn-agent
     path: skills/core/multi-spawn-agent
     status: stable

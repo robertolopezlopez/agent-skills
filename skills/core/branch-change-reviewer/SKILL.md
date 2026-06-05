@@ -1,6 +1,6 @@
 ---
 name: branch-change-reviewer
-description: Review the current branch against a target Git branch, defaulting to origin/main, and write review findings to a Markdown output file under `_artifacts_/<meaningful_id>/` (default basename `review_<sanitized-branch>.md`; legacy root-level review files remain valid). Use when Codex is asked to review a branch diff without writing code, especially to assess code style, architecture, testing, regressions, and whether changes are worth raising as comments.
+description: Review the current branch against a target Git branch, defaulting to origin/main, and write review findings to a Markdown output file under `$ARTIFACTS/<meaningful_id>/` (default basename `review_<sanitized-branch>.md`; legacy root-level review files remain valid). Use when Codex is asked to review a branch diff without writing code, especially to assess code style, architecture, testing, regressions, and whether changes are worth raising as comments.
 ---
 
 # Branch Change Reviewer
@@ -29,17 +29,17 @@ Do not use this skill when:
 - If the user provides a target branch, use it.
 - If the user does not provide one, use `origin/main`.
 - Accept an optional output file path (absolute or relative).
-- Accept an optional local workflow artifact such as `_artifacts_/…/task_<issue>.md`, `review_mr_<MR>.md`, or `analysis_mr_<MR>.md` as additional review context.
+- Accept an optional local workflow artifact such as `$ARTIFACTS/…/task_<issue>.md`, `review_mr_<MR>.md`, or `analysis_mr_<MR>.md` as additional review context.
 - If the user provides an output file, use it.
-- If the user does not provide one, write under `_artifacts_/<meaningful_id>/` per repository `ARTIFACTS.md`:
-  - default basename: `review_<sanitized-branch>.md` from the current branch name (e.g. `feature/foo-bar` → `_artifacts_/feature-foo-bar/review_feature-foo-bar.md`)
+- If the user does not provide one, write under `$ARTIFACTS/<meaningful_id>/` per repository `ARTIFACTS.md`:
+  - default basename: `review_<sanitized-branch>.md` from the current branch name (e.g. `feature/foo-bar` → `$ARTIFACTS/feature-foo-bar/review_feature-foo-bar.md`)
   - default `meaningful_id`: tracker key from a provided task artifact when present; else the same sanitized branch slug
 - **Legacy:** an existing root-level `review_<branch>.md` (or other user path) already present remains valid—open and extend it instead of relocating unless the user asks to migrate.
 
 ## Inspect the repository first
 
 - Run `git status --short --branch`.
-- Determine the current branch name and resolve the default output path under `_artifacts_/<meaningful_id>/` (or an existing legacy review file when already present).
+- Determine the current branch name and resolve the default output path under `$ARTIFACTS/<meaningful_id>/` (or an existing legacy review file when already present).
 - Refresh the target branch with `git fetch` before reviewing.
 - Keep any existing user changes intact.
 - Do not modify code, tests, or configuration as part of this skill.
@@ -52,7 +52,7 @@ Do not use this skill when:
 - Read the changed files and any adjacent files needed to understand architecture, call sites, and test coverage.
 - Read repo guidance such as `AGENTS.md`, `README`, `Makefile`, `pyproject.toml`, `package.json`, CI config, or test configuration when they affect the review standard.
 - If a local workflow artifact is provided, read it first and reuse its scope, links, assumptions, and open questions as review context, while keeping the branch diff as the source of truth.
-- if prior review artifacts for the same branch or area exist (under `_artifacts_/…/` or legacy root-level paths), preserve durable learned sections such as `Recurring Findings`, `Missed In Prior Review`, or `Repo-Specific Review Heuristics` when they still match the current diff and surrounding code.
+- if prior review artifacts for the same branch or area exist (under `$ARTIFACTS/…/` or legacy root-level paths), preserve durable learned sections such as `Recurring Findings`, `Missed In Prior Review`, or `Repo-Specific Review Heuristics` when they still match the current diff and surrounding code.
 
 ## Review standards
 
@@ -114,7 +114,7 @@ Write the same review content to both the screen and the output file.
 This skill should produce:
 
 - an on-screen review summary
-- a Markdown review file such as `_artifacts_/<meaningful_id>/review_<sanitized-branch>.md` for new runs (legacy root-level `review_<branch>.md` paths remain valid when already in use)
+- a Markdown review file such as `$ARTIFACTS/<meaningful_id>/review_<sanitized-branch>.md` for new runs (legacy root-level `review_<branch>.md` paths remain valid when already in use)
 
 The review should include:
 
@@ -137,14 +137,14 @@ This is additive only and does not replace the normal diff-based review workflow
 
 Common pairings:
 
-- local workflow artifacts such as `_artifacts_/…/task_<issue>.md` or `review_mr_<MR>.md` for extra review context
+- local workflow artifacts such as `$ARTIFACTS/…/task_<issue>.md` or `review_mr_<MR>.md` for extra review context
 - repository-specific contributor or analysis skills only after the review is complete and the user asks for follow-on changes
 
 ## Self-Improving Behavior
 
 When rerunning review for the same branch, MR, or code area:
 
-- read any existing review artifact first (under `_artifacts_/…/` by preference, or a legacy root-level file when that is where prior work lives)
+- read any existing review artifact first (under `$ARTIFACTS/…/` by preference, or a legacy root-level file when that is where prior work lives)
 - preserve durable learned sections such as `## Recurring Findings`, `## Missed In Prior Review`, and `## Repo-Specific Review Heuristics` when they still match the current diff and surrounding code
 - refresh findings from the live diff and current code before concluding
 - promote repeated confirmed review themes into short heuristics, preferably phrased like `when code changes X, verify Y`

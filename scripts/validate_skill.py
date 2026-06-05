@@ -170,6 +170,10 @@ def validate_relative_references(
         if repo_candidate.exists():
             continue
 
+        repo_shared_candidate = (repo_root / normalized).resolve(strict=False)
+        if repo_shared_candidate.exists():
+            continue
+
         if expected_name:
             installed_layout_anchor = repo_root / expected_name
             installed_candidate = (installed_layout_anchor / normalized).resolve(strict=False)

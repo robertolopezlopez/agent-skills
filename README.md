@@ -145,19 +145,23 @@ cp git-hooks/post-commit .git/hooks/post-commit
 chmod +x .git/hooks/post-commit
 ```
 
-Bootstrap the shared artifact schema and validator into each installed skills root so installed skill references and bootstrap validation both work correctly. The usual approach is to run `./scripts/sync_skills.sh --all` from this repository (defaults to both Codex and Cursor); or copy files manually:
+Bootstrap the shared artifact schema, path resolver, and validator into each installed skills root so installed skill references and bootstrap validation both work correctly. The usual approach is to run `./scripts/sync_skills.sh --all` from this repository (defaults to both Codex and Cursor); or copy files manually:
 
 ```bash
 mkdir -p ~/.codex/skills ~/.codex/skills/scripts ~/.cursor/skills ~/.cursor/skills/scripts
 cp ARTIFACTS.md ~/.codex/skills/ARTIFACTS.md
+cp scripts/resolve_artifact_path.py ~/.codex/skills/scripts/resolve_artifact_path.py
 cp scripts/validate_artifact.py ~/.codex/skills/scripts/validate_artifact.py
-chmod +x ~/.codex/skills/scripts/validate_artifact.py
+chmod +x ~/.codex/skills/scripts/resolve_artifact_path.py ~/.codex/skills/scripts/validate_artifact.py
 cp ARTIFACTS.md ~/.cursor/skills/ARTIFACTS.md
+cp scripts/resolve_artifact_path.py ~/.cursor/skills/scripts/resolve_artifact_path.py
 cp scripts/validate_artifact.py ~/.cursor/skills/scripts/validate_artifact.py
-chmod +x ~/.cursor/skills/scripts/validate_artifact.py
+chmod +x ~/.cursor/skills/scripts/resolve_artifact_path.py ~/.cursor/skills/scripts/validate_artifact.py
 ```
 
-Environment overrides: `CODEX_HOME` (Codex base), `CURSOR_AGENT_SKILLS_HOME` (parent of `skills/`, default `~/.cursor`), `AGENT_SKILLS_SYNC_TARGETS` (`codex`, `cursor`, or `codex,cursor` / `all`). Use `./scripts/sync_skills.sh --codex-only` or `--cursor-only` for a single destination.
+Durable workflow artifacts default outside project checkouts under **`$AGENT_ARTIFACTS_HOME/<repo-key>/`** (see **`ARTIFACTS.md`**). Override with **`AGENT_ARTIFACTS_HOME`** when needed.
+
+Environment overrides: `CODEX_HOME` (Codex base), `CURSOR_AGENT_SKILLS_HOME` (parent of `skills/`, default `~/.cursor`), `AGENT_ARTIFACTS_HOME` (external artifact store root), `AGENT_SKILLS_SYNC_TARGETS` (`codex`, `cursor`, or `codex,cursor` / `all`). Use `./scripts/sync_skills.sh --codex-only` or `--cursor-only` for a single destination.
 
 Optional **install filters** (skip copying whole manifest groups or named skills—excluded directories are removed from each sync target if they were installed earlier):
 
@@ -208,6 +212,8 @@ Verify the shared installed assets:
 ```bash
 test -f ~/.codex/skills/ARTIFACTS.md && echo "ok: installed ARTIFACTS.md (codex)" || echo "MISSING: ~/.codex/skills/ARTIFACTS.md"
 test -f ~/.cursor/skills/ARTIFACTS.md && echo "ok: installed ARTIFACTS.md (cursor)" || echo "MISSING: ~/.cursor/skills/ARTIFACTS.md"
+test -f ~/.codex/skills/scripts/resolve_artifact_path.py && echo "ok: installed resolver (codex)" || echo "MISSING: ~/.codex/skills/scripts/resolve_artifact_path.py"
+test -f ~/.cursor/skills/scripts/resolve_artifact_path.py && echo "ok: installed resolver (cursor)" || echo "MISSING: ~/.cursor/skills/scripts/resolve_artifact_path.py"
 test -f ~/.codex/skills/scripts/validate_artifact.py && echo "ok: installed validator (codex)" || echo "MISSING: ~/.codex/skills/scripts/validate_artifact.py"
 test -f ~/.cursor/skills/scripts/validate_artifact.py && echo "ok: installed validator (cursor)" || echo "MISSING: ~/.cursor/skills/scripts/validate_artifact.py"
 ```

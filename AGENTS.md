@@ -87,6 +87,19 @@ Before finishing a task that changes any manifest-declared skill directory or sh
 
 If a new common rule appears in multiple skills, move it here unless there is a strong reason not to.
 
+## Learn-daily playbook
+
+Portable lessons split by scope (see **`ARTIFACTS.md`**):
+
+- **`$GLOBAL/NEXT_TIME_CHECKS.md`** — cross-repository next-time checks
+- **`$GLOBAL/<topic>/`** — cross-repository reference cards (org maps, team ownership, company tooling)
+- **`$ARTIFACTS/NEXT_TIME_CHECKS.md`** — lessons specific to the active repository
+- **`$ARTIFACTS/<meaningful_id>/`** — ticket-scoped work for the active repository
+
+Legacy in-repo **`_artifacts_/`** paths remain valid for read/extend only.
+
+Resolve paths with **`scripts/resolve_artifact_path.py`** (synced to **`~/.cursor/skills/scripts/`** and **`~/.codex/skills/scripts/`**). Use **`--global-artifacts-root`**, **`--global-next-time-checks`**, or **`--scope global`** for cross-repo paths. Override the store root with **`AGENT_ARTIFACTS_HOME`** when needed.
+
 ## Delegation rule
 
 When a skill describes subagent or parallel-agent behavior:

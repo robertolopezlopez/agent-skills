@@ -15,6 +15,9 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 ### Added
 
+- **`$GLOBAL/`** cross-repository artifact scope under **`$AGENT_ARTIFACTS_HOME/_global/`** for org-wide knowledge (team ownership, internal tooling) accessible from any checkout; **`resolve_artifact_path.py`** flags **`--global-artifacts-root`**, **`--global-next-time-checks`**, **`--scope global`**
+
+- core **`learn-daily`** skill (`skills/core/learn-daily/`, renamed from `daily-agent-rhythm`) for a short start → work → end loop using **`$ARTIFACTS/`** (external store) and optional **`$ARTIFACTS/NEXT_TIME_CHECKS.md`**
 - core `github-pr-comment-analysis` skill (`skills/core/github-pr-comment-analysis/`) mirroring `gitlab-mr-comment-analysis` for GitHub PRs (grouped threads inside `review_pr_<number>.md` / `analysis_pr_<number>.md`)
 - CLI product overlay skills under `skills/cli/` (`private-contributor`, `private-technical-analysis`, `private-parallel-tests`, `private-pr-comment-analysis`), agent- and IDE-agnostic, declared in `skills_manifest.yaml`
 - shared skill schema guidance in `docs/skill-schema.md`
@@ -26,7 +29,9 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 ### Changed
 
-- **Artifact placement:** shipped `ARTIFACTS.md` and updated skills prefer new local Markdown under `_artifacts_/<meaningful_id>/` (see `ARTIFACTS.md` for id precedence and legacy root-level compatibility). **Workflow change:** `bootstrap_jira_artifact.py` defaults to `_artifacts_/<issue-key>/…` when `--output` is omitted; `bootstrap_gitlab_artifact.py` defaults to `_artifacts_/mr-<iid>/…` when `--output` is omitted
+- **Artifact store:** durable agent context (follow-ups, work plans, analysis, **`NEXT_TIME_CHECKS.md`**) defaults to an **external** store **`$AGENT_ARTIFACTS_HOME/<repo-key>/`** (shorthand **`$ARTIFACTS/`** in skills), outside project git checkouts. Added **`scripts/resolve_artifact_path.py`** and **`scripts/migrate_legacy_artifacts.py`**; **`ARTIFACTS.md`**, **`learn-daily`**, bootstrap helpers, and workflow skills updated. Legacy in-repo **`_artifacts_/`** remains valid for read/extend only.
+- **`learn-daily`**: bootstrap checklist for **`$ARTIFACTS/NEXT_TIME_CHECKS.md`** (steps 1–2) plus post-bootstrap checklist; **`AGENTS.md`** documents the external playbook pointer
+- **Artifact placement (prior):** shipped `ARTIFACTS.md` and updated skills prefer new local Markdown under in-repo `_artifacts_/<meaningful_id>/` — superseded by external store default above
 - **`gitlab-mr-comment-analysis`** and **`github-pr-comment-analysis`** write grouped threads **inside** the main MR/PR Markdown artifact (`review_mr_*` / `review_pr_*`, or `analysis_mr_*` / `analysis_pr_*`) under `## Grouped unresolved comments`; standalone `work_plan_*`, per-issue splits, and `*_comment_report.md` outputs are legacy-only for migration
 - **`private-pr-comment-analysis`** targets **GitHub** pull requests (`github` transport, **`github-pr-comment-analysis`** grouping); manifest **companion_skills** no longer lists `gitlab` / `gitlab-mr-comment-analysis`
 - Renamed **`cli-mr-comment-analysis`** → **`private-pr-comment-analysis`** (directory `skills/cli/mr-comment-analysis/` → `skills/cli/pr-comment-analysis/`). Remove stale installs with `./scripts/sync_skills.sh --all --verify --delete-missing`.

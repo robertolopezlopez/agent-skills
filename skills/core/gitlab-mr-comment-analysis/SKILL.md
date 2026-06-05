@@ -3,7 +3,7 @@ name: gitlab-mr-comment-analysis
 description: >-
   Analyze GitLab merge requests comment-by-comment. Consume MR context from `gitlab`, skip resolved
   threads, group actionable unresolved comments into subsections inside the main MR Markdown artifact
-  (prefer `_artifacts_/<meaningful_id>/review_mr_<MR>.md`; use `_artifacts_/<meaningful_id>/analysis_mr_<MR>.md` when that file is the working artifact),
+  (prefer `$ARTIFACTS/<meaningful_id>/review_mr_<MR>.md`; use `$ARTIFACTS/<meaningful_id>/analysis_mr_<MR>.md` when that file is the working artifact),
   preserve full plan history there, track MR/comment/analysis anchors plus proposed solution and
   reply-waiting status, optionally support quick-fix mode for selected grouped issues such as
   `fix 2 and 5 now`, optionally split grouped issues across subagents when explicitly authorized with
@@ -20,10 +20,10 @@ Use this skill as a workflow-specific overlay for `gitlab`.
 
 **Do not create separate work-plan, per-issue, or consolidated-report Markdown files** (no `work_plan_mr_<MR>.md`, `analysis_mr_<MR>_issue_<NN>.md`, or `mr_<MR>_comment_report.md` for new runs).
 
-Put everything into **one** MR artifact under `_artifacts_/<meaningful_id>/` per repository `ARTIFACTS.md` (default `meaningful_id`: `mr-<MR>` unless a tracker key or repo rule applies; explicit user paths win):
+Put everything into **one** MR artifact under `$ARTIFACTS/<meaningful_id>/` per repository `ARTIFACTS.md` (default `meaningful_id`: `mr-<MR>` unless a tracker key or repo rule applies; explicit user paths win):
 
-1. Prefer **`_artifacts_/<meaningful_id>/review_mr_<MR>.md`** as the canonical combined bootstrap + grouped-comment workspace.
-2. If the session uses **`_artifacts_/<meaningful_id>/analysis_mr_<MR>.md`** instead (investigation-heavy bootstrap or user-provided file only), enrich **that** file with the same grouped-comment sections—do not create a parallel `review_mr_<MR>.md` unless the user asks.
+1. Prefer **`$ARTIFACTS/<meaningful_id>/review_mr_<MR>.md`** as the canonical combined bootstrap + grouped-comment workspace.
+2. If the session uses **`$ARTIFACTS/<meaningful_id>/analysis_mr_<MR>.md`** instead (investigation-heavy bootstrap or user-provided file only), enrich **that** file with the same grouped-comment sections—do not create a parallel `review_mr_<MR>.md` unless the user asks.
 
 Resolve `<MR>` from live `gitlab` context (`mr_iid`) before naming paths. **Legacy:** root-level `review_mr_<MR>.md` or `analysis_mr_<MR>.md` already present remain valid—open and extend them instead of relocating.
 
@@ -50,7 +50,7 @@ Do not use this skill when:
 - Read the repository `AGENTS.md` before running commands.
 - Consume normalized MR context from `gitlab`.
 - Treat `gitlab` as the transport boundary whether data came from GitLab MCP or fallback `glab` / `glab api`.
-- Open or create the **single main artifact** at `_artifacts_/<meaningful_id>/review_mr_<MR>.md` by preference (otherwise `_artifacts_/<meaningful_id>/analysis_mr_<MR>.md`, or an existing legacy root-level file). If missing, bootstrap minimal MR framing consistent with `../ARTIFACTS.md` under `_artifacts_/`, then continue.
+- Open or create the **single main artifact** at `$ARTIFACTS/<meaningful_id>/review_mr_<MR>.md` by preference (otherwise `$ARTIFACTS/<meaningful_id>/analysis_mr_<MR>.md`, or an existing legacy root-level file). If missing, bootstrap minimal MR framing consistent with `../ARTIFACTS.md` under `$ARTIFACTS/`, then continue.
 - Do not duplicate MR parsing, project identity resolution, or GitLab transport logic here.
 - Use `multi-spawn-agent` only when the user has explicitly authorized subagents or parallel agent work.
 - Pair this skill with a repository-specific analysis skill when the user wants code-aware technical conclusions or proposed fixes.
@@ -60,7 +60,7 @@ Do not use this skill when:
 Accept, in order of preference:
 
 - normalized MR context already resolved by `gitlab`
-- or an existing local MR artifact (`_artifacts_/…/review_mr_<MR>.md`, `_artifacts_/…/analysis_mr_<MR>.md`, or legacy root-level equivalents)
+- or an existing local MR artifact (`$ARTIFACTS/…/review_mr_<MR>.md`, `$ARTIFACTS/…/analysis_mr_<MR>.md`, or legacy root-level equivalents)
 - or a raw MR IID like `123`
 - or an MR URL that contains the IID
 - optional grouped-issue selection from the current session (numbered summary or stable labels like `issue_02`)
@@ -133,7 +133,7 @@ Common pairings:
 ## Workflow
 
 1. Start in the target repository root.
-2. Resolve `mr_iid` and `meaningful_id` (default `mr-<MR>`); choose `_artifacts_/<meaningful_id>/review_mr_<MR>.md` vs `_artifacts_/<meaningful_id>/analysis_mr_<MR>.md` per **Single main artifact**, or reuse a legacy root-level file when already present.
+2. Resolve `mr_iid` and `meaningful_id` (default `mr-<MR>`); choose `$ARTIFACTS/<meaningful_id>/review_mr_<MR>.md` vs `$ARTIFACTS/<meaningful_id>/analysis_mr_<MR>.md` per **Single main artifact**, or reuse a legacy root-level file when already present.
 3. Read the main artifact; preserve bootstrap assumptions and prior notes outside grouped-comment sections when still valid.
 4. Refresh MR discussion state through `gitlab` (threads, links, resolved vs actionable).
 5. Filter to actionable unresolved review threads unless the user asks otherwise.
@@ -142,7 +142,7 @@ Common pairings:
 8. Upsert `## Grouped unresolved comments` and each `### issue_*` subsection in the **main artifact only**.
 9. Preserve durable learned bullets inside matching subsections when reruns still apply; mark superseded material explicitly instead of silent deletion.
 10. Ignore pure system notes or clearly non-actionable chatter unless the user asks for them.
-11. Show an on-screen summary (2–3 lines per grouped issue, stable labels, **full path** to the single main artifact, e.g. `_artifacts_/mr-1447/review_mr_1447.md`).
+11. Show an on-screen summary (2–3 lines per grouped issue, stable labels, **full path** to the single main artifact, e.g. `$ARTIFACTS/mr-1447/review_mr_1447.md`).
 
 ## Parallel Worker Template
 
@@ -151,7 +151,7 @@ When subagents are explicitly authorized, parallelize by **subsection ownership*
 ```text
 Use gitlab-mr-comment-analysis plus repository-specific companion skills.
 
-Main artifact: _artifacts_/<meaningful_id>/review_mr_<MR>.md (or _artifacts_/<meaningful_id>/analysis_mr_<MR>.md if that is the session artifact).
+Main artifact: $ARTIFACTS/<meaningful_id>/review_mr_<MR>.md (or $ARTIFACTS/<meaningful_id>/analysis_mr_<MR>.md if that is the session artifact).
 
 Read the full file once for context.
 
@@ -189,7 +189,7 @@ Minimum: selected labels, short summaries, proposed change takeaway, next action
 
 Creates or updates **only**:
 
-- `_artifacts_/<meaningful_id>/review_mr_<MR>.md` **or** `_artifacts_/<meaningful_id>/analysis_mr_<MR>.md` (exactly one chosen main artifact per run series; legacy root-level paths when already in use)
+- `$ARTIFACTS/<meaningful_id>/review_mr_<MR>.md` **or** `$ARTIFACTS/<meaningful_id>/analysis_mr_<MR>.md` (exactly one chosen main artifact per run series; legacy root-level paths when already in use)
 
 Also returns grouped-issue summaries, mappings, and reply/waiting notes on-screen.
 

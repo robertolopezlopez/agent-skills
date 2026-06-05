@@ -126,7 +126,7 @@ Common pairings:
 17. When the user explicitly asks to bootstrap a local artifact for the MR, keep the existing fetch behavior and additionally:
    - resolve `meaningful_id` (default `mr-<MR>` unless a tracker key or repo rule applies; explicit user paths win)
    - fetch MR JSON with GitLab MCP when possible, otherwise with fallback `glab api`
-   - run `scripts/bootstrap_gitlab_artifact.py` with `--output` under `_artifacts_/<meaningful_id>/` when not overridden
+   - run `scripts/bootstrap_gitlab_artifact.py` with `--output` under `$ARTIFACTS/<meaningful_id>/` when not overridden
    - return the local artifact path and suggested next action
 18. Keep artifact bootstrap optional and additive so existing companion skills can keep using the same `gitlab` context contract unchanged.
 19. Return normalized MR context for downstream skills.
@@ -188,23 +188,26 @@ glab api /projects/<encoded_project_path>/merge_requests/<MR>/notes
 glab api /projects/<encoded_project_path>/merge_requests/<MR>
 ```
 
-Optional fallback artifact bootstrap after fetching MR JSON (default output under `_artifacts_/mr-<MR>/`; pass `--output` explicitly when the user or repo rules specify a different path):
+Optional fallback artifact bootstrap after fetching MR JSON (default output under `$ARTIFACTS/mr-<MR>/` via external store; pass `--output` explicitly when the user or repo rules specify a different path):
 
 ```bash
-mkdir -p _artifacts_/mr-<MR>
 glab api /projects/<project_id>/merge_requests/<MR> > /tmp/mr_<MR>.json
-python3 gitlab/scripts/bootstrap_gitlab_artifact.py --json /tmp/mr_<MR>.json --mr <MR> --output _artifacts_/mr-<MR>/review_mr_<MR>.md
+python3 gitlab/scripts/bootstrap_gitlab_artifact.py --json /tmp/mr_<MR>.json --mr <MR>
 ```
 
 When using `encoded_project_path` instead of `project_id`:
 
 ```bash
-mkdir -p _artifacts_/mr-<MR>
 glab api /projects/<encoded_project_path>/merge_requests/<MR> > /tmp/mr_<MR>.json
-python3 gitlab/scripts/bootstrap_gitlab_artifact.py --json /tmp/mr_<MR>.json --mr <MR> --output _artifacts_/mr-<MR>/review_mr_<MR>.md
+python3 gitlab/scripts/bootstrap_gitlab_artifact.py --json /tmp/mr_<MR>.json --mr <MR>
 ```
 
-For investigation-heavy bootstrap, use `--type analysis` and `--output _artifacts_/mr-<MR>/analysis_mr_<MR>.md` instead.
+For investigation-heavy bootstrap, use `--type analysis`. To pin a path explicitly:
+
+```bash
+ARTIFACTS="$(python3 ~/.cursor/skills/scripts/resolve_artifact_path.py --repo-artifacts-root)"
+python3 gitlab/scripts/bootstrap_gitlab_artifact.py --json /tmp/mr_<MR>.json --mr <MR> --output "$ARTIFACTS/mr-<MR>/analysis_mr_<MR>.md"
+```
 
 Decision rule:
 
@@ -242,10 +245,10 @@ This skill should return normalized MR context for downstream skills, including 
 - thread status and comment links
 - transport notes that matter for reruns
 
-When artifact bootstrap is requested, this skill may also write under `_artifacts_/<meaningful_id>/` (default `meaningful_id`: `mr-<MR>`):
+When artifact bootstrap is requested, this skill may also write under `$ARTIFACTS/<meaningful_id>/` (default `meaningful_id`: `mr-<MR>`):
 
-- `_artifacts_/<meaningful_id>/review_mr_<MR>.md`
-- `_artifacts_/<meaningful_id>/analysis_mr_<MR>.md`
+- `$ARTIFACTS/<meaningful_id>/review_mr_<MR>.md`
+- `$ARTIFACTS/<meaningful_id>/analysis_mr_<MR>.md`
 
 **Legacy:** existing root-level `review_mr_<MR>.md` or `analysis_mr_<MR>.md` files remain valid—refresh in place instead of relocating unless the user asks to migrate.
 
@@ -268,24 +271,24 @@ When rerunning GitLab MR fetch or inspection for the same host, project, or MR f
 
 When the user explicitly asks to create a local artifact from an MR, create either:
 
-- `_artifacts_/<meaningful_id>/review_mr_<MR>.md` for normal review work
-- `_artifacts_/<meaningful_id>/analysis_mr_<MR>.md` for investigation-heavy work
+- `$ARTIFACTS/<meaningful_id>/review_mr_<MR>.md` for normal review work
+- `$ARTIFACTS/<meaningful_id>/analysis_mr_<MR>.md` for investigation-heavy work
 
-Default `meaningful_id` is `mr-<MR>` unless a tracker key or repo `AGENTS.md` rule applies. Explicit user paths always win. Prefer `_artifacts_/<meaningful_id>/` for **new** artifacts; open and extend legacy root-level files when they already exist.
+Default `meaningful_id` is `mr-<MR>` unless a tracker key or repo `AGENTS.md` rule applies. Explicit user paths always win. Prefer `$ARTIFACTS/<meaningful_id>/` for **new** artifacts; open and extend legacy root-level files when they already exist.
 
 Recommended flow:
 
 1. resolve the MR IID with the normal workflow
 2. choose `meaningful_id` (default `mr-<MR>`)
 3. fetch MR JSON with GitLab MCP when possible, otherwise with fallback `glab api`
-4. run `scripts/bootstrap_gitlab_artifact.py` with MR JSON (`--mr` / `--json` as today); omit `--output` to use the script default `_artifacts_/mr-<MR>/review_mr_<MR>.md` or `_artifacts_/mr-<MR>/analysis_mr_<MR>.md` from `--type`, or pass `--output` when the user or repo rules need a non-default location
+4. run `scripts/bootstrap_gitlab_artifact.py` with MR JSON (`--mr` / `--json` as today); omit `--output` to use the script default `$ARTIFACTS/mr-<MR>/review_mr_<MR>.md` or `$ARTIFACTS/mr-<MR>/analysis_mr_<MR>.md` from `--type`, or pass `--output` when the user or repo rules need a non-default location
 5. let the bootstrap helper validate the generated artifact against the shared schema
-6. if a local review artifact already exists (under `_artifacts_/` or at repo root), preserve local sections such as `Follow-up Findings` and `Improvement Candidates` while refreshing GitLab-derived sections from live MR data
+6. if a local review artifact already exists (under `$ARTIFACTS/` or at repo root), preserve local sections such as `Follow-up Findings` and `Improvement Candidates` while refreshing GitLab-derived sections from live MR data
 7. write the artifact using the shared section order documented in `../ARTIFACTS.md`
 8. report the artifact path and next suggested action
 
 Example requests:
 
 - `Use gitlab to bootstrap an artifact for MR 123`
-- `Use gitlab to fetch MR 123 and fill _artifacts_/mr-123/review_mr_123.md`
+- `Use gitlab to fetch MR 123 and fill $ARTIFACTS/mr-123/review_mr_123.md`
 - `Bootstrap a local review artifact from https://example.com/group/project/-/merge_requests/123`

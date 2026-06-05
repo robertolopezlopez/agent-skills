@@ -85,9 +85,81 @@ def validate_artifact(output: Path) -> None:
     subprocess.run(['python3', str(validator), str(output)], check=True)
 
 
+def resolve_resolver_script() -> Path | None:
+    candidates = [
+        Path(__file__).resolve().parents[4] / "scripts" / "resolve_artifact_path.py",
+        Path.home() / ".cursor" / "skills" / "scripts" / "resolve_artifact_path.py",
+        Path.home() / ".codex" / "skills" / "scripts" / "resolve_artifact_path.py",
+    ]
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate
+    return None
+
+
+def find_repo_root() -> Path:
+    current = Path.cwd().resolve()
+    for candidate in [current, *current.parents]:
+        if (candidate / ".git").exists():
+            return candidate
+    return current
+
+
+def resolve_default_output_path(meaningful_id: str, basename: str) -> Path:
+    resolver = resolve_resolver_script()
+    if resolver is None:
+        return Path("_artifacts_") / meaningful_id / basename
+    repo_root = find_repo_root()
+    result = subprocess.run(
+        [
+            "python3",
+            str(resolver),
+            "--repo-root",
+            str(repo_root),
+            "--meaningful-id",
+            meaningful_id,
+            "--basename",
+            basename,
+        ],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    return Path(result.stdout.strip())
+
+
+def resolve_existing_output_path(meaningful_id: str, basename: str) -> Path | None:
+    resolver = resolve_resolver_script()
+    if resolver is None:
+        legacy = Path("_artifacts_") / meaningful_id / basename
+        return legacy if legacy.is_file() else None
+    repo_root = find_repo_root()
+    result = subprocess.run(
+        [
+            "python3",
+            str(resolver),
+            "--repo-root",
+            str(repo_root),
+            "--find-existing",
+            "--meaningful-id",
+            meaningful_id,
+            "--basename",
+            basename,
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        return None
+    return Path(result.stdout.strip())
+
+
 def default_output_path(iid: str, artifact_type: str) -> Path:
     prefix = "review" if artifact_type == "review" else "analysis"
-    return Path("_artifacts_") / f"mr-{iid}" / f"{prefix}_mr_{iid}.md"
+    meaningful_id = f"mr-{iid}"
+    basename = f"{prefix}_mr_{iid}.md"
+    return resolve_default_output_path(meaningful_id, basename)
 
 
 def build_content(mr: dict[str, Any], artifact_type: str, defaults_files: list[str], preserved_sections: dict[str, str]) -> str:
@@ -188,8 +260,8 @@ def main() -> None:
     parser.add_argument(
         "--output",
         help=(
-            "Output markdown path. Defaults to _artifacts_/mr-<iid>/review_mr_<iid>.md "
-            "or _artifacts_/mr-<iid>/analysis_mr_<iid>.md."
+            "Output markdown path. Defaults to $ARTIFACTS/mr-<iid>/review_mr_<iid>.md "
+            "or $ARTIFACTS/mr-<iid>/analysis_mr_<iid>.md (external store; see ARTIFACTS.md)."
         ),
     )
     parser.add_argument("--type", choices=["review", "analysis"], default="review", help="Artifact type.")
@@ -206,7 +278,10 @@ def main() -> None:
         raise SystemExit("missing MR IID in JSON and no --mr override provided")
 
     output = Path(args.output) if args.output else default_output_path(iid, args.type)
-    preserved_sections = parse_preserved_sections(output) if output.exists() else {}
+    prefix = "review" if args.type == "review" else "analysis"
+    existing = resolve_existing_output_path(f"mr-{iid}", f"{prefix}_mr_{iid}.md")
+    preserved_source = existing if existing is not None else output
+    preserved_sections = parse_preserved_sections(preserved_source) if preserved_source.exists() else {}
     if output.exists() and not args.overwrite:
         raise SystemExit(f"refusing to overwrite existing file: {output}")
 
