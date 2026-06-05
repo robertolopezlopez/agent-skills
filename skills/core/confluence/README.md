@@ -6,7 +6,7 @@ Setup and usage notes for the generic `confluence` skill.
 
 Agents use this skill to access **Confluence Cloud** through the REST API when browser flows hit login walls or API access is more reliable.
 
-Configuration for fallback helpers lives in the runtime **`atlassian.env`** file (**`~/.cursor/atlassian.env`** for Cursor installs, **`~/.codex/atlassian.env`** for Codex). The **`jira`** skill uses the same file. See **AGENTS.md** for runtime detection.
+Configuration for fallback helpers lives in the runtime **`atlassian.env`** file for the active install. Resolve it with **`scripts/agent_config.py --atlassian-env`**. The **`jira`** skill uses the same file. See **AGENTS.md** for runtime detection.
 
 ## Files
 
@@ -19,27 +19,28 @@ Atlassian authentication lives in the repository manifest **shared_files** helpe
 
 ## Local Defaults File
 
-Use the runtime **`atlassian.env`** for your install. Bundled helpers read it; agents should invoke helpers instead of opening the file directly.
+Use the runtime defaults file for your install. Resolve the path with **`scripts/agent_config.py --atlassian-env`**. Bundled helpers read URLs and **`ATLASSIAN_API_TOKEN`** from it when not exported; agents should invoke helpers instead of opening the file directly.
 
-Example using site URL (helpers append `/wiki/rest/api/v2`):
+Example:
 
 ```bash
 ATLASSIAN_API_BASE_URL=https://example.atlassian.net
+# ATLASSIAN_API_TOKEN=...   # optional; also supported via export or ~/.config/.jira/.credentials
 ```
+
+Precedence:
+
+1. explicit helper arguments
+2. exported environment variables
+3. runtime **`atlassian.env`** (loaded by helpers for URLs and token)
+
+See **`templates/atlassian.env.example`** in the agent-skills repository.
 
 Example using an explicit Confluence REST v2 root:
 
 ```bash
 ATLASSIAN_CONFLUENCE_API_BASE_URL=https://example.atlassian.net/wiki/rest/api/v2
 ```
-
-Precedence:
-
-1. explicit helper arguments (full API root URL as first argument)
-2. exported environment variables
-3. runtime **`atlassian.env`** (loaded by helpers)
-
-Prefer keeping `ATLASSIAN_API_TOKEN` out of these files; export it or use the token file fallback documented below.
 
 ## Recommended Setup
 
@@ -48,20 +49,20 @@ Set either:
 - `ATLASSIAN_API_BASE_URL` to the Atlassian Cloud site URL (`https://example.atlassian.net`), or
 - `ATLASSIAN_CONFLUENCE_API_BASE_URL` to the full REST v2 root (`https://example.atlassian.net/wiki/rest/api/v2`)
 
-Also set `ATLASSIAN_API_TOKEN`.
+Also set `ATLASSIAN_API_TOKEN` (export, credentials file, or runtime **`atlassian.env`**).
 
 Auth uses:
 
 - `git config user.email` as the Atlassian username (email)
-- `ATLASSIAN_API_TOKEN` as the password for Basic auth with email
+- `ATLASSIAN_API_TOKEN` as the password for Basic auth with email (resolved by **`atlassian-auth.sh`**)
 
-If `ATLASSIAN_API_TOKEN` is not exported, the shared auth helper can fall back to:
+If `ATLASSIAN_API_TOKEN` is not exported, the shared auth helper falls back to:
 
 ```text
 ${ATLASSIAN_API_TOKEN_FILE:-$HOME/.config/.jira/.credentials}
 ```
 
-It reads the first line as the token.
+then runtime **`atlassian.env`**. It reads the first line of the credentials file as the token.
 
 Helpers source the shared Atlassian auth helper from the manifest **shared_files** directory next to `validate_artifact.py` under the skills install root (sync per **AGENTS.md** after cloning or updating).
 

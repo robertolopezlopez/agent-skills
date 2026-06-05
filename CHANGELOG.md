@@ -19,7 +19,8 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 - **`scripts/bootstrap_agent_artifacts.sh`**: one-time bootstrap for **`$AGENT_ARTIFACTS_HOME/README.md`**, **`$GLOBAL/NEXT_TIME_CHECKS.md`**, and optional Cursor rule (Codex uses **`AGENTS.md`** + **`ARTIFACTS.md`** for the same contract)
 
 - **`$GLOBAL/`** cross-repository artifact scope under **`$AGENT_ARTIFACTS_HOME/_global/`** for org-wide knowledge (team ownership, internal tooling) accessible from any checkout; **`resolve_artifact_path.py`** flags **`--global-artifacts-root`**, **`--global-next-time-checks`**, **`--scope global`**
-- **`scripts/agent-config.sh`** and **`scripts/agent_config.py`**: runtime-aware config home resolution so Cursor installs use **`~/.cursor/`** defaults only (Codex uses **`~/.codex/`**); transport skill docs no longer instruct agents to read both trees
+- **`scripts/agent-config.sh`** and **`scripts/agent_config.py`**: runtime-aware config home resolution so Cursor installs use **`~/.cursor/`** defaults only (Codex uses **`~/.codex/`**); **`agent_config.py --atlassian-env`** resolves the active defaults file (mirrors **`resolve_artifact_path.py`**); transport skill docs no longer instruct agents to read both trees
+- **`templates/atlassian.env.example`**: documents optional **`ATLASSIAN_API_TOKEN`** in runtime **`atlassian.env`**
 
 - core **`learn-daily`** skill (`skills/core/learn-daily/`, renamed from `daily-agent-rhythm`) for a short start → work → end loop using **`$ARTIFACTS/`** (external store) and optional **`$ARTIFACTS/NEXT_TIME_CHECKS.md`**
 - core `github-pr-comment-analysis` skill (`skills/core/github-pr-comment-analysis/`) mirroring `gitlab-mr-comment-analysis` for GitHub PRs (grouped threads inside `review_pr_<number>.md` / `analysis_pr_<number>.md`)
@@ -33,7 +34,7 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 ### Changed
 
-- **Artifact store:** durable agent context (follow-ups, work plans, analysis, **`NEXT_TIME_CHECKS.md`**) defaults to an **external** store **`$AGENT_ARTIFACTS_HOME/<repo-key>/`** (shorthand **`$ARTIFACTS/`** in skills), outside project git checkouts. Added **`scripts/resolve_artifact_path.py`** and **`scripts/migrate_legacy_artifacts.py`**; **`ARTIFACTS.md`**, **`learn-daily`**, bootstrap helpers, and workflow skills updated. Legacy in-repo **`_artifacts_/`** remains valid for read/extend only.
+- **`atlassian-auth.sh`**: load **`ATLASSIAN_API_TOKEN`** from runtime **`atlassian.env`** when not exported and not in the credentials file; **`jira`** and **`confluence`** skills/docs updated
 - **`learn-daily`**: bootstrap checklist for **`$ARTIFACTS/NEXT_TIME_CHECKS.md`** (steps 1–2) plus post-bootstrap checklist; **`AGENTS.md`** documents the external playbook pointer
 - **Artifact placement (prior):** shipped `ARTIFACTS.md` and updated skills prefer new local Markdown under in-repo `_artifacts_/<meaningful_id>/` — superseded by external store default above
 - **`gitlab-mr-comment-analysis`** and **`github-pr-comment-analysis`** write grouped threads **inside** the main MR/PR Markdown artifact (`review_mr_*` / `review_pr_*`, or `analysis_mr_*` / `analysis_pr_*`) under `## Grouped unresolved comments`; standalone `work_plan_*`, per-issue splits, and `*_comment_report.md` outputs are legacy-only for migration

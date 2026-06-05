@@ -45,9 +45,10 @@ Accept, depending on the requested action:
 3. Use `ATLASSIAN_CONFLUENCE_API_BASE_URL` when the full Confluence REST v2 root is known, for example `https://example.atlassian.net/wiki/rest/api/v2`.
 4. Otherwise use `ATLASSIAN_API_BASE_URL` as the Atlassian Cloud site URL such as `https://example.atlassian.net`; helpers append `/wiki/rest/api/v2` automatically.
 5. Use `git config user.email` as the Atlassian username for fallback helper auth.
-6. Use `ATLASSIAN_API_TOKEN` from the environment as the fallback helper password.
-   - If it is unset, the shared auth helper may fall back to `${ATLASSIAN_API_TOKEN_FILE:-$HOME/.config/.jira/.credentials}` and read the first line as the token.
-   - Prefer the environment variable when available.
+6. Use `ATLASSIAN_API_TOKEN` for fallback helper auth. Resolution order (handled by **`atlassian-auth.sh`** — agents do not need to `source` the defaults file):
+   - exported **`ATLASSIAN_API_TOKEN`**
+   - first line of **`${ATLASSIAN_API_TOKEN_FILE:-$HOME/.config/.jira/.credentials}`**
+   - **`ATLASSIAN_API_TOKEN`** in runtime **`atlassian.env`** (resolve with **`scripts/agent_config.py --atlassian-env`**)
 7. Resolve `scripts/confluence-api` and `scripts/confluence-request` relative to this skill directory for fallback helper use.
 8. Ensure manifest **shared_files** from this repository have been synced into the active skills install root so the Atlassian auth helper expected by `confluence-api` and `confluence-request` exists under that root `scripts/` directory next to `validate_artifact.py` when missing (follow **AGENTS.md** sync rules). The helpers locate and source that file automatically.
 9. If a helper is not executable, run `chmod +x` on the resolved helper path.
@@ -79,12 +80,9 @@ Atlassian authentication and runtime config resolution are shared with the `jira
 
 ## Local Defaults File
 
-Bundled helpers load non-secret defaults from **one** runtime config home (see **AGENTS.md**):
+Bundled helpers load defaults from **one** runtime config home (see **AGENTS.md**). Resolve the active file with **`scripts/agent_config.py --atlassian-env`** (or **`scripts/agent-config.sh --atlassian-env`**).
 
-- Cursor install: **`~/.cursor/atlassian.env`**
-- Codex install: **`~/.codex/atlassian.env`**
-
-Override detection with **`AGENT_SKILLS_RUNTIME=cursor`** or **`codex`**.
+Override detection with **`AGENT_SKILLS_RUNTIME=cursor`** or **`codex`**, or set **`AGENT_CONFIG_HOME`**.
 
 Preferred usage:
 
@@ -102,8 +100,8 @@ Rules:
 
 - treat explicit helper arguments as highest priority
 - treat exported environment variables as higher priority than defaults files
-- let **`confluence-api`** / **`confluence-request`** read the runtime defaults file; agents must not open it unless debugging config resolution
-- prefer keeping `ATLASSIAN_API_TOKEN` in the environment or existing credentials flow instead of storing it in a defaults file
+- let **`confluence-api`** / **`confluence-request`** read the runtime defaults file for URLs and token; agents must not open the file unless debugging config resolution
+- **`ATLASSIAN_API_TOKEN`** may live in **`atlassian.env`** when not exported; prefer export or the credentials file when your environment already provides them
 
 ## Fallback Command Pattern
 
@@ -156,7 +154,7 @@ Use this workflow when the user asks to publish or revise wiki content.
 
 ### Prerequisites
 
-- same Atlassian auth conventions as the `jira` skill (`git config user.email`, `ATLASSIAN_API_TOKEN`, optional token file fallback)
+- same Atlassian auth conventions as the `jira` skill (`git config user.email`; token from env, credentials file, or runtime **`atlassian.env`** via **`atlassian-auth.sh`**)
 - base URL defaults from exported env vars or the runtime **`atlassian.env`** file loaded by helpers, unless overridden
 
 ### Generic flow
@@ -186,5 +184,5 @@ Common pairings:
 
 - Prefer concise summaries unless the user asks for detail.
 - Resolve helper paths relative to this skill directory instead of relying on `PATH`.
-- If `ATLASSIAN_API_TOKEN` is already set, do not probe `~/.config/.jira/.credentials` just to verify auth.
+- If `ATLASSIAN_API_TOKEN` is already exported, helpers do not read the credentials file or **`atlassian.env`** for the token.
 - If auth works but content is still unavailable, report that the account likely lacks Confluence permission for that space or page.

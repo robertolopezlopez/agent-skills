@@ -14,6 +14,11 @@ set -eu
 #   ATLASSIAN_AUTH_EMAIL
 #   ATLASSIAN_AUTH_TOKEN
 #   ATLASSIAN_AUTH_USERPASS
+#
+# Token resolution order:
+#   1. ATLASSIAN_API_TOKEN in the environment
+#   2. first line of ATLASSIAN_API_TOKEN_FILE (default ~/.config/.jira/.credentials)
+#   3. ATLASSIAN_API_TOKEN in runtime atlassian.env (resolved via agent-config.sh)
 
 atlassian_auth_fail() {
   echo "$*" >&2
@@ -22,6 +27,23 @@ atlassian_auth_fail() {
 
 atlassian_token_file() {
   printf '%s\n' "${ATLASSIAN_API_TOKEN_FILE:-$HOME/.config/.jira/.credentials}"
+}
+
+atlassian_load_config_helper() {
+  _d=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+  while [ -n "$_d" ]; do
+    if [ -r "$_d/scripts/agent-config.sh" ]; then
+      # shellcheck source=/dev/null
+      . "$_d/scripts/agent-config.sh"
+      if [ -z "${AGENT_CONFIG_HOME:-}" ]; then
+        agent_config_init "$_d"
+      fi
+      return 0
+    fi
+    [ "$_d" = "/" ] && break
+    _d=$(dirname "$_d")
+  done
+  return 1
 }
 
 atlassian_git_email() {
@@ -48,7 +70,21 @@ atlassian_api_token() {
   fi
 
   if [ -z "$token" ]; then
-    atlassian_auth_fail "ATLASSIAN_API_TOKEN must be set or first line of $token_file must contain a token"
+    if atlassian_load_config_helper; then
+      if token_from_env=$(agent_config_read_var ATLASSIAN_API_TOKEN atlassian.env); then
+        token=$token_from_env
+      fi
+    fi
+  fi
+
+  if [ -z "$token" ]; then
+    defaults_hint=
+    if atlassian_load_config_helper; then
+      defaults_hint=$(agent_config_defaults_hint atlassian.env)
+    else
+      defaults_hint="runtime atlassian.env (resolve with scripts/agent_config.py --atlassian-env)"
+    fi
+    atlassian_auth_fail "ATLASSIAN_API_TOKEN must be set, or present in $defaults_hint, or first line of $token_file"
   fi
 
   ATLASSIAN_AUTH_TOKEN=$token

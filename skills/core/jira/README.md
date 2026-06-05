@@ -7,7 +7,7 @@ Setup and usage notes for the generic `jira` skill.
 This skill lets agents (for example in Codex or Cursor) fetch, summarize, create, and update Jira or Atlassian tickets through the Jira REST API when browser access redirects to login or when API access is more reliable.
 
 Use this skill for generic Jira/Atlassian access.
-For a site-specific Jira instance, set `ATLASSIAN_API_BASE_URL=https://example.atlassian.net` in the runtime defaults file for your install (**`~/.cursor/atlassian.env`** for Cursor, **`~/.codex/atlassian.env`** for Codex), or export it before invoking helpers. Helpers detect the runtime from their install path; see **AGENTS.md**.
+For a site-specific Jira instance, set `ATLASSIAN_API_BASE_URL=https://example.atlassian.net` in the runtime defaults file (resolve with **`scripts/agent_config.py --atlassian-env`**), or export it before invoking helpers. Helpers detect the runtime from their install path; see **AGENTS.md**.
 
 ## Files
 
@@ -21,21 +21,22 @@ Atlassian authentication lives in the repository manifest **shared_files** helpe
 
 ## Local Defaults File
 
-Use the runtime defaults file for your install (**`~/.cursor/atlassian.env`** or **`~/.codex/atlassian.env`**). Bundled helpers read it; agents should invoke helpers instead of opening the file directly.
+Use the runtime defaults file for your install. Resolve the path with **`scripts/agent_config.py --atlassian-env`**. Bundled helpers read URLs and **`ATLASSIAN_API_TOKEN`** from it when not exported; agents should invoke helpers instead of opening the file directly.
 
 Example:
 
 ```bash
 ATLASSIAN_API_BASE_URL=https://example.atlassian.net
+# ATLASSIAN_API_TOKEN=...   # optional; also supported via export or ~/.config/.jira/.credentials
 ```
 
 Precedence:
 
 1. explicit helper arguments
 2. exported environment variables
-3. runtime **`atlassian.env`** (loaded by helpers)
+3. runtime **`atlassian.env`** (loaded by helpers for URLs and token)
 
-Do not store `ATLASSIAN_API_TOKEN` in this file.
+See **`templates/atlassian.env.example`** in the agent-skills repository.
 
 ## Recommended Setup
 
@@ -44,20 +45,20 @@ Set `ATLASSIAN_API_BASE_URL` to either:
 - a site URL such as `https://example.atlassian.net`, or
 - an issue API base such as `https://example.atlassian.net/rest/api/3/issue/`
 
-Also set `ATLASSIAN_API_TOKEN`.
+Also set `ATLASSIAN_API_TOKEN` (export, credentials file, or runtime **`atlassian.env`**).
 
 The skill uses:
 
 - `git config user.email` as the Atlassian username
-- `ATLASSIAN_API_TOKEN` as the password/token
+- `ATLASSIAN_API_TOKEN` as the password/token (resolved by **`atlassian-auth.sh`**)
 
-If `ATLASSIAN_API_TOKEN` is not exported, the shared auth helper can fall back to:
+If `ATLASSIAN_API_TOKEN` is not exported, the shared auth helper falls back to:
 
 ```text
 ${ATLASSIAN_API_TOKEN_FILE:-$HOME/.config/.jira/.credentials}
 ```
 
-It reads the first line as the token. The environment variable is still preferred.
+then runtime **`atlassian.env`**. It reads the first line of the credentials file as the token. Export is still preferred when available.
 
 The skill uses the bundled `scripts/jira-api` and `scripts/jira-request` helpers directly. They source the shared Atlassian auth helper from the manifest **shared_files** directory next to `validate_artifact.py` under the skills install root (sync per **AGENTS.md** after cloning or updating).
 

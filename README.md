@@ -47,8 +47,8 @@ Overlays for the **CLI product** source repository (agent- and IDE-agnostic: wor
 - `git-hooks/post-commit`: copies committed skills into the configured install roots (default: `~/.codex/skills` and `~/.cursor/skills`)
 
 The private-service and **CLI product** (`skills/cli/`) skills are overlays. Use them with the matching generic skills when working in those repositories.
-Use `jira` for generic Atlassian/Jira access, including site-specific Jira usage when **`~/.cursor/atlassian.env`** or **`~/.codex/atlassian.env`** sets `ATLASSIAN_API_BASE_URL=https://example.atlassian.net`.
-Use `confluence` for Confluence Cloud wiki access when **`~/.cursor/atlassian.env`** or **`~/.codex/atlassian.env`** sets the same variables (see `skills/core/confluence/README.md`).
+Use `jira` for generic Atlassian/Jira access when runtime **`atlassian.env`** sets `ATLASSIAN_API_BASE_URL=https://example.atlassian.net` (resolve with **`scripts/agent_config.py --atlassian-env`**).
+Use `confluence` for Confluence Cloud wiki access with the same runtime defaults file (see `skills/core/confluence/README.md`).
 Likewise, `gitlab-mr-comment-analysis` is an overlay on `gitlab`: use `gitlab` for generic MR fetch and discussion inspection, and `gitlab-mr-comment-analysis` for grouped unresolved-comment analysis and reporting.
 `github-pr-comment-analysis` is the GitHub analogue on top of `github`: use `github` for PR fetch and thread normalization, and `github-pr-comment-analysis` to group unresolved review threads **inside** `review_pr_<number>.md` or `analysis_pr_<number>.md`.
 Use `codex-multi-agent-template/` when you want fixed lead/developer/reviewer/tester scaffolding. Use `multi-spawn-agent` when you want dynamic worker splits driven by a work definition file.
