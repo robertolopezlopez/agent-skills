@@ -66,14 +66,26 @@ def repository_text(mr: dict[str, Any]) -> str:
     return str(mr.get("target_project_id") or "")
 
 
+def runtime_scripts_dir(infer_from: Path) -> Path:
+    parts = infer_from.resolve().parts
+    for idx, part in enumerate(parts):
+        if part in {".cursor", ".codex"} and idx + 1 < len(parts) and parts[idx + 1] == "skills":
+            return Path.home() / part / "skills" / "scripts"
+    if (Path.home() / ".cursor" / "skills").is_dir():
+        return Path.home() / ".cursor" / "skills" / "scripts"
+    if (Path.home() / ".codex" / "skills").is_dir():
+        return Path.home() / ".codex" / "skills" / "scripts"
+    return Path.home() / ".cursor" / "skills" / "scripts"
+
+
 def resolve_validator() -> Path | None:
+    infer = Path(__file__)
     candidates = [
-        Path(__file__).resolve().parents[2] / 'scripts' / 'validate_artifact.py',
-        Path(__file__).resolve().parents[1].parent / 'scripts' / 'validate_artifact.py',
-        Path.home() / '.codex' / 'skills' / 'scripts' / 'validate_artifact.py',
+        infer.resolve().parents[4] / "scripts" / "validate_artifact.py",
+        runtime_scripts_dir(infer) / "validate_artifact.py",
     ]
     for candidate in candidates:
-        if candidate.exists():
+        if candidate.is_file():
             return candidate
     return None
 
@@ -86,10 +98,10 @@ def validate_artifact(output: Path) -> None:
 
 
 def resolve_resolver_script() -> Path | None:
+    infer = Path(__file__)
     candidates = [
-        Path(__file__).resolve().parents[4] / "scripts" / "resolve_artifact_path.py",
-        Path.home() / ".cursor" / "skills" / "scripts" / "resolve_artifact_path.py",
-        Path.home() / ".codex" / "skills" / "scripts" / "resolve_artifact_path.py",
+        infer.resolve().parents[4] / "scripts" / "resolve_artifact_path.py",
+        runtime_scripts_dir(infer) / "resolve_artifact_path.py",
     ]
     for candidate in candidates:
         if candidate.is_file():

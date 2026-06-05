@@ -57,16 +57,8 @@ Confirm ambiguous slugs with the user when multiple remotes or organizations cou
 ## Workflow
 
 1. Prefer CircleCI MCP for reads and writes when it can satisfy the request.
-2. Resolve the API base URL in this order:
-   - explicit argument passed to `scripts/circleci-request`
-   - exported `CIRCLECI_API_BASE_URL`
-   - first readable defaults file (**`~/.cursor/circleci.env`**, then **`~/.codex/circleci.env`**) for `CIRCLECI_API_BASE_URL`
-   - default `https://circleci.com/api/v2` for CircleCI Cloud
-3. Resolve the API token in this order:
-   - exported `CIRCLE_TOKEN` (matches CircleCI docs examples)
-   - exported `CIRCLECI_TOKEN`
-   - first match in **`~/.cursor/circleci.env`**, then **`~/.codex/circleci.env`**, for `CIRCLE_TOKEN` or `CIRCLECI_TOKEN`
-4. Resolve `scripts/circleci-request` relative to this skill directory for fallback calls.
+2. Invoke `scripts/circleci-request` for fallback calls. It resolves the API base URL and token from exported env vars, then the runtime **`circleci.env`** file (see **Local Defaults File**). **Do not read defaults files with the editor/Read tool** unless the user explicitly asked to debug helper resolution.
+3. Resolve `scripts/circleci-request` relative to this skill directory for fallback calls.
 5. If the helper is not executable, run `chmod +x` on the resolved helper path.
 6. Call the smallest endpoint set needed (pipeline list, then pipeline detail, then workflows or jobs).
 7. If the fallback request fails because outbound HTTPS is blocked (for example in a restricted agent sandbox), rerun the same helper from an environment that allows TLS to `circleci.com` or to your configured API host.
@@ -93,7 +85,12 @@ The generic request helper lives at `scripts/circleci-request`, resolved relativ
 
 ## Local Defaults File
 
-If **`~/.cursor/circleci.env`** or **`~/.codex/circleci.env`** exists, read the first match for each variable in that order before invoking the fallback helper when environment variables are not set. Prefer **`~/.cursor/circleci.env`** for Cursor-oriented setups; **`~/.codex/circleci.env`** remains the right place for Codex-heavy environments when you want defaults separate from Cursor.
+Bundled helpers load defaults from **one** runtime config home (see **AGENTS.md**):
+
+- Cursor install: **`~/.cursor/circleci.env`**
+- Codex install: **`~/.codex/circleci.env`**
+
+Override detection with **`AGENT_SKILLS_RUNTIME=cursor`** or **`codex`**. Let **`circleci-request`** read the file; agents must not open it unless debugging config resolution.
 
 Preferred usage (non-secret base URL only in file; token optional if you already export it):
 

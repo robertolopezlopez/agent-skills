@@ -1,5 +1,7 @@
 shared_files:
   - ARTIFACTS.md
+  - scripts/agent-config.sh
+  - scripts/agent_config.py
   - scripts/atlassian-auth.sh
   - scripts/migrate_legacy_artifacts.py
   - scripts/resolve_artifact_path.py

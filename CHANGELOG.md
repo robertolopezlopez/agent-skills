@@ -16,6 +16,7 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 ### Added
 
 - **`$GLOBAL/`** cross-repository artifact scope under **`$AGENT_ARTIFACTS_HOME/_global/`** for org-wide knowledge (team ownership, internal tooling) accessible from any checkout; **`resolve_artifact_path.py`** flags **`--global-artifacts-root`**, **`--global-next-time-checks`**, **`--scope global`**
+- **`scripts/agent-config.sh`** and **`scripts/agent_config.py`**: runtime-aware config home resolution so Cursor installs use **`~/.cursor/`** defaults only (Codex uses **`~/.codex/`**); transport skill docs no longer instruct agents to read both trees
 
 - core **`learn-daily`** skill (`skills/core/learn-daily/`, renamed from `daily-agent-rhythm`) for a short start → work → end loop using **`$ARTIFACTS/`** (external store) and optional **`$ARTIFACTS/NEXT_TIME_CHECKS.md`**
 - core `github-pr-comment-analysis` skill (`skills/core/github-pr-comment-analysis/`) mirroring `gitlab-mr-comment-analysis` for GitHub PRs (grouped threads inside `review_pr_<number>.md` / `analysis_pr_<number>.md`)

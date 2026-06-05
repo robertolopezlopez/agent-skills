@@ -34,5 +34,5 @@ Recommended use from prompts:
 - `Use gitlab to fetch MR 123 and fill review_mr_123.md`
 - `Bootstrap a local review artifact from https://example.com/group/project/-/merge_requests/123`
 
-The bootstrap helper validates the generated artifact automatically with `../scripts/validate_artifact.py` or the installed copy at `~/.codex/skills/scripts/validate_artifact.py`.
+The bootstrap helper validates the generated artifact automatically with `../scripts/validate_artifact.py` or the installed copy under **`~/.cursor/skills/scripts/`** or **`~/.codex/skills/scripts/`** matching the active runtime.
 If the artifact already exists, it preserves local follow-up sections such as `## Follow-up Findings` and `## Improvement Candidates` while refreshing GitLab-derived sections from live MR data.

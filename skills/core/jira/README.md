@@ -7,7 +7,7 @@ Setup and usage notes for the generic `jira` skill.
 This skill lets agents (for example in Codex or Cursor) fetch, summarize, create, and update Jira or Atlassian tickets through the Jira REST API when browser access redirects to login or when API access is more reliable.
 
 Use this skill for generic Jira/Atlassian access.
-For a site-specific Jira instance, set `ATLASSIAN_API_BASE_URL=https://example.atlassian.net` in **`~/.cursor/atlassian.env`** (preferred for Cursor) or **`~/.codex/atlassian.env`** (Codex-oriented layout), or export it in the environment before invoking the helpers.
+For a site-specific Jira instance, set `ATLASSIAN_API_BASE_URL=https://example.atlassian.net` in the runtime defaults file for your install (**`~/.cursor/atlassian.env`** for Cursor, **`~/.codex/atlassian.env`** for Codex), or export it before invoking helpers. Helpers detect the runtime from their install path; see **AGENTS.md**.
 
 ## Files
 
@@ -21,7 +21,7 @@ Atlassian authentication lives in the repository manifest **shared_files** helpe
 
 ## Local Defaults File
 
-Use **`~/.cursor/atlassian.env`** first, then **`~/.codex/atlassian.env`**, for non-secret local defaults for this skill.
+Use the runtime defaults file for your install (**`~/.cursor/atlassian.env`** or **`~/.codex/atlassian.env`**). Bundled helpers read it; agents should invoke helpers instead of opening the file directly.
 
 Example:
 
@@ -33,8 +33,7 @@ Precedence:
 
 1. explicit helper arguments
 2. exported environment variables
-3. `~/.cursor/atlassian.env`
-4. `~/.codex/atlassian.env`
+3. runtime **`atlassian.env`** (loaded by helpers)
 
 Do not store `ATLASSIAN_API_TOKEN` in this file.
 

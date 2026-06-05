@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import os
 import re
@@ -69,16 +70,40 @@ def filesystem_safe_meaningful_id(issue: str) -> str:
     return safe or slugify(issue)
 
 
-def resolve_resolver_script() -> Path | None:
+def load_agent_config():
+    infer = Path(__file__)
     candidates = [
-        Path(__file__).resolve().parents[4] / "scripts" / "resolve_artifact_path.py",
-        Path.home() / ".cursor" / "skills" / "scripts" / "resolve_artifact_path.py",
-        Path.home() / ".codex" / "skills" / "scripts" / "resolve_artifact_path.py",
+        infer.resolve().parents[4] / "scripts" / "agent_config.py",
     ]
-    for candidate in candidates:
-        if candidate.is_file():
-            return candidate
-    return None
+    parts = infer.resolve().parts
+    runtime = ""
+    for idx, part in enumerate(parts):
+        if part in {".cursor", ".codex"} and idx + 1 < len(parts) and parts[idx + 1] == "skills":
+            runtime = part.lstrip(".")
+            break
+    if not runtime:
+        if (Path.home() / ".cursor" / "skills").is_dir():
+            runtime = "cursor"
+        elif (Path.home() / ".codex" / "skills").is_dir():
+            runtime = "codex"
+        else:
+            runtime = "cursor"
+    candidates.append(Path.home() / f".{runtime}" / "skills" / "scripts" / "agent_config.py")
+    for path in candidates:
+        if not path.is_file():
+            continue
+        spec = importlib.util.spec_from_file_location("agent_config", path)
+        if spec is None or spec.loader is None:
+            continue
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+    raise SystemExit("agent_config.py not found; sync shared scripts from agent-skills")
+
+
+def resolve_resolver_script() -> Path | None:
+    ac = load_agent_config()
+    return ac.resolve_installed_script("resolve_artifact_path.py", Path(__file__))
 
 
 def find_repo_root() -> Path:
@@ -144,25 +169,19 @@ def default_output_path(issue: str) -> Path:
     return resolve_default_output_path(meaningful_id, f"task_{slugify(issue)}.md")
 
 
-ATLASSIAN_ENV_CANDIDATES: tuple[Path, ...] = (
-    Path.home() / ".cursor" / "atlassian.env",
-    Path.home() / ".codex" / "atlassian.env",
-)
-
-
 def read_api_base(cli_base: str | None) -> tuple[str | None, Path | None, str]:
     """Return (api_base_or_none, env_file_when_used, source_kind).
 
     source_kind is one of: cli, env, file, none.
     """
+    ac = load_agent_config()
     if cli_base:
         return cli_base.strip(), None, "cli"
     env_inline = (os.environ.get("ATLASSIAN_API_BASE_URL") or "").strip()
     if env_inline:
         return env_inline, None, "env"
-    for env_file in ATLASSIAN_ENV_CANDIDATES:
-        if not env_file.is_file():
-            continue
+    env_file = ac.env_file_path("atlassian.env", Path(__file__))
+    if env_file.is_file():
         for line in env_file.read_text().splitlines():
             if line.startswith("ATLASSIAN_API_BASE_URL="):
                 return line.split("=", 1)[1].strip(), env_file, "file"
@@ -170,13 +189,14 @@ def read_api_base(cli_base: str | None) -> tuple[str | None, Path | None, str]:
 
 
 def describe_defaults_path(source_kind: str, source_file: Path | None) -> str:
+    ac = load_agent_config()
     if source_kind == "cli":
         return "(from --api-base)"
     if source_kind == "env":
         return "(from ATLASSIAN_API_BASE_URL in environment)"
     if source_kind == "file" and source_file is not None:
         return str(source_file)
-    return "; ".join(str(p) for p in ATLASSIAN_ENV_CANDIDATES) + " (not found)"
+    return str(ac.env_file_path("atlassian.env", Path(__file__))) + " (not found)"
 
 
 def browse_base_from_api_base(api_base: str | None) -> str:
@@ -253,16 +273,8 @@ def extract_related_references(issue: str, fields: dict[str, Any]) -> list[str]:
 
 
 def resolve_validator() -> Path | None:
-    candidates = [
-        Path(__file__).resolve().parents[2] / 'scripts' / 'validate_artifact.py',
-        Path(__file__).resolve().parents[1].parent / 'scripts' / 'validate_artifact.py',
-        Path.home() / '.cursor' / 'skills' / 'scripts' / 'validate_artifact.py',
-        Path.home() / '.codex' / 'skills' / 'scripts' / 'validate_artifact.py',
-    ]
-    for candidate in candidates:
-        if candidate.exists():
-            return candidate
-    return None
+    ac = load_agent_config()
+    return ac.resolve_installed_script("validate_artifact.py", Path(__file__))
 
 
 def validate_artifact(output: Path) -> None:

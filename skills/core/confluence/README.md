@@ -6,7 +6,7 @@ Setup and usage notes for the generic `confluence` skill.
 
 Agents use this skill to access **Confluence Cloud** through the REST API when browser flows hit login walls or API access is more reliable.
 
-Configuration for fallback helpers lives in **`~/.cursor/atlassian.env`** (preferred when using Cursor) or **`~/.codex/atlassian.env`** (Codex-oriented layout). The **`jira`** skill uses the same default filenames for `ATLASSIAN_API_BASE_URL` (and related variables).
+Configuration for fallback helpers lives in the runtime **`atlassian.env`** file (**`~/.cursor/atlassian.env`** for Cursor installs, **`~/.codex/atlassian.env`** for Codex). The **`jira`** skill uses the same file. See **AGENTS.md** for runtime detection.
 
 ## Files
 
@@ -19,7 +19,7 @@ Atlassian authentication lives in the repository manifest **shared_files** helpe
 
 ## Local Defaults File
 
-Use **`~/.cursor/atlassian.env`** first, then **`~/.codex/atlassian.env`**.
+Use the runtime **`atlassian.env`** for your install. Bundled helpers read it; agents should invoke helpers instead of opening the file directly.
 
 Example using site URL (helpers append `/wiki/rest/api/v2`):
 
@@ -37,8 +37,7 @@ Precedence:
 
 1. explicit helper arguments (full API root URL as first argument)
 2. exported environment variables
-3. `~/.cursor/atlassian.env`
-4. `~/.codex/atlassian.env`
+3. runtime **`atlassian.env`** (loaded by helpers)
 
 Prefer keeping `ATLASSIAN_API_TOKEN` out of these files; export it or use the token file fallback documented below.
 

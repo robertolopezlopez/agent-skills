@@ -38,9 +38,10 @@ Accept, depending on the requested action:
 ## Workflow
 
 1. Prefer Confluence or Atlassian MCP for reads and writes when a suitable MCP server is configured in the session.
-2. Resolve defaults for fallback helpers in this order:
+2. Invoke bundled helpers for fallback transport. They resolve defaults in this order:
    - exported environment variables (`ATLASSIAN_CONFLUENCE_API_BASE_URL`, then `ATLASSIAN_API_BASE_URL`)
-   - then the first readable defaults file (**`~/.cursor/atlassian.env`**, then **`~/.codex/atlassian.env`**)
+   - then the runtime **`atlassian.env`** file for the active install (see **Local Defaults File**)
+   - **Do not read defaults files with the editor/Read tool** unless the user explicitly asked to debug helper resolution.
 3. Use `ATLASSIAN_CONFLUENCE_API_BASE_URL` when the full Confluence REST v2 root is known, for example `https://example.atlassian.net/wiki/rest/api/v2`.
 4. Otherwise use `ATLASSIAN_API_BASE_URL` as the Atlassian Cloud site URL such as `https://example.atlassian.net`; helpers append `/wiki/rest/api/v2` automatically.
 5. Use `git config user.email` as the Atlassian username for fallback helper auth.
@@ -74,13 +75,16 @@ Preferred order:
 
 The canonical page-read helper lives at `scripts/confluence-api`, resolved relative to this skill directory.
 The canonical generic request helper lives at `scripts/confluence-request`, resolved relative to this skill directory.
-Atlassian authentication behavior is shared with the `jira` skill through the repository manifest **shared_files** helper (same `scripts/` directory as `validate_artifact.py` under each skills install root). Do not duplicate that logic inline in helpers.
-
-Use **`~/.cursor/atlassian.env`** first, then **`~/.codex/atlassian.env`**, for non-secret defaults; keep tokens out of those files unless the local environment explicitly requires it.
+Atlassian authentication and runtime config resolution are shared with the `jira` skill through repository manifest **shared_files** helpers (`atlassian-auth.sh`, `agent-config.sh` under each skills install root `scripts/` directory). Do not duplicate that logic inline in helpers.
 
 ## Local Defaults File
 
-If `~/.cursor/atlassian.env` or `~/.codex/atlassian.env` exists, read the first match for each variable in that order before invoking fallback helpers.
+Bundled helpers load non-secret defaults from **one** runtime config home (see **AGENTS.md**):
+
+- Cursor install: **`~/.cursor/atlassian.env`**
+- Codex install: **`~/.codex/atlassian.env`**
+
+Override detection with **`AGENT_SKILLS_RUNTIME=cursor`** or **`codex`**.
 
 Preferred usage:
 
@@ -98,7 +102,7 @@ Rules:
 
 - treat explicit helper arguments as highest priority
 - treat exported environment variables as higher priority than defaults files
-- use **`~/.cursor/atlassian.env`**, then **`~/.codex/atlassian.env`**, for defaults, not for required per-request overrides
+- let **`confluence-api`** / **`confluence-request`** read the runtime defaults file; agents must not open it unless debugging config resolution
 - prefer keeping `ATLASSIAN_API_TOKEN` in the environment or existing credentials flow instead of storing it in a defaults file
 
 ## Fallback Command Pattern
@@ -153,7 +157,7 @@ Use this workflow when the user asks to publish or revise wiki content.
 ### Prerequisites
 
 - same Atlassian auth conventions as the `jira` skill (`git config user.email`, `ATLASSIAN_API_TOKEN`, optional token file fallback)
-- base URL defaults from **`~/.cursor/atlassian.env`**, then **`~/.codex/atlassian.env`**, unless overridden
+- base URL defaults from exported env vars or the runtime **`atlassian.env`** file loaded by helpers, unless overridden
 
 ### Generic flow
 

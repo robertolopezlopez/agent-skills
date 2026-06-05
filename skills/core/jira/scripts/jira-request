@@ -23,6 +23,14 @@ fi
 
 # shellcheck source=/dev/null
 . "$atlassian_auth_helper"
+agent_config_helper=$(dirname "$atlassian_auth_helper")/agent-config.sh
+if [ ! -r "$agent_config_helper" ]; then
+  echo "could not find scripts/agent-config.sh next to the agent-skills manifest helpers (install/sync repo copies)" >&2
+  exit 1
+fi
+# shellcheck source=/dev/null
+. "$agent_config_helper"
+agent_config_init "$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 
 normalize_site_base() {
   case "$1" in
@@ -42,18 +50,7 @@ normalize_site_base() {
 }
 
 read_default_base_from_env_file() {
-  for env_file in "${HOME}/.cursor/atlassian.env" "${HOME}/.codex/atlassian.env"; do
-    [ -r "$env_file" ] || continue
-    while IFS= read -r line || [ -n "$line" ]; do
-      case "$line" in
-        ATLASSIAN_API_BASE_URL=*)
-          printf '%s\n' "${line#ATLASSIAN_API_BASE_URL=}"
-          return 0
-          ;;
-      esac
-    done < "$env_file"
-  done
-  return 0
+  agent_config_read_var ATLASSIAN_API_BASE_URL atlassian.env || return 0
 }
 
 require_site_base() {
@@ -65,6 +62,7 @@ require_site_base() {
 
   if [ -z "$base_source" ]; then
     echo "ATLASSIAN_API_BASE_URL must be set when SITE_BASE is not provided" >&2
+    echo "defaults file: $(agent_config_defaults_hint atlassian.env)" >&2
     exit 2
   fi
 

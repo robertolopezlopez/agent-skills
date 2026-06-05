@@ -23,6 +23,14 @@ fi
 
 # shellcheck source=/dev/null
 . "$atlassian_auth_helper"
+agent_config_helper=$(dirname "$atlassian_auth_helper")/agent-config.sh
+if [ ! -r "$agent_config_helper" ]; then
+  echo "could not find scripts/agent-config.sh next to the agent-skills manifest helpers (install/sync repo copies)" >&2
+  exit 1
+fi
+# shellcheck source=/dev/null
+. "$agent_config_helper"
+agent_config_init "$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 
 normalize_confluence_api_root() {
   raw=${1%/}
@@ -52,22 +60,21 @@ normalize_confluence_api_root() {
 read_confluence_root_from_atlassian_env_files() {
   cf_base=
   site_base=
-  for env_file in "${HOME}/.cursor/atlassian.env" "${HOME}/.codex/atlassian.env"; do
-    [ -r "$env_file" ] || continue
-    while IFS= read -r line || [ -n "$line" ]; do
-      case "$line" in
-        \#*) ;;
-        ATLASSIAN_CONFLUENCE_API_BASE_URL=*)
-          cf_base=${line#ATLASSIAN_CONFLUENCE_API_BASE_URL=}
-          ;;
-        ATLASSIAN_API_BASE_URL=*)
-          if [ -z "$site_base" ]; then
-            site_base=${line#ATLASSIAN_API_BASE_URL=}
-          fi
-          ;;
-      esac
-    done < "$env_file"
-  done
+  env_file=$(agent_config_env_path atlassian.env)
+  [ -r "$env_file" ] || return 1
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in
+      \#*) ;;
+      ATLASSIAN_CONFLUENCE_API_BASE_URL=*)
+        cf_base=${line#ATLASSIAN_CONFLUENCE_API_BASE_URL=}
+        ;;
+      ATLASSIAN_API_BASE_URL=*)
+        if [ -z "$site_base" ]; then
+          site_base=${line#ATLASSIAN_API_BASE_URL=}
+        fi
+        ;;
+    esac
+  done < "$env_file"
   if [ -n "$cf_base" ]; then
     printf '%s\n' "$cf_base"
     return 0
@@ -93,7 +100,7 @@ resolve_confluence_api_root() {
     return 0
   fi
   echo "set ATLASSIAN_CONFLUENCE_API_BASE_URL or ATLASSIAN_API_BASE_URL, or pass CONFLUENCE_API_ROOT" >&2
-  echo "defaults file: ~/.cursor/atlassian.env then ~/.codex/atlassian.env" >&2
+  echo "defaults file: $(agent_config_defaults_hint atlassian.env)" >&2
   exit 2
 }
 

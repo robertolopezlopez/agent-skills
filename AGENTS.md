@@ -87,6 +87,12 @@ Before finishing a task that changes any manifest-declared skill directory or sh
 
 If a new common rule appears in multiple skills, move it here unless there is a strong reason not to.
 
+## Runtime config home (Cursor vs Codex)
+
+Skills synced under **`~/.cursor/skills/`** use **`~/.cursor/`** for local defaults files (`atlassian.env`, `circleci.env`, …). Codex installs use **`~/.codex/`**. Bundled helpers detect the runtime from the helper script path; override with **`AGENT_SKILLS_RUNTIME=cursor`** or **`codex`**.
+
+**Agents must not read defaults files directly** — invoke bundled helpers (`jira-api`, `confluence-api`, `circleci-request`, …) or bootstrap scripts, which load the runtime-appropriate file via **`scripts/agent-config.sh`**. Do not probe the other runtime's config home unless the user is debugging cross-runtime setup.
+
 ## Learn-daily playbook
 
 Portable lessons split by scope (see **`ARTIFACTS.md`**):
