@@ -68,6 +68,16 @@ Recommended sections:
 
 See `docs/skill-schema.md` for the preferred section order and migration guidance.
 
+## Transport preference
+
+Transport skills (GitHub, GitLab, Jira, Confluence, CircleCI, and similar) use this order unless a skill documents a narrower exception:
+
+1. **Local CLI tools** — `git`, `gh`, `glab`, `circleci`, and other documented host CLIs
+2. **Bundled shell helpers** — repository-synced scripts such as `jira-api`, `confluence-api`, and `circleci-request`
+3. **MCP** — configured Model Context Protocol servers **last**, when local tools and helpers are missing or insufficient
+
+Do not issue raw assistant `curl` where a skill routes HTTP through helpers. Keep the same normalized output contract regardless of transport path.
+
 ## Design rules
 
 - Keep skills modular. Prefer a small focused skill over a large mixed-purpose skill.
@@ -93,7 +103,27 @@ Skills synced under **`~/.cursor/skills/`** use **`~/.cursor/`** for local defau
 
 **Agents must not read defaults files directly** — invoke bundled helpers (`jira-api`, `confluence-api`, `circleci-request`, …) or bootstrap scripts, which load the runtime-appropriate file via **`scripts/agent-config.sh`**. Do not probe the other runtime's config home unless the user is debugging cross-runtime setup.
 
-Resolve defaults-file paths with **`scripts/agent_config.py`** (synced next to **`scripts/resolve_artifact_path.py`**): **`--atlassian-env`**, **`--config-home`**, **`--runtime`**, or **`--defaults-hint atlassian.env`**. Shell equivalent: **`scripts/agent-config.sh --atlassian-env`**.
+Resolve runtime config paths with **`scripts/agent_config.py`** (synced next to **`scripts/resolve_artifact_path.py`**): **`--atlassian-env`**, **`--config-home`**, **`--runtime`**, **`--defaults-hint atlassian.env`**, **`--api-docs-root`**, or **`--api-docs-dir <slug>`**. Shell equivalent: **`scripts/agent-config.sh`** with the same flags.
+
+## REST API reference cache
+
+When a transport skill needs REST API shape, endpoints, or field semantics:
+
+1. **Read the runtime-local cache first** under **`$AGENT_CONFIG_HOME/api-docs/<service-slug>/`** (Cursor: **`~/.cursor/api-docs/`**; Codex: **`~/.codex/api-docs/`**). Resolve with **`scripts/agent_config.py --api-docs-root`** or **`--api-docs-dir <slug>`** (shell: **`scripts/agent-config.sh`** with the same flags).
+2. **On first use** for a service slug, fetch or summarize the official API docs (or the skill's canonical doc URLs), then **write a local copy** into that directory for later sessions. Prefer Markdown index files (`README.md`, endpoint notes) plus optional fetched HTML/PDF/OpenAPI exports when useful.
+3. **On later uses**, consult the cached material before re-downloading or re-searching the web. Refresh the cache when the skill, changelog, or user reports an API version change.
+
+Suggested service slugs (transport skills may document narrower names):
+
+| Slug | Typical source |
+|------|----------------|
+| `jira-rest-v3` | Atlassian Jira Cloud REST API v3 |
+| `confluence-rest-v2` | Atlassian Confluence Cloud REST API v2 |
+| `github-rest` | GitHub REST API (companion to `gh` / `gh api`) |
+| `gitlab-api` | GitLab REST API (companion to `glab api`) |
+| `circleci-api-v2` | CircleCI API v2 |
+
+Do not commit cached API docs into this repository; keep them in the runtime config home only. Do not store secrets in the cache tree.
 
 ## Artifacts directory phrase
 

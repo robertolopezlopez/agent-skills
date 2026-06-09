@@ -1,6 +1,6 @@
 ---
 name: gitlab
-description: Fetch and inspect GitLab merge requests and their discussions. Use when given an MR IID or URL and asked to fetch merge request details, read comments or discussion threads, inspect structured discussion data, extract the MR IID from a URL, auto-detect the repository project path or numeric project ID via the `git` skill, or prepare normalized GitLab MR context for a companion skill. Prefer GitLab MCP when available, with `glab` and `glab api` as fallback transport.
+description: Fetch and inspect GitLab merge requests and their discussions. Use when given an MR IID or URL and asked to fetch merge request details, read comments or discussion threads, inspect structured discussion data, extract the MR IID from a URL, auto-detect the repository project path or numeric project ID via the `git` skill, or prepare normalized GitLab MR context for a companion skill. Prefer `glab` and `glab api`, then GitLab MCP when local tools are insufficient.
 ---
 
 # GitLab Merge Request Access
@@ -30,10 +30,10 @@ Do not use this skill when:
 ## First Read
 
 - Read the repository `AGENTS.md` and `ARTIFACTS.md` (artifact directory conventions) before running commands.
-- Prefer GitLab MCP for MR overview, comments, discussions, and structured metadata when a GitLab MCP server is configured in the session.
-- Fall back to `glab mr view` for MR overview and comments when GitLab MCP is unavailable or cannot provide the needed data.
-- Fall back to `glab api` when structured discussion data is needed and GitLab MCP is unavailable or insufficient.
-- Use the `git` skill first when a fallback `glab api` call needs the repository project path or numeric project ID.
+- Use the `git` skill first when a `glab api` call needs the repository project path or numeric project ID.
+- Prefer `glab mr view` for MR overview and comments.
+- Prefer `glab api` when structured discussion data is needed.
+- Use GitLab MCP only when local `glab` access is missing or insufficient.
 - Pair this skill with a repository-specific or workflow-specific companion skill when the user wants deeper technical analysis, implementation planning, or code changes.
 
 ## Inputs
@@ -47,9 +47,9 @@ Accept, in order of preference:
 
 If the user did not provide an MR IID or MR URL, try to verify or discover the target MR from available context before asking the user:
 
-- use GitLab MCP when the current checkout, branch context, or repository metadata is enough to identify the MR
-- otherwise fall back to `glab`
-- use the `git` skill to resolve repository identity when fallback GitLab API context is needed first
+- use `glab` when the current checkout, branch context, or repository metadata is enough to identify the MR
+- use the `git` skill to resolve repository identity when GitLab API context is needed first
+- use GitLab MCP only when local `glab` discovery fails or is insufficient
 
 Ask the user for an MR IID or MR URL only after those verification or discovery paths fail.
 
@@ -86,7 +86,7 @@ Use this skill as the transport and normalization layer.
 
 Common pairings:
 
-- `git` for repository identity or GitLab project resolution in fallback mode
+- `git` for repository identity or GitLab project resolution before `glab api`
 - `gitlab-mr-comment-analysis` for unresolved comment grouping and reporting
 - repository-specific overlay skills for deeper technical analysis or proposed changes
 
@@ -95,18 +95,18 @@ Common pairings:
 1. Start in the target repository root.
 2. If MR context is already known from prior `gitlab` usage, reuse it.
 3. If no MR IID or MR URL was provided, try to verify or discover the target MR from the current repository context:
-   - prefer GitLab MCP when local branch, checkout, or repository context can identify the MR
-   - otherwise use `glab`
-   - use the `git` skill first when fallback repository identity must be resolved before a GitLab lookup
+   - use `glab` when local branch, checkout, or repository context can identify the MR
+   - use the `git` skill first when repository identity must be resolved before a GitLab lookup
+   - use GitLab MCP only when local `glab` discovery fails or is insufficient
 4. If the input is an MR URL, parse host, project path, and MR IID from the link first.
 5. Extract the MR IID once and reuse it consistently as `mr_iid`.
-6. If the task needs fallback `glab api` with a project identifier, use the `git` skill to resolve repository identity first:
+6. If the task needs `glab api` with a project identifier, use the `git` skill to resolve repository identity first:
    - ask the `git` skill for the repository host, project path, encoded project path, and numeric GitLab project ID when available
-7. When the task started from an MR URL, prefer the parsed host and project path from the URL when calling GitLab MCP, or the parsed host and encoded project path when using fallback `glab api`, if there is no reliable local repository context.
+7. When the task started from an MR URL, prefer the parsed host and encoded project path from the URL in `glab api` calls when there is no reliable local repository context.
 8. If no MR can be verified or discovered from local context, ask the user for an MR IID or MR URL.
-9. Read the MR overview and comments with GitLab MCP when available.
-10. If GitLab MCP is unavailable or does not expose the needed fields, fall back to `glab mr view <MR> --comments`.
-11. If needed, inspect structured discussion data with GitLab MCP first, then fall back to `glab api`.
+9. Read the MR overview and comments with `glab mr view <MR> --comments`.
+10. If needed, inspect structured discussion data with `glab api`.
+11. Use GitLab MCP only when local `glab` access is missing or insufficient.
 12. Normalize and preserve:
    - `mr_iid`
    - `mr_link`
@@ -125,7 +125,7 @@ Common pairings:
 
 17. When the user explicitly asks to bootstrap a local artifact for the MR, keep the existing fetch behavior and additionally:
    - resolve `meaningful_id` (default `mr-<MR>` unless a tracker key or repo rule applies; explicit user paths win)
-   - fetch MR JSON with GitLab MCP when possible, otherwise with fallback `glab api`
+   - fetch MR JSON with `glab api`, using GitLab MCP only when local `glab` access is missing or insufficient
    - run `scripts/bootstrap_gitlab_artifact.py` with `--output` under `$ARTIFACTS/<meaningful_id>/` when not overridden
    - return the local artifact path and suggested next action
 18. Keep artifact bootstrap optional and additive so existing companion skills can keep using the same `gitlab` context contract unchanged.
@@ -136,27 +136,38 @@ Common pairings:
 
 Preferred order:
 
-1. GitLab MCP for MR overview, discussions, notes, and structured metadata
-2. `glab mr view` for overview and comment fallback
-3. `glab api` for structured fallback when MCP is unavailable or insufficient
+1. `git` (via the `git` skill) when repository or project identity is needed
+2. `glab mr view` for overview and comments
+3. `glab api` for structured discussions, notes, and MR JSON
+4. GitLab MCP when local tools are missing or insufficient
 
-Use the same normalized output contract regardless of transport so companion skills do not care whether the data came from GitLab MCP or fallback `glab`.
+Use the same normalized output contract regardless of transport so companion skills do not care whether the data came from local `glab` or GitLab MCP.
 
-## Fallback Command Pattern
+## API reference cache
 
-Preferred fallback MR overview and comments fetch:
+Resolve **`$AGENT_CONFIG_HOME/api-docs/gitlab-api/`** with **`scripts/agent_config.py --api-docs-dir gitlab-api`**.
+
+1. Read the cached `README.md` and endpoint notes when present.
+2. On first use (or when stale), fetch or summarize [GitLab REST API](https://docs.gitlab.com/api/rest/) docs into that directory — especially merge request, discussion, and project endpoints used by `glab api`.
+3. On later uses, consult the cache before re-downloading docs.
+
+See **AGENTS.md** (REST API reference cache).
+
+## Local Tool Commands
+
+Preferred MR overview and comments fetch:
 
 ```bash
 glab mr view <MR> --comments
 ```
 
-Fallback MR verification or discovery from current checkout when the user did not supply an MR explicitly:
+MR verification or discovery from current checkout when the user did not supply an MR explicitly:
 
 ```bash
 glab mr view --comments
 ```
 
-Fallback structured discussion fetch when needed:
+Structured discussion fetch when needed:
 
 ```bash
 glab api /projects/:id/merge_requests/<MR>/discussions
@@ -164,13 +175,13 @@ glab api /projects/:id/merge_requests/<MR>/discussions
 
 Resolve project identity first through the `git` skill.
 
-When starting from an MR HTTP link and no local repository context is needed, use the parsed URL values directly in fallback mode:
+When starting from an MR HTTP link and no local repository context is needed, use the parsed URL values directly:
 
 ```bash
 glab api --hostname <host> /projects/<encoded_project_path>/merge_requests/<MR>/discussions
 ```
 
-Prefer these explicit fallback patterns after resolving identity:
+Prefer these explicit patterns after resolving identity:
 
 When `project_id` is present:
 
@@ -188,7 +199,7 @@ glab api /projects/<encoded_project_path>/merge_requests/<MR>/notes
 glab api /projects/<encoded_project_path>/merge_requests/<MR>
 ```
 
-Optional fallback artifact bootstrap after fetching MR JSON (default output under `$ARTIFACTS/mr-<MR>/` via external store; pass `--output` explicitly when the user or repo rules specify a different path):
+Optional artifact bootstrap after fetching MR JSON (default output under `$ARTIFACTS/mr-<MR>/` via external store; pass `--output` explicitly when the user or repo rules specify a different path):
 
 ```bash
 glab api /projects/<project_id>/merge_requests/<MR> > /tmp/mr_<MR>.json
@@ -214,13 +225,13 @@ Decision rule:
 - if the `git` skill returns `project_id`, use it in `/projects/<project_id>/...`
 - otherwise use `encoded_project_path` in `/projects/<encoded_project_path>/...`
 
-If the repo is not hosted on GitLab, stop and report that the remote host is not a GitLab instance instead of calling GitLab MCP or fallback `glab api`.
+If the repo is not hosted on GitLab, stop and report that the remote host is not a GitLab instance instead of calling `glab api` or GitLab MCP.
 
 ## Notes
 
-- Prefer GitLab MCP first when available, then `glab mr view`, then `glab api` only when structured fallback data is needed.
+- Prefer local `glab mr view`, then `glab api`, then GitLab MCP only when local tools are insufficient.
 - Extract the MR IID once and reuse it consistently.
-- Prefer the `git` skill for fallback repository/project identity instead of manually inferring it from `git remote -v`.
+- Prefer the `git` skill for repository/project identity instead of manually inferring it from `git remote -v`.
 - Use the numeric project ID when available; otherwise use the resolved project path consistently.
 - Do not assume resolved comments are actionable unless the user asks for them.
 - Companion skills should consume this skill's normalized MR context instead of redoing fetch, identity-resolution, link-handling, or classification logic.
@@ -230,9 +241,9 @@ If the repo is not hosted on GitLab, stop and report that the remote host is not
 
 ## Validation
 
-- Prefer GitLab MCP first when available.
+- Prefer local `glab` before GitLab MCP.
 - Keep the same normalized MR context contract regardless of transport.
-- Verify that `mr_iid`, `mr_link`, and project identity fields stay consistent across fallback commands.
+- Verify that `mr_iid`, `mr_link`, and project identity fields stay consistent across local tool commands.
 - Exclude resolved threads only when the downstream task calls for unresolved comments only.
 
 ## Outputs / Artifacts
@@ -263,8 +274,8 @@ When artifact bootstrap is requested, this skill may also write under `$ARTIFACT
 When rerunning GitLab MR fetch or inspection for the same host, project, or MR family:
 
 - preserve durable learned sections such as `## Transport Notes`, `## Project Resolution Fallbacks`, and `## Discussion Shape Oddities` when they still match the current host, project, and transport behavior
-- refresh conclusions from live GitLab MCP or fallback `glab` output before reusing them
-- promote repeated confirmed observations into short transport heuristics, preferably phrased like `when MCP lacks X, fall back to Y`
+- refresh conclusions from live `glab` or GitLab MCP output before reusing them
+- promote repeated confirmed observations into short transport heuristics, preferably phrased like `when glab lacks X, try Y before MCP`
 - demote, mark stale, or remove heuristics contradicted by new transport behavior or updated API output
 
 ## Artifact Bootstrap
@@ -280,7 +291,7 @@ Recommended flow:
 
 1. resolve the MR IID with the normal workflow
 2. choose `meaningful_id` (default `mr-<MR>`)
-3. fetch MR JSON with GitLab MCP when possible, otherwise with fallback `glab api`
+3. fetch MR JSON with `glab api`, using GitLab MCP only when local `glab` access is missing or insufficient
 4. run `scripts/bootstrap_gitlab_artifact.py` with MR JSON (`--mr` / `--json` as today); omit `--output` to use the script default `$ARTIFACTS/mr-<MR>/review_mr_<MR>.md` or `$ARTIFACTS/mr-<MR>/analysis_mr_<MR>.md` from `--type`, or pass `--output` when the user or repo rules need a non-default location
 5. let the bootstrap helper validate the generated artifact against the shared schema
 6. if a local review artifact already exists (under `$ARTIFACTS/` or at repo root), preserve local sections such as `Follow-up Findings` and `Improvement Candidates` while refreshing GitLab-derived sections from live MR data

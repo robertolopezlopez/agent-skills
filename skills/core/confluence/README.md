@@ -107,4 +107,4 @@ Use confluence-request to GET /spaces and list space keys and names
 Draft a Confluence page update JSON for title and body, then apply it with confluence-request after confirmation
 ```
 
-Codex and Cursor should not issue raw Confluence `curl` commands; use MCP when configured, otherwise these helpers.
+Codex and Cursor should not issue raw Confluence `curl` commands; use `confluence-api` and `confluence-request` first, then Confluence or Atlassian MCP when helpers are insufficient.

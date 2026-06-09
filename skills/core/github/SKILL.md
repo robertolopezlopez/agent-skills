@@ -75,10 +75,10 @@ https://github.com/<owner>/<repo>/pull/<number>
 ## First Read
 
 - Read the repository `AGENTS.md` before running commands.
-- Prefer GitHub MCP when available.
-- Fall back to `gh` for common reads.
-- Fall back to `gh api` when structured fields or review data are needed and `gh` output is insufficient.
 - Use the `git` skill first when local repository identity or remote-host verification is needed.
+- Prefer `gh` for common issue and PR reads.
+- Prefer `gh api` when structured fields or review data are needed and `gh` output is insufficient.
+- Use GitHub MCP only when local `gh` / `gh api` access is missing or insufficient.
 
 ## Companion Skills
 
@@ -102,14 +102,14 @@ Common pairings:
 5. If the user gave only a number, determine whether they mean an issue or a pull request from the current wording and context.
 6. If ambiguity still remains, ask before fetching.
 7. If the repository is not hosted on GitHub, stop and report that instead of continuing with GitHub transport.
-8. Prefer GitHub MCP for object fetch and metadata inspection when available.
-9. If GitHub MCP is unavailable or insufficient, use `gh` for common reads:
+8. Use `gh` for common reads:
    - issue overview
    - PR overview
    - comments
    - labels
    - assignees
-10. If structured fallback data is still needed, use `gh api`.
+9. If structured data is still needed, use `gh api`.
+10. Use GitHub MCP only when local `gh` / `gh api` access is missing or insufficient.
 11. Normalize and preserve:
     - repository owner
     - repository name
@@ -129,13 +129,24 @@ Common pairings:
 
 Preferred order:
 
-1. GitHub MCP for issues, pull requests, comments, reviews, and structured metadata
+1. `git` (via the `git` skill) when repository identity or remote-host verification is needed
 2. `gh` for common issue and PR reads
-3. `gh api` for structured fallback when MCP or `gh` output is insufficient
+3. `gh api` for structured metadata when `gh` output is insufficient
+4. GitHub MCP when local tools are missing or insufficient
 
 Use the same normalized output contract regardless of transport so companion skills do not depend on how GitHub data was accessed.
 
-## Fallback Command Pattern
+## API reference cache
+
+Resolve **`$AGENT_CONFIG_HOME/api-docs/github-rest/`** with **`scripts/agent_config.py --api-docs-dir github-rest`**.
+
+1. Read the cached `README.md` and endpoint notes when present.
+2. On first use (or when stale), fetch or summarize [GitHub REST API](https://docs.github.com/en/rest) docs into that directory — especially endpoints used by `gh api` fallbacks in this skill.
+3. On later uses, consult the cache before re-downloading docs.
+
+See **AGENTS.md** (REST API reference cache).
+
+## Local Tool Commands
 
 Preferred issue fetch:
 
@@ -161,31 +172,31 @@ PR fetch with comments:
 gh pr view <number> --comments
 ```
 
-Structured issue fallback:
+Structured issue fetch:
 
 ```bash
 gh api repos/<owner>/<repo>/issues/<number>
 ```
 
-Structured PR fallback:
+Structured PR fetch:
 
 ```bash
 gh api repos/<owner>/<repo>/pulls/<number>
 ```
 
-Issue comments fallback:
+Issue comments:
 
 ```bash
 gh api repos/<owner>/<repo>/issues/<number>/comments
 ```
 
-PR review comments fallback:
+PR review comments:
 
 ```bash
 gh api repos/<owner>/<repo>/pulls/<number>/comments
 ```
 
-PR reviews fallback:
+PR reviews:
 
 ```bash
 gh api repos/<owner>/<repo>/pulls/<number>/reviews
@@ -193,7 +204,7 @@ gh api repos/<owner>/<repo>/pulls/<number>/reviews
 
 ## Validation
 
-- Prefer GitHub MCP first when available.
+- Prefer local `gh` / `gh api` before GitHub MCP.
 - Keep transport behavior separate from workflow logic.
 - Verify `issue` vs `pull_request` before fetching when the identifier is ambiguous.
 - Keep the same normalized object contract regardless of transport.

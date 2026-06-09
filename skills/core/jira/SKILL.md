@@ -1,11 +1,11 @@
 ---
 name: jira
-description: Fetch, summarize, create, and update Jira or Atlassian issues. Use when the user provides an Atlassian issue URL or issue key, asks to summarize a Jira ticket, asks to create a Jira ticket, asks to change status, move a ticket into a sprint, assign or edit a ticket, comment on a ticket, asks to override the Jira issue API host and path, or asks to debug Jira access using `ATLASSIAN_API_TOKEN`. Prefer Jira or Atlassian MCP when available, with bundled helper fallback.
+description: Fetch, summarize, create, and update Jira or Atlassian issues. Use when the user provides an Atlassian issue URL or issue key, asks to summarize a Jira ticket, asks to create a Jira ticket, asks to change status, move a ticket into a sprint, assign or edit a ticket, comment on a ticket, asks to override the Jira issue API host and path, or asks to debug Jira access using `ATLASSIAN_API_TOKEN`. Prefer bundled `jira-api` and `jira-request` helpers, then Jira or Atlassian MCP when local helpers are insufficient.
 ---
 
 # Jira Ticket Access
 
-When a Jira issue is not readable through normal browser access, prefer Jira or Atlassian MCP when available, otherwise use the bundled Jira REST helper workflow before concluding the ticket is inaccessible.
+When a Jira issue is not readable through normal browser access, use the bundled Jira REST helper workflow first, then Jira or Atlassian MCP when local helpers are insufficient, before concluding the ticket is inaccessible.
 
 ## When to Use
 
@@ -33,7 +33,7 @@ Accept, depending on the requested action:
 
 - an issue key such as `PROJ-123`
 - an Atlassian issue URL
-- an optional host or base-path override for fallback helper use
+- an optional host or base-path override for helper use
 - a requested field set
 - free-form task context for create or update flows
 
@@ -41,23 +41,23 @@ Accept, depending on the requested action:
 
 1. Extract the issue key from the URL or user request.
 2. Accept an optional host + path parameter before the issue key.
-3. Prefer Jira or Atlassian MCP for read and write operations when a suitable MCP server is configured in the session.
-4. For fallback helpers, invoke `jira-api` or `jira-request` directly. They resolve defaults in this order: exported `ATLASSIAN_API_BASE_URL`, then the runtime defaults file (see **Local Defaults File**). **Do not read defaults files with the editor/Read tool** unless the user explicitly asked to debug helper resolution.
-5. Use `git config user.email` as the Atlassian username for fallback helper auth.
-6. Use `ATLASSIAN_API_TOKEN` for fallback helper auth. Resolution order (handled by **`atlassian-auth.sh`** — agents do not need to `source` the defaults file):
+3. Invoke `jira-api` or `jira-request` directly for reads and writes. They resolve defaults in this order: exported `ATLASSIAN_API_BASE_URL`, then the runtime defaults file (see **Local Defaults File**). **Do not read defaults files with the editor/Read tool** unless the user explicitly asked to debug helper resolution.
+4. Use Jira or Atlassian MCP only when local helpers are missing or insufficient.
+5. Use `git config user.email` as the Atlassian username for helper auth.
+6. Use `ATLASSIAN_API_TOKEN` for helper auth. Resolution order (handled by **`atlassian-auth.sh`** — agents do not need to `source` the defaults file):
    - exported **`ATLASSIAN_API_TOKEN`**
    - first line of **`${ATLASSIAN_API_TOKEN_FILE:-$HOME/.config/.jira/.credentials}`**
    - **`ATLASSIAN_API_TOKEN`** in runtime **`atlassian.env`** (resolve with **`scripts/agent_config.py --atlassian-env`**)
-7. Resolve `scripts/jira-api` and `scripts/jira-request` relative to this skill directory for fallback helper use.
+7. Resolve `scripts/jira-api` and `scripts/jira-request` relative to this skill directory.
 8. Ensure manifest **shared_files** from this repository have been synced into the active skills install root so the Atlassian auth helper expected by `jira-api` and `jira-request` exists under that root `scripts/` directory next to `validate_artifact.py` when missing (follow **AGENTS.md** sync rules). The helpers locate and source that file automatically.
 9. If a Jira helper is not executable, run `chmod +x` on the resolved helper path.
-10. If MCP is unavailable or insufficient, invoke the resolved Jira helper path directly:
+10. Invoke the resolved Jira helper path directly:
    - env-configured base: `<resolved-path-to-scripts/jira-api> {ISSUE_KEY}`
    - overridden issue API base: `<resolved-path-to-scripts/jira-api> {HOST_AND_PATH} {ISSUE_KEY}`
-11. When the task needs explicit field selection in fallback helper mode, pass the fields list as the final helper argument.
+11. When the task needs explicit field selection, pass the fields list as the final helper argument.
    - env-configured base: `<resolved-path-to-scripts/jira-api> {ISSUE_KEY} {FIELDS}`
    - overridden issue API base: `<resolved-path-to-scripts/jira-api> {HOST_AND_PATH} {ISSUE_KEY} {FIELDS}`
-12. The fallback helper should normalize either:
+12. The helper should normalize either:
    - a site URL like `https://example.atlassian.net`, or
    - an issue API base ending in `/rest/api/3/issue/`
 13. Request only the fields needed for the task. For summaries, prefer:
@@ -66,30 +66,41 @@ Accept, depending on the requested action:
 summary,status,issuetype,priority,assignee,reporter,created,updated,description,comment,labels
 ```
 
-14. If the fallback helper request fails due to sandbox network restrictions, rerun the same helper command with escalated network access.
-15. Summarize the issue from MCP output when available, otherwise from the fallback API response, not from the login page.
-16. For non-read actions, prefer MCP first. If MCP is unavailable or insufficient, invoke the resolved request helper path directly:
+14. If the helper request fails due to sandbox network restrictions, rerun the same helper command with escalated network access.
+15. Summarize the issue from helper API JSON, not from the login page.
+16. For non-read actions, invoke the resolved request helper path directly:
    - env-configured base: `<resolved-path-to-scripts/jira-request> METHOD /rest/api/3/... [JSON_BODY_FILE]`
    - overridden site base: `<resolved-path-to-scripts/jira-request> https://example.atlassian.net METHOD /rest/api/3/... [JSON_BODY_FILE]`
-17. When the user asks to bootstrap an artifact from a Jira issue, save the fetched issue JSON from MCP when possible, otherwise from the fallback helper, to a temporary local file and run `scripts/bootstrap_jira_artifact.py`.
-18. Never issue a direct Jira `curl` command from the skill workflow. All Jira HTTP access must go through Jira or Atlassian MCP when available, otherwise through `jira-api` or `jira-request`.
+17. Use Jira or Atlassian MCP only when local helpers are missing or insufficient.
+18. When the user asks to bootstrap an artifact from a Jira issue, save the fetched issue JSON from `jira-api` (or MCP when helpers failed) to a temporary local file and run `scripts/bootstrap_jira_artifact.py`.
+19. Never issue a direct Jira `curl` command from the skill workflow. Route HTTP through `jira-api` or `jira-request`, then Jira or Atlassian MCP when helpers are insufficient.
 
 ## Validation
 
-- Prefer Jira or Atlassian MCP first when available.
-- Keep fallback helper execution routed through `jira-api` or `jira-request`, never direct `curl`.
-- Resolve auth and base URL defaults before invoking fallback helpers.
+- Prefer bundled helpers before Jira or Atlassian MCP.
+- Keep helper execution routed through `jira-api` or `jira-request`, never direct `curl`.
+- Resolve auth and base URL defaults before invoking helpers.
 - Keep the same normalized issue and artifact contract regardless of transport.
 
 ## Transport Preference
 
 Preferred order:
 
-1. Jira or Atlassian MCP for issue reads, comments, transitions, edits, and creation
-2. `jira-api` for fallback issue reads
-3. `jira-request` for fallback write operations
+1. `jira-api` for issue reads
+2. `jira-request` for write operations
+3. Jira or Atlassian MCP when local helpers are missing or insufficient
 
 Use the same normalized issue summary and artifact contract regardless of transport so companion skills or follow-on work do not depend on how Jira was accessed.
+
+## API reference cache
+
+Resolve **`$AGENT_CONFIG_HOME/api-docs/jira-rest-v3/`** with **`scripts/agent_config.py --api-docs-dir jira-rest-v3`**.
+
+1. Read the cached `README.md` and endpoint notes when present.
+2. On first use (or when stale), fetch or summarize [Jira Cloud REST API v3](https://developer.atlassian.com/cloud/jira/platform/rest/v3/intro/) docs into that directory — especially issue read/write, transitions, comments, and Agile endpoints used by `jira-api` / `jira-request`.
+3. On later uses, consult the cache before re-downloading docs.
+
+See **AGENTS.md** (REST API reference cache).
 
 ## Helper Source
 
@@ -117,7 +128,7 @@ Rules:
 - let **`jira-api`** / **`jira-request`** read the runtime defaults file for URLs and token; agents must not open the file unless debugging config resolution
 - **`ATLASSIAN_API_TOKEN`** may live in **`atlassian.env`** when not exported; prefer export or the credentials file when your environment already provides them
 
-## Fallback Command Pattern
+## Shell Helper Commands
 
 Preferred helper shape after resolving the path relative to this skill directory:
 
@@ -179,7 +190,7 @@ Use this workflow when the user asks to bootstrap an artifact, create a task fil
 
 Prefer new artifacts under `$ARTIFACTS/<meaningful_id>/` at the repository root (see repo `ARTIFACTS.md`). For Jira bootstrap, `meaningful_id` defaults to the issue key (filesystem-safe), e.g. `$ARTIFACTS/PROJ-123/task_proj-123.md`. Honor explicit user `--output` paths or repo `AGENTS.md` overrides.
 
-1. Fetch the issue with Jira or Atlassian MCP when available, otherwise with `jira-api`, requesting the summary fields set:
+1. Fetch the issue with `jira-api`, requesting the summary fields set (use MCP only when helpers are insufficient):
 
 ```text
 summary,status,issuetype,priority,assignee,reporter,created,updated,description,comment,labels
@@ -222,7 +233,7 @@ If no `<skill_input>` is present, use the user's most recent request as TASK_CON
 
 ### Prerequisites
 
-Reuse the same generic Jira auth and base URL conventions for fallback helper use:
+Reuse the same generic Jira auth and base URL conventions for helper use:
 
 - use `git config user.email` as the Atlassian username
 - bundled helpers resolve **`ATLASSIAN_API_TOKEN`** from the environment, credentials file, then runtime **`atlassian.env`** — no manual `source` required
@@ -233,20 +244,20 @@ Reuse the same generic Jira auth and base URL conventions for fallback helper us
 2. Present the inferred values to the user for confirmation.
 3. Do not create the ticket until the user confirms.
 4. Build an Atlassian Document Format (ADF) description payload when Jira description content is needed.
-5. Prefer creating the ticket with Jira or Atlassian MCP. If MCP is unavailable or insufficient, create it via Jira REST API:
+5. Create the ticket via `jira-request` and Jira REST API payloads. Use MCP only when helpers are insufficient:
 
 ```text
 POST {ATLASSIAN_SITE_URL}/rest/api/3/issue
 ```
 
-6. Authenticate with the shared Atlassian auth helper conventions when using fallback helpers.
-7. If the project uses Agile sprint assignment, assign the created ticket in a separate call, preferably through MCP and otherwise via fallback helper:
+6. Authenticate with the shared Atlassian auth helper conventions when using helpers.
+7. If the project uses Agile sprint assignment, assign the created ticket in a separate call via `jira-request` (MCP only when helpers are insufficient):
 
 ```text
 POST {ATLASSIAN_SITE_URL}/rest/agile/1.0/sprint/{sprintId}/issue
 ```
 
-8. If the workflow requires it, transition the ticket after creation in a separate call, preferably through MCP and otherwise via fallback helper.
+8. If the workflow requires it, transition the ticket after creation in a separate call via `jira-request` (MCP only when helpers are insufficient).
 9. Report back the ticket key and URL.
 
 ## Update Workflow
@@ -263,7 +274,7 @@ Use this workflow when the user asks to change or manage an existing Jira ticket
 
 ### Generic update flow
 
-1. Fetch the current issue first when the change depends on current fields or status, preferably through MCP and otherwise via fallback helper.
+1. Fetch the current issue first when the change depends on current fields or status, using `jira-api` (MCP only when helpers are insufficient).
 2. For status changes, list available transitions first:
 
 ```text
@@ -294,7 +305,7 @@ PUT /rest/api/3/issue/{ISSUE_KEY}
 POST /rest/api/3/issue/{ISSUE_KEY}/comment
 ```
 
-7. In fallback mode, prefer concise JSON payload files and call the generic request helper instead of direct `curl`.
+7. Prefer concise JSON payload files and call `jira-request` instead of direct `curl`.
 
 ### Notes for overlays
 
@@ -339,12 +350,12 @@ When rerunning work for the same Jira issue or refreshing a bootstrapped artifac
 ## Notes
 
 - Prefer concise summaries unless the user asks for detail.
-- Prefer Jira or Atlassian MCP when available, otherwise prefer the bundled helper over raw `curl`.
+- Prefer bundled helpers over Jira or Atlassian MCP and over raw `curl`.
 - Resolve `scripts/jira-api` and `scripts/jira-request` relative to this skill directory and invoke those resolved paths directly instead of relying on `PATH` or copies in other directories.
 - Accept a host + path override before the issue key.
-- When no override is provided for fallback helper use, bundled helpers resolve `ATLASSIAN_API_BASE_URL` from the environment, then the runtime **`atlassian.env`** file.
+- When no override is provided, bundled helpers resolve `ATLASSIAN_API_BASE_URL` from the environment, then the runtime **`atlassian.env`** file.
 - Do not probe the other runtime's config home (Cursor vs Codex) unless the user is debugging cross-runtime setup.
-- Never access Jira with a direct assistant-issued `curl`; use Jira or Atlassian MCP when available, otherwise only run `jira-api` or `jira-request`.
+- Never access Jira with a direct assistant-issued `curl`; run `jira-api` or `jira-request` first, then Jira or Atlassian MCP when helpers are insufficient.
 - If `ATLASSIAN_API_TOKEN` is already exported, helpers do not read the credentials file or **`atlassian.env`** for the token.
 - If auth works but the issue is still unavailable, report that the account likely lacks permission to view the ticket.
 - Do not expose the raw token in outputs.

@@ -49,7 +49,7 @@ Do not use this skill when:
 
 - Read the repository `AGENTS.md` before running commands.
 - Consume normalized PR context from `github`.
-- Treat `github` as the transport boundary whether data came from GitHub MCP or fallback `gh` / `gh api`.
+- Treat `github` as the transport boundary whether data came from local `gh` / `gh api` or GitHub MCP.
 - Open or create the **single main artifact** at `$ARTIFACTS/<meaningful_id>/review_pr_<PR>.md` by preference (otherwise `$ARTIFACTS/<meaningful_id>/analysis_pr_<PR>.md`, or an existing legacy root-level file). If missing, bootstrap minimal PR framing consistent with `../ARTIFACTS.md` under `$ARTIFACTS/`, then continue.
 - Do not duplicate PR parsing, repository identity resolution, or GitHub transport logic here.
 - Use `multi-spawn-agent` only when the user has explicitly authorized subagents or parallel agent work.

@@ -49,7 +49,7 @@ Do not use this skill when:
 
 - Read the repository `AGENTS.md` before running commands.
 - Consume normalized MR context from `gitlab`.
-- Treat `gitlab` as the transport boundary whether data came from GitLab MCP or fallback `glab` / `glab api`.
+- Treat `gitlab` as the transport boundary whether data came from local `glab` / `glab api` or GitLab MCP.
 - Open or create the **single main artifact** at `$ARTIFACTS/<meaningful_id>/review_mr_<MR>.md` by preference (otherwise `$ARTIFACTS/<meaningful_id>/analysis_mr_<MR>.md`, or an existing legacy root-level file). If missing, bootstrap minimal MR framing consistent with `../ARTIFACTS.md` under `$ARTIFACTS/`, then continue.
 - Do not duplicate MR parsing, project identity resolution, or GitLab transport logic here.
 - Use `multi-spawn-agent` only when the user has explicitly authorized subagents or parallel agent work.

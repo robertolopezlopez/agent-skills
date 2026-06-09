@@ -12,6 +12,8 @@
 #   scripts/agent-config.sh --atlassian-env
 #   scripts/agent-config.sh --runtime
 #   scripts/agent-config.sh --defaults-hint atlassian.env
+#   scripts/agent-config.sh --api-docs-root
+#   scripts/agent-config.sh --api-docs-dir jira-rest-v3
 #
 # Exports after agent_config_init:
 #   AGENT_CONFIG_RUNTIME   cursor | codex
@@ -111,6 +113,27 @@ agent_config_defaults_hint() {
   printf '%s/%s (runtime: %s)\n' "$AGENT_CONFIG_HOME" "$env_filename" "$AGENT_CONFIG_RUNTIME"
 }
 
+agent_config_api_docs_root() {
+  if [ -z "$AGENT_CONFIG_HOME" ]; then
+    agent_config_init
+  fi
+  printf '%s/api-docs\n' "$AGENT_CONFIG_HOME"
+}
+
+agent_config_api_docs_dir() {
+  slug=$1
+  if [ -z "$slug" ]; then
+    echo "agent-config.sh: missing api-docs slug" >&2
+    return 2
+  fi
+  if [ -z "$AGENT_CONFIG_HOME" ]; then
+    agent_config_init
+  fi
+  sanitized=$(printf '%s' "$slug" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9._-]+/-/g; s/-+/-/g; s/^-|-$//g')
+  [ -n "$sanitized" ] || sanitized=unknown
+  printf '%s/api-docs/%s\n' "$AGENT_CONFIG_HOME" "$sanitized"
+}
+
 if [ "${0##*/}" = "agent-config.sh" ] && [ -n "${1:-}" ]; then
   case "$1" in
     --config-home)
@@ -137,8 +160,22 @@ if [ "${0##*/}" = "agent-config.sh" ] && [ -n "${1:-}" ]; then
       agent_config_defaults_hint "$2"
       exit 0
       ;;
+    --api-docs-root)
+      agent_config_init "${2:-}"
+      agent_config_api_docs_root
+      exit 0
+      ;;
+    --api-docs-dir)
+      if [ -z "${2:-}" ]; then
+        echo "usage: agent-config.sh --api-docs-dir SLUG" >&2
+        exit 2
+      fi
+      agent_config_init "${3:-}"
+      agent_config_api_docs_dir "$2"
+      exit 0
+      ;;
     *)
-      echo "usage: agent-config.sh --config-home | --atlassian-env | --runtime | --defaults-hint FILENAME" >&2
+      echo "usage: agent-config.sh --config-home | --atlassian-env | --runtime | --defaults-hint FILENAME | --api-docs-root | --api-docs-dir SLUG" >&2
       exit 2
       ;;
   esac

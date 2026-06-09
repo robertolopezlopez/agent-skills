@@ -1,6 +1,6 @@
 ---
 name: circleci
-description: Fetch and inspect CircleCI Cloud pipelines, workflows, and jobs through the CircleCI API v2. Use when Codex or Cursor agents need CircleCI context and the user provides a pipeline ID, workflow ID, job number, CircleCI project slug, or app URL, asks to list recent pipelines, inspect run status, read job logs metadata, trigger or continue pipelines via API, or debug CircleCI API access using CIRCLE_TOKEN. Prefer a CircleCI MCP server when available, with the bundled circleci-request helper as fallback transport.
+description: Fetch and inspect CircleCI Cloud pipelines, workflows, and jobs through the CircleCI API v2. Use when Codex or Cursor agents need CircleCI context and the user provides a pipeline ID, workflow ID, job number, CircleCI project slug, or app URL, asks to list recent pipelines, inspect run status, read job logs metadata, trigger or continue pipelines via API, or debug CircleCI API access using CIRCLE_TOKEN. Prefer the `circleci` CLI and bundled `circleci-request` helper, then CircleCI MCP when local tools are insufficient.
 ---
 
 # CircleCI API Access
@@ -50,24 +50,26 @@ Confirm ambiguous slugs with the user when multiple remotes or organizations cou
 ## First Read
 
 - Read the repository `AGENTS.md` before running commands when working from a checkout.
-- Prefer a **CircleCI MCP server** when one is configured and exposes the needed resources.
-- Fall back to `scripts/circleci-request` relative to this skill directory for API v2 calls when MCP is unavailable or insufficient.
 - Use the `git` skill when local remote resolution is needed to infer `gh/<org>/<repo>`.
+- Prefer the `circleci` CLI when it can satisfy the request (for example local job execution or follow).
+- Prefer `scripts/circleci-request` relative to this skill directory for API v2 calls.
+- Use CircleCI MCP only when local tools are missing or insufficient.
 
 ## Workflow
 
-1. Prefer CircleCI MCP for reads and writes when it can satisfy the request.
-2. Invoke `scripts/circleci-request` for fallback calls. It resolves the API base URL and token from exported env vars, then the runtime **`circleci.env`** file (see **Local Defaults File**). **Do not read defaults files with the editor/Read tool** unless the user explicitly asked to debug helper resolution.
-3. Resolve `scripts/circleci-request` relative to this skill directory for fallback calls.
-5. If the helper is not executable, run `chmod +x` on the resolved helper path.
-6. Call the smallest endpoint set needed (pipeline list, then pipeline detail, then workflows or jobs).
-7. If the fallback request fails because outbound HTTPS is blocked (for example in a restricted agent sandbox), rerun the same helper from an environment that allows TLS to `circleci.com` or to your configured API host.
+1. Use the `circleci` CLI when it can satisfy the request.
+2. Invoke `scripts/circleci-request` for API v2 calls. It resolves the API base URL and token from exported env vars, then the runtime **`circleci.env`** file (see **Local Defaults File**). **Do not read defaults files with the editor/Read tool** unless the user explicitly asked to debug helper resolution.
+3. Resolve `scripts/circleci-request` relative to this skill directory.
+4. If the helper is not executable, run `chmod +x` on the resolved helper path.
+5. Call the smallest endpoint set needed (pipeline list, then pipeline detail, then workflows or jobs).
+6. If the helper request fails because outbound HTTPS is blocked (for example in a restricted agent sandbox), rerun the same helper from an environment that allows TLS to `circleci.com` or to your configured API host.
+7. Use CircleCI MCP only when local tools are missing or insufficient.
 8. Normalize results for downstream skills: project slug, pipeline id and number, workflow ids, job numbers, states, and relevant URLs from API fields.
-9. Never issue a raw `curl` to CircleCI from this skill workflow. When MCP is not used, route HTTP through `scripts/circleci-request`.
+9. Never issue a raw `curl` to CircleCI from this skill workflow. Route HTTP through `scripts/circleci-request`, then MCP when helpers are insufficient.
 
 ## Validation
 
-- Prefer CircleCI MCP first when available.
+- Prefer local `circleci` CLI and `circleci-request` before CircleCI MCP.
 - Keep HTTP access behind `scripts/circleci-request`, not ad hoc `curl`.
 - Stop when authenticated API access fails and report missing or invalid token clearly.
 - Do not expose tokens in logs, skill output, or committed files.
@@ -76,8 +78,20 @@ Confirm ambiguous slugs with the user when multiple remotes or organizations cou
 
 Preferred order:
 
-1. CircleCI MCP for structured reads and supported writes
-2. `scripts/circleci-request` for arbitrary [API v2](https://circleci.com/docs/api/v2/) requests the helper can reach with `Circle-Token` authentication
+1. `git` (via the `git` skill) when project slug inference from remotes is needed
+2. `circleci` CLI when it can satisfy the request
+3. `scripts/circleci-request` for arbitrary [API v2](https://circleci.com/docs/api/v2/) requests the helper can reach with `Circle-Token` authentication
+4. CircleCI MCP when local tools are missing or insufficient
+
+## API reference cache
+
+Resolve **`$AGENT_CONFIG_HOME/api-docs/circleci-api-v2/`** with **`scripts/agent_config.py --api-docs-dir circleci-api-v2`**.
+
+1. Read the cached `README.md` and endpoint notes when present.
+2. On first use (or when stale), fetch or summarize [CircleCI API v2](https://circleci.com/docs/api/v2/) docs into that directory — especially pipeline, workflow, and job endpoints used by `circleci-request`.
+3. On later uses, consult the cache before re-downloading docs.
+
+See **AGENTS.md** (REST API reference cache).
 
 ## Helper Source
 
@@ -110,7 +124,7 @@ Rules:
 - treat exported environment variables as higher priority than defaults files
 - prefer keeping `CIRCLE_TOKEN` or `CIRCLECI_TOKEN` in the environment instead of long-lived tokens in defaults files when possible
 
-## Fallback Command Pattern
+## Shell Helper Commands
 
 Ensure `CIRCLE_TOKEN` or `CIRCLECI_TOKEN` is set for the shell unless the token is supplied via defaults files.
 

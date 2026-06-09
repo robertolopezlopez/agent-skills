@@ -1,11 +1,11 @@
 ---
 name: confluence
-description: Fetch, summarize, create, and update Confluence Cloud pages and related resources through the Confluence REST API. Use when the user provides a Confluence wiki URL or page id, asks to read or summarize a page, create or edit wiki content, list spaces, search Confluence, debug Confluence API access using ATLASSIAN_API_TOKEN, or override the Confluence API host and path. Prefer Confluence or Atlassian MCP when available, with bundled helper fallback.
+description: Fetch, summarize, create, and update Confluence Cloud pages and related resources through the Confluence REST API. Use when the user provides a Confluence wiki URL or page id, asks to read or summarize a page, create or edit wiki content, list spaces, search Confluence, debug Confluence API access using ATLASSIAN_API_TOKEN, or override the Confluence API host and path. Prefer bundled `confluence-api` and `confluence-request` helpers, then Confluence or Atlassian MCP when local helpers are insufficient.
 ---
 
 # Confluence Wiki Access
 
-When Confluence content is not readable through normal browser access, prefer Confluence or Atlassian MCP when available, otherwise use the bundled Confluence REST helper workflow before concluding the content is inaccessible.
+When Confluence content is not readable through normal browser access, use the bundled Confluence REST helper workflow first, then Confluence or Atlassian MCP when local helpers are insufficient, before concluding the content is inaccessible.
 
 ## When to Use
 
@@ -32,45 +32,55 @@ Accept, depending on the requested action:
 - a Confluence wiki URL (browser URL containing `/wiki/`)
 - a numeric page id when using REST v2 directly
 - a space key or resource identifiers required by the chosen API operation
-- an optional Confluence API root URL for fallback helper overrides
-- JSON bodies for create or update operations when using fallback helpers
+- an optional Confluence API root URL for helper overrides
+- JSON bodies for create or update operations when using helpers
 
 ## Workflow
 
-1. Prefer Confluence or Atlassian MCP for reads and writes when a suitable MCP server is configured in the session.
-2. Invoke bundled helpers for fallback transport. They resolve defaults in this order:
+1. Invoke bundled helpers for reads and writes. They resolve defaults in this order:
    - exported environment variables (`ATLASSIAN_CONFLUENCE_API_BASE_URL`, then `ATLASSIAN_API_BASE_URL`)
    - then the runtime **`atlassian.env`** file for the active install (see **Local Defaults File**)
    - **Do not read defaults files with the editor/Read tool** unless the user explicitly asked to debug helper resolution.
 3. Use `ATLASSIAN_CONFLUENCE_API_BASE_URL` when the full Confluence REST v2 root is known, for example `https://example.atlassian.net/wiki/rest/api/v2`.
 4. Otherwise use `ATLASSIAN_API_BASE_URL` as the Atlassian Cloud site URL such as `https://example.atlassian.net`; helpers append `/wiki/rest/api/v2` automatically.
-5. Use `git config user.email` as the Atlassian username for fallback helper auth.
-6. Use `ATLASSIAN_API_TOKEN` for fallback helper auth. Resolution order (handled by **`atlassian-auth.sh`** — agents do not need to `source` the defaults file):
+5. Use `git config user.email` as the Atlassian username for helper auth.
+6. Use `ATLASSIAN_API_TOKEN` for helper auth. Resolution order (handled by **`atlassian-auth.sh`** — agents do not need to `source` the defaults file):
    - exported **`ATLASSIAN_API_TOKEN`**
    - first line of **`${ATLASSIAN_API_TOKEN_FILE:-$HOME/.config/.jira/.credentials}`**
    - **`ATLASSIAN_API_TOKEN`** in runtime **`atlassian.env`** (resolve with **`scripts/agent_config.py --atlassian-env`**)
-7. Resolve `scripts/confluence-api` and `scripts/confluence-request` relative to this skill directory for fallback helper use.
+7. Resolve `scripts/confluence-api` and `scripts/confluence-request` relative to this skill directory.
 8. Ensure manifest **shared_files** from this repository have been synced into the active skills install root so the Atlassian auth helper expected by `confluence-api` and `confluence-request` exists under that root `scripts/` directory next to `validate_artifact.py` when missing (follow **AGENTS.md** sync rules). The helpers locate and source that file automatically.
 9. If a helper is not executable, run `chmod +x` on the resolved helper path.
-10. For page reads without MCP, prefer `confluence-api` for a single page id with default storage body format.
-11. For arbitrary Confluence REST v2 calls without MCP, use `confluence-request` with method and path relative to the resolved API root (paths such as `/pages/{id}`, `/spaces`, `/pages` for create).
-12. If the fallback helper request fails due to sandbox network restrictions, rerun the same helper command with escalated network access.
-13. Summarize from MCP output when available, otherwise from the fallback API JSON, not from an HTML login response.
-14. Never issue a direct Confluence `curl` command from the skill workflow. All Confluence HTTP access must go through Confluence or Atlassian MCP when available, otherwise through `confluence-api` or `confluence-request`.
+10. For page reads, prefer `confluence-api` for a single page id with default storage body format.
+11. For arbitrary Confluence REST v2 calls, use `confluence-request` with method and path relative to the resolved API root (paths such as `/pages/{id}`, `/spaces`, `/pages` for create).
+12. If the helper request fails due to sandbox network restrictions, rerun the same helper command with escalated network access.
+13. Summarize from helper API JSON, not from an HTML login response.
+14. Use Confluence or Atlassian MCP only when local helpers are missing or insufficient.
+15. Never issue a direct Confluence `curl` command from the skill workflow. Route HTTP through `confluence-api` or `confluence-request`, then MCP when helpers are insufficient.
 
 ## Validation
 
-- Prefer Confluence or Atlassian MCP first when available.
-- Keep fallback helper execution routed through `confluence-api` or `confluence-request`, never direct `curl`.
-- Resolve auth and base URL defaults before invoking fallback helpers.
+- Prefer bundled helpers before Confluence or Atlassian MCP.
+- Keep helper execution routed through `confluence-api` or `confluence-request`, never direct `curl`.
+- Resolve auth and base URL defaults before invoking helpers.
 
 ## Transport Preference
 
 Preferred order:
 
-1. Confluence or Atlassian MCP for reads, creates, updates, and structured wiki operations
-2. `confluence-api` for fallback single-page reads by id
-3. `confluence-request` for fallback arbitrary REST v2 operations
+1. `confluence-api` for single-page reads by id
+2. `confluence-request` for arbitrary REST v2 operations
+3. Confluence or Atlassian MCP when local helpers are missing or insufficient
+
+## API reference cache
+
+Resolve **`$AGENT_CONFIG_HOME/api-docs/confluence-rest-v2/`** with **`scripts/agent_config.py --api-docs-dir confluence-rest-v2`**.
+
+1. Read the cached `README.md` and endpoint notes when present.
+2. On first use (or when stale), fetch or summarize [Confluence Cloud REST API v2](https://developer.atlassian.com/cloud/confluence/rest/v2/intro/) docs into that directory — especially page read/write and space endpoints used by `confluence-api` / `confluence-request`.
+3. On later uses, consult the cache before re-downloading docs.
+
+See **AGENTS.md** (REST API reference cache).
 
 ## Helper Source
 
@@ -103,7 +113,7 @@ Rules:
 - let **`confluence-api`** / **`confluence-request`** read the runtime defaults file for URLs and token; agents must not open the file unless debugging config resolution
 - **`ATLASSIAN_API_TOKEN`** may live in **`atlassian.env`** when not exported; prefer export or the credentials file when your environment already provides them
 
-## Fallback Command Pattern
+## Shell Helper Commands
 
 Single page read (default query `body-format=storage`):
 
@@ -161,7 +171,7 @@ Use this workflow when the user asks to publish or revise wiki content.
 
 1. Infer draft title, space, parent page id, and body format from the user request.
 2. Confirm destructive or wide-reaching edits before executing writes.
-3. Prefer MCP for create and update. If MCP is unavailable or insufficient, build JSON payloads matching [Confluence REST API v2](https://developer.atlassian.com/cloud/confluence/rest/v2/intro/) expectations and call `confluence-request`.
+3. Build JSON payloads matching [Confluence REST API v2](https://developer.atlassian.com/cloud/confluence/rest/v2/intro/) expectations and call `confluence-request`. Use MCP only when helpers are insufficient.
 4. Use separate calls when the workflow requires fetching the current page version before an update (optimistic locking via version numbers).
 5. Report back page id and canonical wiki URL when present in API responses.
 

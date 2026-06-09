@@ -13,6 +13,11 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 ## Unreleased
 
+### Changed
+
+- **Transport preference inverted** across transport skills and **AGENTS.md**: local CLI tools and bundled shell helpers (`gh`, `glab`, `jira-api`, `circleci-request`, …) are preferred before MCP. MCP is the last resort when local tools are missing or insufficient.
+- **REST API reference cache** in **AGENTS.md**: on first REST API need, fetch or summarize official docs into **`$AGENT_CONFIG_HOME/api-docs/<service-slug>/`** (`~/.cursor/api-docs/` or `~/.codex/api-docs/`); read the cache on later uses. Path resolution via **`agent_config.py --api-docs-root`** / **`--api-docs-dir`**.
+
 ### Added
 
 - **`templates/agent-artifacts/`** and **`templates/cursor/rules/agent-artifacts-directory.mdc`**: portable store index and Cursor phrase rule for "the artifacts directory"
