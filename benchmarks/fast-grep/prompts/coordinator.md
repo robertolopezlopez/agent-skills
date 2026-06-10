@@ -1,4 +1,4 @@
-# Benchmark coordinator — precision, 3 parallel agents
+# Benchmark coordinator — precision, 4 parallel agents
 
 Read `METRICS.md` before starting.
 
@@ -6,16 +6,20 @@ Read `METRICS.md` before starting.
 
 ```bash
 command -v hyperfine rg
+# Ensure fast-grep.env has a preferred tool (e.g. fast-grep-prefs.sh show)
 benchmarks/fast-grep/run-pilot.sh
 ```
+
+Shell phase times three engines per task: **`rg`** (baseline), **`preferred-host`** (Path D), **`fast-grep`** (Path C).
 
 ## Phase 2 — Parallel agents
 
 | Chat | Skill | Prompt | Path |
 |------|-------|--------|------|
-| 1 | **No** | `prompts/agent-a-agent-grep.md` | **agent Grep tool** |
-| 2 | **No** | `prompts/agent-b-semantic-search.md` | **SemanticSearch** |
-| 3 | **No** (use `LITERAL-CODE-SEARCH.md`) | `prompts/agent-c-fast-grep.md` | **`scripts/literal-search/fast-grep`** |
+| 1 | **No** | `prompts/agent-a-agent-grep.md` | **agent Grep tool** (A) |
+| 2 | **No** | `prompts/agent-b-semantic-search.md` | **SemanticSearch** (B) |
+| 3 | **No** | `prompts/agent-c-fast-grep.md` | **`fast-grep` wrapper** (C) |
+| 4 | **No** | `prompts/agent-d-literal-env.md` | **`fast-grep.env` + host CLI** (D) |
 
 Give each agent the run directory name from phase 1.
 

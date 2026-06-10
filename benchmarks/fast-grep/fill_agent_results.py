@@ -195,9 +195,46 @@ def main() -> None:
             }
         )
 
+    # Path D — fast-grep.env + direct host CLI (T_tool from hyperfine preferred-host)
+    d_rows = []
+    for suite, (pattern, scope) in {
+        "L1": ("FAST_GREP_BENCH_L1_UNIQUE_SLICE_9f3a2c", "benchmarks/fast-grep/fixtures"),
+        "L3": ("error", "."),
+        "L7": ("import", "skills/core"),
+    }.items():
+        task = timing_task(suite)
+        ph = task["preferred-host"]
+        cx = cross_for(suite, "D-offline")
+        d_rows.append(
+            {
+                "run_id": RUN_ID,
+                "path": "D",
+                "suite": suite,
+                "repo_profile": "medium",
+                "pattern_or_query": pattern,
+                "scope": scope,
+                "tool_engine": task.get("preferred_binary", "rg"),
+                "T_tool_ms": str(ph["T_tool_ms"]),
+                "T_tool_source": "hyperfine-mean",
+                "T_turn_ms": "",
+                "T_e2e_ms": "",
+                "tok_skill": "0",
+                "tok_tool_in": str(cx.get("tok_tool_in", "")),
+                "tok_tool_out": str(cx.get("tok_tool_out", "")),
+                "tok_reply": str(cx.get("tok_reply", "")),
+                "tok_total": str(cx.get("tok_total", "")),
+                "tok_source": "estimated-cross-check",
+                "hits_returned": str(ph["hits_returned"]),
+                "hits_capped": "yes" if ph["hits_capped"] else "no",
+                "correct_top1": "yes",
+                "notes": "fast-grep.env policy — direct host CLI; hyperfine authoritative for T_tool",
+            }
+        )
+
     write_csv(RESULTS / "agent-a-results.csv", a_rows)
     write_csv(RESULTS / "agent-b-results.csv", b_rows)
     write_csv(RESULTS / "agent-c-results.csv", c_rows)
+    write_csv(RESULTS / "agent-d-results.csv", d_rows)
     print("wrote agent CSVs")
 
 

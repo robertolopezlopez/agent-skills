@@ -74,5 +74,5 @@ if [[ -x "$BENCH_DIR/estimate-tokens.py" ]]; then
   python3 "$BENCH_DIR/estimate-tokens.py" --run-dir "$RUN_DIR" || true
 fi
 
-echo "run-pilot.sh: next — start 3 parallel agents (see prompts/coordinator.md)" >&2
+echo "run-pilot.sh: next — start 4 parallel agents (see prompts/coordinator.md)" >&2
 echo "run-pilot.sh: then validate-results.sh and merge-results.sh on $RUN_DIR" >&2

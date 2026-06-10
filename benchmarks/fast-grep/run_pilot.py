@@ -41,14 +41,79 @@ def resolve_path(base: Path, relative: str) -> Path:
     return candidate
 
 
-def build_rg_cmd(task: LiteralTask) -> list[str]:
-    cmd = ["rg", "--no-heading", "--line-number", "--color=never"]
+TOOL_ID_TO_BINARY = {
+    "ripgrep": "rg",
+    "ugrep": "ugrep",
+    "silver_searcher": "ag",
+    "ack": "ack",
+    "git": "git",
+    "grep": "grep",
+}
+
+
+def resolve_preferred_host(
+    prefs_script: Path,
+) -> tuple[str, str, str]:
+    """Return (tool_id, binary, fast_grep_env_path). Defaults to ripgrep/rg."""
+    tool_id = "ripgrep"
+    env_path = ""
+    if prefs_script.is_file():
+        proc = subprocess.run(
+            [str(prefs_script), "preferred"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        raw = (proc.stdout or "").strip()
+        if raw:
+            tool_id = raw
+        path_proc = subprocess.run(
+            [str(prefs_script), "path"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        env_path = (path_proc.stdout or "").strip()
+    binary = TOOL_ID_TO_BINARY.get(tool_id, "rg")
+    return tool_id, binary, env_path
+
+
+def build_host_cmd(binary: str, task: LiteralTask) -> list[str]:
+    if binary == "git":
+        cmd = ["git", "grep", "--line-number", "--color=never"]
+        if task.ignore_case:
+            cmd.append("-i")
+        if task.literal:
+            cmd.append("-F")
+        cmd.extend([task.pattern, "--", task.path])
+        return cmd
+    if binary == "grep":
+        cmd = ["grep", "-Rn", "--color=never"]
+        if task.ignore_case:
+            cmd.append("-i")
+        if task.literal:
+            cmd.append("-F")
+        cmd.extend([task.pattern, task.path])
+        return cmd
+    if binary == "ack":
+        cmd = ["ack", "--noheading", "--nocolor"]
+        if task.ignore_case:
+            cmd.append("-i")
+        if task.literal:
+            cmd.append("--literal")
+        cmd.extend([task.pattern, task.path])
+        return cmd
+    cmd = [binary, "--no-heading", "--line-number", "--color=never"]
     if task.ignore_case:
         cmd.append("-i")
     if task.literal:
         cmd.append("-F")
     cmd.extend([task.pattern, task.path])
     return cmd
+
+
+def build_rg_cmd(task: LiteralTask) -> list[str]:
+    return build_host_cmd("rg", task)
 
 
 def build_fast_grep_cmd(script: Path, task: LiteralTask) -> list[str]:
@@ -117,10 +182,7 @@ def parse_hyperfine_stats(
 
 
 def run_hyperfine(
-    label_a: str,
-    cmd_a: list[str],
-    label_b: str,
-    cmd_b: list[str],
+    entries: list[tuple[str, list[str]]],
     cwd: Path,
     min_runs: int,
     warmup: int,
@@ -128,23 +190,21 @@ def run_hyperfine(
 ) -> bool:
     if shutil.which("hyperfine") is None:
         return False
+    if not entries:
+        return False
 
-    shell_a = " ".join(shlex.quote(part) for part in cmd_a)
-    shell_b = " ".join(shlex.quote(part) for part in cmd_b)
+    argv = [
+        "hyperfine",
+        f"--min-runs={min_runs}",
+        f"--warmup={warmup}",
+        f"--export-json={export_json}",
+        "--shell=bash",
+    ]
+    for label, cmd in entries:
+        shell_cmd = " ".join(shlex.quote(part) for part in cmd)
+        argv.extend(["-n", label, shell_cmd])
     proc = subprocess.run(
-        [
-            "hyperfine",
-            f"--min-runs={min_runs}",
-            f"--warmup={warmup}",
-            f"--export-json={export_json}",
-            "--shell=bash",
-            "-n",
-            label_a,
-            shell_a,
-            "-n",
-            label_b,
-            shell_b,
-        ],
+        argv,
         cwd=cwd,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.PIPE,
@@ -235,6 +295,15 @@ def main() -> int:
         print(f"run_pilot: fast-grep script not found: {fast_grep_script}", file=sys.stderr)
         return 2
 
+    prefs_script = fast_grep_script.parent / "fast-grep-prefs.sh"
+    preferred_tool_id, preferred_binary, fast_grep_env_path = resolve_preferred_host(prefs_script)
+    if shutil.which(preferred_binary) is None:
+        print(
+            f"run_pilot: preferred binary {preferred_binary!r} ({preferred_tool_id}) not on PATH",
+            file=sys.stderr,
+        )
+        return 2
+
     shutil.copy2(args.tasks, out_dir / "pilot-tasks.json")
 
     run_meta = {
@@ -249,17 +318,27 @@ def main() -> int:
         "T_tool_authoritative": {
             "A": "agent Grep tool wall clock around tool call",
             "B": "semantic-search wall clock around tool call",
-            "C": "hyperfine mean on fast-grep script",
-            "engine_reference": "hyperfine mean on rg command",
+            "C": "hyperfine mean on fast-grep wrapper script",
+            "D": "hyperfine mean on preferred host CLI (fast-grep.env policy)",
+            "engine_reference": "hyperfine mean on rg command (baseline)",
+        },
+        "preferred_host": {
+            "tool_id": preferred_tool_id,
+            "binary": preferred_binary,
+            "fast_grep_env": fast_grep_env_path,
+            "policy": "LITERAL-CODE-SEARCH.md — read fast-grep.env then host CLI directly",
         },
         "rg_path": shutil.which("rg"),
         "fast_grep_script": str(fast_grep_script),
         "tasks": [],
     }
 
+    hyperfine_labels = ["rg", "fast-grep", "preferred-host"]
+
     for task in literal_tasks_from_config(config):
         rg_cmd = build_rg_cmd(task)
         fg_cmd = build_fast_grep_cmd(fast_grep_script, task)
+        pref_cmd = build_host_cmd(preferred_binary, task)
 
         task_entry: dict[str, Any] = {
             "task_id": task.task_id,
@@ -268,9 +347,16 @@ def main() -> int:
             "path": task.path,
             "rg_cmd": rg_cmd,
             "fast_grep_cmd": fg_cmd,
+            "preferred_host_cmd": pref_cmd,
+            "preferred_tool_id": preferred_tool_id,
+            "preferred_binary": preferred_binary,
         }
 
-        for engine, cmd in (("rg", rg_cmd), ("fast-grep", fg_cmd)):
+        for engine, cmd in (
+            ("rg", rg_cmd),
+            ("fast-grep", fg_cmd),
+            ("preferred-host", pref_cmd),
+        ):
             code, raw_output, elapsed_ms = run_capture(cmd, repo_root)
             capped, total_lines, was_capped = cap_lines(raw_output, head_limit)
             out_file = out_dir / "out" / f"{task.task_id}-{engine}.txt"
@@ -290,26 +376,25 @@ def main() -> int:
         timing_json.parent.mkdir(parents=True, exist_ok=True)
         hyperfine_ok = False
         if not args.skip_hyperfine and run_hyperfine(
-            "rg",
-            rg_cmd,
-            "fast-grep",
-            fg_cmd,
+            [
+                ("rg", rg_cmd),
+                ("fast-grep", fg_cmd),
+                ("preferred-host", pref_cmd),
+            ],
             repo_root,
             min_runs,
             warmup,
             timing_json,
         ):
             hyperfine_ok = True
-            hf = parse_hyperfine_stats(timing_json, ["rg", "fast-grep"])
+            hf = parse_hyperfine_stats(timing_json, hyperfine_labels)
             task_entry["hyperfine_json"] = str(timing_json.relative_to(bench_dir))
-            if "rg" in hf:
-                task_entry["rg"]["T_tool_ms"] = hf["rg"]["T_tool_ms_mean"]
-                task_entry["rg"]["T_tool_source"] = "hyperfine-mean"
-                task_entry["rg"]["hyperfine"] = hf["rg"]
-            if "fast-grep" in hf:
-                task_entry["fast-grep"]["T_tool_ms"] = hf["fast-grep"]["T_tool_ms_mean"]
-                task_entry["fast-grep"]["T_tool_source"] = "hyperfine-mean"
-                task_entry["fast-grep"]["hyperfine"] = hf["fast-grep"]
+            for label in hyperfine_labels:
+                if label not in hf:
+                    continue
+                task_entry[label]["T_tool_ms"] = hf[label]["T_tool_ms_mean"]
+                task_entry[label]["T_tool_source"] = "hyperfine-mean"
+                task_entry[label]["hyperfine"] = hf[label]
         else:
             task_entry["hyperfine_json"] = None
             if hyperfine_required:
@@ -319,8 +404,12 @@ def main() -> int:
         run_meta["tasks"].append(task_entry)
         rg_ms = task_entry["rg"].get("T_tool_ms", task_entry["rg"]["T_tool_ms_single_run"])
         fg_ms = task_entry["fast-grep"].get("T_tool_ms", task_entry["fast-grep"]["T_tool_ms_single_run"])
+        ph_ms = task_entry["preferred-host"].get(
+            "T_tool_ms",
+            task_entry["preferred-host"]["T_tool_ms_single_run"],
+        )
         print(
-            f"{task.task_id}: rg={rg_ms}ms fast-grep={fg_ms}ms "
+            f"{task.task_id}: rg={rg_ms}ms preferred-host={ph_ms}ms fast-grep={fg_ms}ms "
             f"hits(rg)={task_entry['rg']['hits_returned']} hyperfine={hyperfine_ok}",
             file=sys.stderr,
         )

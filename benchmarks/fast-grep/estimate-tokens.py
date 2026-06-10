@@ -43,7 +43,11 @@ def estimate_turn(
 
 
 def read_agent_totals(results_dir: Path, path_label: str, suites: set[str]) -> dict[str, int]:
-    mapping = {"A": "agent-a-results.csv", "C": "agent-c-results.csv"}
+    mapping = {
+        "A": "agent-a-results.csv",
+        "C": "agent-c-results.csv",
+        "D": "agent-d-results.csv",
+    }
     csv_path = results_dir / mapping[path_label]
     if not csv_path.is_file():
         return {}
@@ -80,12 +84,19 @@ def main() -> int:
 
     agent_a = read_agent_totals(results_dir, "A", {"L1", "L3", "L7"})
     agent_c = read_agent_totals(results_dir, "C", {"L1", "L3", "L7"})
+    agent_d = read_agent_totals(results_dir, "D", {"L1", "L3", "L7"})
+
+    offline_specs = (
+        ("rg", "A-offline", "A", False),
+        ("preferred-host", "D-offline", "D", False),
+        ("fast-grep", "C-offline", "C", True),
+    )
 
     for task in summary.get("tasks", []):
         task_id = task["task_id"]
         pattern = task["pattern"]
         scope = task["path"]
-        for path_key, label in (("rg", "A-offline"), ("fast-grep", "C-offline")):
+        for path_key, label, agent_key, include_skill in offline_specs:
             rel = task[path_key]["output_file"]
             out_file = bench_dir / rel
             text = out_file.read_text(encoding="utf-8") if out_file.is_file() else ""
@@ -93,11 +104,10 @@ def main() -> int:
                 pattern,
                 scope,
                 text,
-                include_skill=path_key == "fast-grep",
+                include_skill=include_skill,
                 skill_tokens=args.skill_tokens,
             )
-            agent_key = "A" if path_key == "rg" else "C"
-            agent_map = agent_a if agent_key == "A" else agent_c
+            agent_map = {"A": agent_a, "C": agent_c, "D": agent_d}[agent_key]
             agent_total = agent_map.get(task_id)
             delta = None
             if agent_total is not None:

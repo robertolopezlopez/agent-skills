@@ -12,7 +12,8 @@
     "agent_tasks": {
       "A": ["L1", "L3", "L7"],
       "B": ["S1", "S2", "S3"],
-      "C": ["L1", "L3", "L7"]
+      "C": ["L1", "L3", "L7"],
+      "D": ["L1", "L3", "L7"]
     }
   },
   "literal_tasks": {
@@ -62,6 +63,7 @@
   "agent_outputs": {
     "A": "results/agent-a-results.csv",
     "B": "results/agent-b-results.csv",
-    "C": "results/agent-c-results.csv"
+    "C": "results/agent-c-results.csv",
+    "D": "results/agent-d-results.csv"
   }
 }

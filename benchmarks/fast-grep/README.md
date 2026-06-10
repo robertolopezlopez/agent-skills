@@ -1,6 +1,6 @@
 # fast-grep benchmark harness (precision-first)
 
-Compare **agent Grep tool** (A), **SemanticSearch** (B), and **`fast-grep`** host CLI (C). See **`METRICS.md`**.
+Compare **agent Grep tool** (A), **SemanticSearch** (B), **`fast-grep` wrapper** (C), and **`fast-grep.env` + direct host CLI** (D). See **`METRICS.md`**.
 
 ## Layout
 
@@ -12,9 +12,10 @@ benchmarks/fast-grep/
 ├── validate-results.sh
 ├── merge-results.sh
 ├── prompts/
-│   ├── agent-a-agent-grep.md   # Path A: agent Grep tool
+│   ├── agent-a-agent-grep.md
 │   ├── agent-b-semantic-search.md
-│   └── agent-c-fast-grep.md
+│   ├── agent-c-fast-grep.md
+│   └── agent-d-literal-env.md
 └── results/
 ```
 
@@ -22,23 +23,24 @@ benchmarks/fast-grep/
 
 ```bash
 benchmarks/fast-grep/run-pilot.sh
-# Three parallel fresh chats — prompts/coordinator.md
+# Four parallel fresh chats — prompts/coordinator.md
 benchmarks/fast-grep/validate-results.sh benchmarks/fast-grep/results/run-<id>
 benchmarks/fast-grep/merge-results.sh benchmarks/fast-grep/results/run-<id>
 ```
 
 ## Paths
 
-| Path | Tool | Last literal resort? |
-|------|------|----------------------|
-| **A** | **agent Grep tool** (when runtime provides it) | Yes — IDE/agent runtimes |
-| **B** | **SemanticSearch** | N/A (semantic suite) |
-| **C** | **`fast-grep` script** → host `rg`/… | Host CLI; agent Grep on exit **4** |
+| Path | Tool | Notes |
+|------|------|-------|
+| **A** | **agent Grep tool** | Last literal resort in IDE |
+| **B** | **SemanticSearch** | Semantic suite only |
+| **C** | **`fast-grep` wrapper** → host `rg`/… | Install gate + prefs |
+| **D** | **`fast-grep.env` → `rg`/`ag`/… direct** | **Production policy** (no wrapper) |
 
 ## Literal search model (agent-portable)
 
 ```text
-fast-grep.env (after first discover) → host CLI → agent Grep tool (runtime)
+fast-grep.env (after first discover) → host CLI (Path D) → fast-grep wrapper (Path C) → agent Grep tool (Path A)
 ```
 
 SemanticSearch is **not** the literal fallback.

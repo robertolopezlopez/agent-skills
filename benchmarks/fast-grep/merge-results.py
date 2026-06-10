@@ -46,6 +46,7 @@ def main() -> int:
         "A": read_agent_csv(results_dir / "agent-a-results.csv"),
         "B": read_agent_csv(results_dir / "agent-b-results.csv"),
         "C": read_agent_csv(results_dir / "agent-c-results.csv"),
+        "D": read_agent_csv(results_dir / "agent-d-results.csv"),
     }
 
     report = {
@@ -58,6 +59,7 @@ def main() -> int:
             "tok_total_A_cursor_usage": sum_tok(agents["A"]),
             "tok_total_B_cursor_usage": sum_tok(agents["B"]),
             "tok_total_C_cursor_usage": sum_tok(agents["C"]),
+            "tok_total_D_cursor_usage": sum_tok(agents["D"]),
         },
     }
 
@@ -73,18 +75,21 @@ def main() -> int:
         "",
         "## T_tool — engine reference (hyperfine mean, ms)",
         "",
-        "| Task | rg mean | rg σ | fast-grep mean | fast-grep σ | rg hits |",
-        "|------|---------|------|----------------|-------------|---------|",
+        "| Task | rg mean | preferred-host mean | fast-grep mean | rg σ | pref σ | fg σ | rg hits |",
+        "|------|---------|---------------------|----------------|------|--------|------|---------|",
     ]
 
     for task in timing.get("tasks", []):
         rg = task.get("rg", {})
+        ph = task.get("preferred-host", {})
         fg = task.get("fast-grep", {})
         rg_hf = rg.get("hyperfine", {})
+        ph_hf = ph.get("hyperfine", {})
         fg_hf = fg.get("hyperfine", {})
         lines.append(
-            f"| {task['task_id']} | {rg.get('T_tool_ms', '')} | {rg_hf.get('T_tool_ms_stddev', '')} | "
-            f"{fg.get('T_tool_ms', '')} | {fg_hf.get('T_tool_ms_stddev', '')} | "
+            f"| {task['task_id']} | {rg.get('T_tool_ms', '')} | {ph.get('T_tool_ms', '')} | "
+            f"{fg.get('T_tool_ms', '')} | {rg_hf.get('T_tool_ms_stddev', '')} | "
+            f"{ph_hf.get('T_tool_ms_stddev', '')} | {fg_hf.get('T_tool_ms_stddev', '')} | "
             f"{rg.get('hits_returned', '')} |"
         )
 
@@ -95,7 +100,8 @@ def main() -> int:
             "",
             f"- **A** agent Grep `tok_total`: **{report['authoritative_totals']['tok_total_A_cursor_usage']}**",
             f"- **B** semantic `tok_total` (cursor-usage): **{report['authoritative_totals']['tok_total_B_cursor_usage']}**",
-            f"- **C** fast-grep `tok_total` (cursor-usage): **{report['authoritative_totals']['tok_total_C_cursor_usage']}**",
+            f"- **C** fast-grep wrapper `tok_total` (cursor-usage): **{report['authoritative_totals']['tok_total_C_cursor_usage']}**",
+            f"- **D** fast-grep.env + host CLI `tok_total` (cursor-usage): **{report['authoritative_totals']['tok_total_D_cursor_usage']}**",
             "",
         ]
     )
@@ -112,7 +118,12 @@ def main() -> int:
             )
         lines.append("")
 
-    for label, rows in (("A", agents["A"]), ("B", agents["B"]), ("C", agents["C"])):
+    for label, rows in (
+        ("A", agents["A"]),
+        ("B", agents["B"]),
+        ("C", agents["C"]),
+        ("D", agents["D"]),
+    ):
         lines.append(f"## Agent {label} ({len(rows)} rows)")
         lines.append("")
         if not rows:

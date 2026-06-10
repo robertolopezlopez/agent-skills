@@ -10,7 +10,12 @@ import sys
 from pathlib import Path
 
 
-REQUIRED_AGENT_ROWS = {"A": {"L1", "L3", "L7"}, "B": {"S1", "S2", "S3"}, "C": {"L1", "L3", "L7"}}
+REQUIRED_AGENT_ROWS = {
+    "A": {"L1", "L3", "L7"},
+    "B": {"S1", "S2", "S3"},
+    "C": {"L1", "L3", "L7"},
+    "D": {"L1", "L3", "L7"},
+}
 
 REQUIRED_FIELDS = [
     "run_id",
@@ -30,6 +35,7 @@ T_TOOL_SOURCE = {
     "A": {"agent-grep-timed"},
     "B": {"semantic-search-timed"},
     "C": {"hyperfine-mean"},
+    "D": {"hyperfine-mean"},
 }
 
 TOK_SOURCES = {"cursor-usage", "agent-usage"}
@@ -76,7 +82,7 @@ def main() -> int:
             tid = task["task_id"]
             if hyperfine_required and not task.get("hyperfine_json"):
                 errors.append(f"missing hyperfine json for task {tid}")
-            for engine in ("rg", "fast-grep"):
+            for engine in ("rg", "fast-grep", "preferred-host"):
                 if hyperfine_required and "T_tool_ms" not in task.get(engine, {}):
                     errors.append(f"missing hyperfine T_tool_ms for {tid}/{engine}")
 
@@ -84,6 +90,7 @@ def main() -> int:
         "A": results_dir / "agent-a-results.csv",
         "B": results_dir / "agent-b-results.csv",
         "C": results_dir / "agent-c-results.csv",
+        "D": results_dir / "agent-d-results.csv",
     }
 
     for label, csv_path in agents.items():
