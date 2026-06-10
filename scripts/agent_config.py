@@ -121,6 +121,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Print the resolved circleci.env path for the active runtime.",
     )
     parser.add_argument(
+        "--fast-grep-env",
+        action="store_true",
+        help="Print the resolved fast-grep.env path for the active runtime.",
+    )
+    parser.add_argument(
         "--defaults-hint",
         metavar="FILENAME",
         help="Print a human-readable defaults-file hint (for example atlassian.env).",
@@ -148,6 +153,7 @@ def main() -> None:
         args.config_home,
         args.atlassian_env,
         args.circleci_env,
+        args.fast_grep_env,
         bool(args.defaults_hint),
         args.api_docs_root,
         bool(args.api_docs_dir),
@@ -155,7 +161,7 @@ def main() -> None:
     if sum(int(flag) for flag in flags) != 1:
         parser.error(
             "specify exactly one of --runtime, --config-home, --atlassian-env, "
-            "--defaults-hint, --circleci-env, --api-docs-root, or --api-docs-dir"
+            "--defaults-hint, --circleci-env, --fast-grep-env, --api-docs-root, or --api-docs-dir"
         )
 
     if args.runtime:
@@ -169,6 +175,9 @@ def main() -> None:
         return
     if args.circleci_env:
         print(env_file_path("circleci.env", infer_from=infer_from))
+        return
+    if args.fast_grep_env:
+        print(env_file_path("fast-grep.env", infer_from=infer_from))
         return
     if args.api_docs_root:
         print(api_docs_root(infer_from=infer_from))

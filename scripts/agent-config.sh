@@ -11,6 +11,7 @@
 #   scripts/agent-config.sh --config-home
 #   scripts/agent-config.sh --atlassian-env
 #   scripts/agent-config.sh --circleci-env
+#   scripts/agent-config.sh --fast-grep-env
 #   scripts/agent-config.sh --runtime
 #   scripts/agent-config.sh --defaults-hint atlassian.env
 #   scripts/agent-config.sh --api-docs-root
@@ -152,6 +153,11 @@ if [ "${0##*/}" = "agent-config.sh" ] && [ -n "${1:-}" ]; then
       agent_config_env_path circleci.env
       exit 0
       ;;
+    --fast-grep-env)
+      agent_config_init "${2:-}"
+      agent_config_env_path fast-grep.env
+      exit 0
+      ;;
     --runtime)
       agent_config_init "${2:-}"
       printf '%s\n' "$AGENT_CONFIG_RUNTIME"
@@ -181,7 +187,7 @@ if [ "${0##*/}" = "agent-config.sh" ] && [ -n "${1:-}" ]; then
       exit 0
       ;;
     *)
-      echo "usage: agent-config.sh --config-home | --atlassian-env | --circleci-env | --runtime | --defaults-hint FILENAME | --api-docs-root | --api-docs-dir SLUG" >&2
+      echo "usage: agent-config.sh --config-home | --atlassian-env | --circleci-env | --fast-grep-env | --runtime | --defaults-hint FILENAME | --api-docs-root | --api-docs-dir SLUG" >&2
       exit 2
       ;;
   esac

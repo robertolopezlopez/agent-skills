@@ -59,6 +59,12 @@ first_selected() {
   return 1
 }
 
+tool_id_declined() {
+  local tool_id=$1
+  [[ -x "$SCRIPT_DIR/fast-grep-prefs.sh" ]] || return 1
+  "$SCRIPT_DIR/fast-grep-prefs.sh" is-declined "$tool_id" >/dev/null 2>&1
+}
+
 first_missing_offer() {
   local entry tool_id binary label offer install_cmd=""
   for entry in "${CHAIN[@]}"; do
@@ -67,6 +73,9 @@ first_missing_offer() {
       continue
     fi
     if [[ "$offer" != "1" ]]; then
+      continue
+    fi
+    if tool_id_declined "$tool_id"; then
       continue
     fi
     if install_cmd=$("$SCRIPT_DIR/install-cmd.sh" "$tool_id" 2>/dev/null); then
@@ -93,8 +102,11 @@ case "$mode" in
 Usage: fast-grep-resolve [--missing | --chain]
 
   (no args)   Print the binary that fast-grep would use today (rg, ag, ...).
-  --missing   Print the first missing install-offer tier (rg, ugrep, ag) and install_cmd.
+  --missing   Print the first missing, not-declined install-offer tier and install_cmd.
   --chain     Print the full speed-ordered chain with ok/missing status.
+
+Declined offers are read from fast-grep.env under the agent config home
+(see fast-grep-prefs.sh and templates/fast-grep.env.example).
 EOF
     ;;
   "")

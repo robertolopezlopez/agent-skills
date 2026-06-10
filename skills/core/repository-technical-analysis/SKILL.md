@@ -52,7 +52,7 @@ Use this loop for technical analysis tasks:
 1. Start from the user's task and gather the repositories, documents, tickets, URLs, or artifacts they provided. Read any local artifact first.
 2. Identify the narrowest reliable reproduction. Expand to broader coverage only when the failure surface is still unclear.
 3. **Repository code search** — when you need literal anchors in the codebase (failure strings, symbols, imports, feature flags, config keys):
-   - Follow **`fast-grep`** end to end: resolve tools with **`fast-grep/scripts/fast-grep-resolve`**, ask before installing missing **`rg`**, **`ugrep`**, or **`ag`**, then run **`fast-grep/scripts/fast-grep`**.
+   - Follow **`fast-grep`** end to end: run **`fast-grep/scripts/fast-grep`**. On exit **5**, ask before installing; on decline, **`fast-grep-prefs.sh decline <tool>`**; when the user asks to change search tool, **`fast-grep-prefs.sh use <tool>`** (writes **`fast-grep.env`** directly) — then re-run until search succeeds or exit **4**.
    - Tighten scope with **`path`** and **`glob`** (for example the failing package, `*.test.ts`, or `src/auth/`) instead of searching the whole monorepo first.
    - Use **SemanticSearch** only when the target is behavioral or naming is uncertain; confirm candidates with **`fast-grep`** or file reads.
    - Record the search tool used (`rg`, `ag`, `agent-grep`, …) in the analysis artifact when it materially affects confidence or reproducibility.

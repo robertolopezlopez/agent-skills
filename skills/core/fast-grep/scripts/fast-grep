@@ -3,7 +3,11 @@ set -euo pipefail
 
 # Search PATH under the current directory tree (fastest host CLI first):
 # rg > ugrep > ag > git grep > ack > grep -R
-# Exit 0 on success; exit 4 when no host search tool is available (use agent Grep/SemanticSearch).
+# Default: require the fastest install-offer tool (rg, ugrep, ag) before using slower tiers.
+# Exit 5 when a faster install-offer tool is missing (ask user to install).
+# Exit 4 when no host search tool is available (use agent Grep/SemanticSearch).
+
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
 usage() {
   cat <<'EOF'
@@ -12,26 +16,66 @@ Usage: fast-grep [OPTIONS] PATTERN [PATH]
 Search for PATTERN under PATH (default: .).
 
 Options:
-  -i, --ignore-case     Case-insensitive search
+  -i, --ignore-case       Case-insensitive search
   -l, --literal           Treat PATTERN as a fixed string (not regex)
   -g, --glob GLOB         File glob filter (may be repeated)
+  --allow-slower          One-shot search without install offers (does not write
+                          fast-grep.env; prefer fast-grep-prefs.sh decline)
+  decline TOOL            Record declined install in fast-grep.env and exit 0
+  use TOOL                Set preferred search tool in fast-grep.env and exit 0
+                          (aliases: rg, ugrep, ag, git, ack, grep)
   -h, --help              Show this help
 
 Tool order: rg, ugrep, ag, git grep, ack, grep -R
+Declined installs: fast-grep.env under agent config home (~/.cursor or ~/.codex).
+Exit 5 when a faster, not-declined install-offer tool is missing.
 Exit 4 when no host tool is on PATH.
 EOF
 }
 
 IGNORE_CASE=0
 LITERAL=0
+ALLOW_SLOWER=0
 GLOBS=()
 PATTERN=""
 SEARCH_PATH="."
 
+require_fastest_tool() {
+  [[ "$ALLOW_SLOWER" -eq 1 ]] && return 0
+  local missing
+  if ! missing=$("$SCRIPT_DIR/fast-grep-resolve" --missing 2>/dev/null); then
+    return 0
+  fi
+  echo "fast-grep: fastest install-offer search tool is missing; will not use slower tools by default" >&2
+  printf '%s\n' "$missing" >&2
+  echo "fast-grep: ask the user to run install_cmd, verify the binary, and re-run" >&2
+  echo "fast-grep: if install is declined, run: fast-grep/scripts/fast-grep-prefs.sh decline <tool>" >&2
+  echo "fast-grep: to change tool directly, run: fast-grep/scripts/fast-grep-prefs.sh use <tool>" >&2
+  echo "fast-grep: then re-run this search" >&2
+  exit 5
+}
+
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    decline)
+      [[ $# -ge 2 ]] || {
+        echo "fast-grep: decline requires tool (rg, ugrep, ag, ...)" >&2
+        exit 2
+      }
+      "$SCRIPT_DIR/fast-grep-prefs.sh" decline "$2"
+      exit 0
+      ;;
+    use)
+      [[ $# -ge 2 ]] || {
+        echo "fast-grep: use requires tool (rg, ugrep, ag, git, ack, grep)" >&2
+        exit 2
+      }
+      "$SCRIPT_DIR/fast-grep-prefs.sh" use "$2"
+      exit 0
+      ;;
     -i|--ignore-case) IGNORE_CASE=1; shift ;;
     -l|--literal) LITERAL=1; shift ;;
+    --allow-slower) ALLOW_SLOWER=1; shift ;;
     -g|--glob)
       [[ $# -ge 2 ]] || { echo "fast-grep: --glob requires an argument" >&2; exit 2; }
       GLOBS+=("$2")
@@ -73,6 +117,32 @@ fi
 if [[ ! -e "$SEARCH_PATH" ]]; then
   echo "fast-grep: path not found: $SEARCH_PATH" >&2
   exit 3
+fi
+
+preferred_tool_id() {
+  [[ -x "$SCRIPT_DIR/fast-grep-prefs.sh" ]] || return 0
+  "$SCRIPT_DIR/fast-grep-prefs.sh" preferred 2>/dev/null | tr -d '\n'
+}
+
+preferred_tool_runnable() {
+  local tool_id=$1
+  [[ -n "$tool_id" ]] || return 1
+  case "$tool_id" in
+    ripgrep) command -v rg >/dev/null 2>&1 ;;
+    ugrep) command -v ugrep >/dev/null 2>&1 ;;
+    silver_searcher) command -v ag >/dev/null 2>&1 ;;
+    git)
+      command -v git >/dev/null 2>&1 && git rev-parse --is-inside-work-tree >/dev/null 2>&1
+      ;;
+    ack) command -v ack >/dev/null 2>&1 ;;
+    grep) command -v grep >/dev/null 2>&1 ;;
+    *) return 1 ;;
+  esac
+}
+
+preferred=$(preferred_tool_id)
+if ! preferred_tool_runnable "$preferred"; then
+  require_fastest_tool
 fi
 
 tool_label=""
@@ -160,6 +230,26 @@ run_posix_grep() {
   cmd+=("$PATTERN" "$SEARCH_PATH")
   "${cmd[@]}"
 }
+
+run_by_tool_id() {
+  local tool_id=$1
+  case "$tool_id" in
+    ripgrep) run_rg ;;
+    ugrep) run_ugrep ;;
+    silver_searcher) run_ag ;;
+    git) run_git_grep ;;
+    ack) run_ack ;;
+    grep) run_posix_grep ;;
+    *) return 1 ;;
+  esac
+}
+
+if [[ -n "$preferred" ]]; then
+  if run_by_tool_id "$preferred"; then
+    printf '\n# fast-grep: tool=%s (preferred=%s)\n' "$tool_label" "$preferred" >&2
+    exit 0
+  fi
+fi
 
 if run_rg; then
   printf '\n# fast-grep: tool=%s\n' "$tool_label" >&2

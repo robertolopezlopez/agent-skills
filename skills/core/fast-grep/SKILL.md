@@ -12,7 +12,7 @@ description: >-
 
 # Fast Grep
 
-Search the **current directory tree** for a literal or regex **text slice** (pattern). Try the **fastest available host CLI first**. When faster tools are missing, **ask the user** for permission to install with an OS-appropriate command; if they decline, fall back to the next tier.
+Search the **current directory tree** for a literal or regex **text slice** (pattern). **Default: always use the fastest install-offer tool** (`rg`, then `ugrep`, then `ag`). The helper **refuses slower fallbacks** (for example `ag` when `rg` is missing) until the user installs the faster tool or explicitly declines and you re-run with **`--allow-slower`**.
 
 ## When to Use
 
@@ -48,13 +48,30 @@ Treat `{current-directory-tree}` as the workspace root or the user's stated subd
 2. **Resolve the host tool** before searching:
    - Run **`fast-grep/scripts/fast-grep-resolve --chain`** to see which tiers are `ok` or `missing`.
    - Run **`fast-grep/scripts/fast-grep-resolve --missing`** to get the first missing **install-offer** tier (`rg`, `ugrep`, or `ag`) plus an OS-specific **`install_cmd`** when available.
-3. **Install permission loop** (repeat until a host tool is selected or the user declines every offer):
-   - If **`--missing`** prints a tier, **ask the user** whether to install it. Quote the exact command from **`install_cmd`** (from **`fast-grep/scripts/install-cmd.sh <tool_id>`** or **`scripts/check_skill_prereqs.sh fast-grep`** `suggest (...)` lines).
+3. **Install permission loop** (repeat until search succeeds or exit **4**):
+   - On exit **5**, **ask the user** whether to install the printed **`install_cmd`**.
    - **Do not install** unless the user explicitly agrees (see **AGENTS.md**).
-   - **User accepts** → run the printed install command, verify with `command -v <binary>`, then continue from step 2.
-   - **User declines** → skip that tier and run **`fast-grep-resolve --missing`** again only after mentally skipping declined tiers, or walk the [speed order](#search-tool-order-fastest--slowest) to the **next** missing/faster tier without installing; use the next **`ok`** binary from **`--chain`**, or proceed to step 5 when no host tool remains.
+   - **User accepts** → run **`install_cmd`**, verify with `command -v <binary>`, re-run step 4.
+   - **User declines** → write **`fast-grep.env`** immediately, then re-run step 4:
+
+```bash
+fast-grep/scripts/fast-grep-prefs.sh decline <tool>
+```
+
+   - **User asks to change search tool** (for example *"use ag"*, *"switch to rg"*, *"don't ask for ripgrep"*) → **update `fast-grep.env` directly before searching** — do not only answer in chat:
+
+```bash
+fast-grep/scripts/fast-grep-prefs.sh use <tool>
+# aliases: rg, ugrep, ag, git, ack, grep
+# or: fast-grep/scripts/fast-grep use <tool>
+```
+
+   - **`use`** sets **`PREFERRED_SEARCH_TOOL`** and declines faster install-offer tiers so install prompts match the user's choice.
+   - **`accept ripgrep`** (or **`fast-grep-prefs.sh accept rg`**) removes a decline when the user wants the fastest tool again.
+   - Config file: **`fast-grep.env`** under the agent config home (**`scripts/agent_config.py --fast-grep-env`**). Cursor: `~/.cursor/fast-grep.env`; Codex: `~/.codex/fast-grep.env`; override with **`AGENT_CONFIG_HOME`**. Inspect with **`fast-grep-prefs.sh show`**.
+   - After each decline, step 4 offers the **next** missing install-offer tier. When all three are declined or a **`use`** preference is set, the helper searches with the chosen or fastest remaining binary automatically.
    - Offer installs only for **`rg`**, **`ugrep`**, and **`ag`**. Do not prompt to install `git`, `ack`, or POSIX `grep`.
-4. Run the bundled helper with the selected host tool on `PATH`:
+4. Run the bundled helper (strict by default — does **not** silently use `ag` when `rg` is missing):
 
 ```bash
 fast-grep/scripts/fast-grep 'PATTERN' [PATH]
@@ -62,23 +79,23 @@ fast-grep/scripts/fast-grep --literal 'exact slice' src/
 fast-grep/scripts/fast-grep -i 'pattern' --glob '*.go' .
 ```
 
-5. If the helper exits with code **4** (no host search CLI available), use the **agent search fallback** in step 6.
-6. **Agent search fallback** (last resort — Cursor built-in tools):
+5. If the helper exits with code **5**, follow step 3 (install or **`fast-grep-prefs.sh decline`**, then re-run step 4).
+6. If the helper exits with code **4** (no host search CLI available), use the **agent search fallback** in step 7.
+7. **Agent search fallback** (last resort — Cursor built-in tools):
    - **Grep** tool — ripgrep-backed search; pass `pattern`, optional `path`, `glob`, `-i`, context flags.
    - **SemanticSearch** — when the slice is uncertain, misspelled, or the user cares about behavior rather than exact text; query by meaning, then confirm hits with **Grep** or file reads.
-7. Present results as **path:line:content** (or grouped by file). Cap very large result sets; offer to refine pattern, path, or glob.
-8. Open only the most relevant files for the next step (definition, call sites, tests).
+8. Present results as **path:line:content** (or grouped by file). Cap very large result sets; offer to refine pattern, path, or glob.
+9. Open only the most relevant files for the next step (definition, call sites, tests).
 
 ### Install permission example
 
 When `rg` is missing but `ag` is present:
 
-1. `fast-grep-resolve --missing` → `tool_id=ripgrep`, `install_cmd=brew install ripgrep` (on macOS with Homebrew).
+1. `fast-grep/scripts/fast-grep 'PATTERN'` exits **5** and prints `tool_id=ripgrep`, `install_cmd=brew install ripgrep` (on macOS with Homebrew). It does **not** search with `ag`.
 2. Ask: *"ripgrep (`rg`) is the fastest search tool and is not installed. Install with `brew install ripgrep`?"*
-3. **Yes** → run install, re-check `command -v rg`, search with `rg`.
-4. **No** → use `ag` via `fast-grep/scripts/fast-grep` without asking to install `ugrep` unless `ag` is also missing.
-
-When the user declines `rg` and `ugrep` is also missing, offer `ugrep` next. When they decline all three install offers (`rg`, `ugrep`, `ag`), use the fastest remaining **`ok`** tier from **`--chain`** (`git grep`, `ack`, `grep`) or step 6.
+3. **Yes** → run install, re-check `command -v rg`, re-run `fast-grep` (now uses `rg`).
+4. **No** → `fast-grep/scripts/fast-grep-prefs.sh decline ripgrep` (writes `~/.cursor/fast-grep.env` or Codex equivalent), then re-run `fast-grep 'PATTERN'`.
+5. Next run exits **5** for `ugrep` if still missing (ask again), or searches with **`ag`** when `ugrep` is also declined/missing. No **`--allow-slower`** flag needed for the normal decline path.
 
 ## Search tool order (fastest → slowest)
 
