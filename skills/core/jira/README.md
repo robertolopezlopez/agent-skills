@@ -38,6 +38,14 @@ Precedence:
 
 See **`templates/atlassian.env.example`** in the agent-skills repository.
 
+## Config check
+
+```bash
+python3 ~/.cursor/skills/scripts/check_skill_config.sh jira
+```
+
+If anything reports `NEEDS`, help the user finish setup using **`templates/atlassian.env.example`** and the steps in **AGENTS.md** (runtime tool and helper configuration).
+
 ## Recommended Setup
 
 Set `ATLASSIAN_API_BASE_URL` to either:

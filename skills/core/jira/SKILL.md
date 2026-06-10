@@ -77,6 +77,8 @@ summary,status,issuetype,priority,assignee,reporter,created,updated,description,
 
 ## Validation
 
+- Run **`scripts/check_skill_config.sh jira`** (and **`check_skill_prereqs.sh jira`** for optional `jq`). If **`atlassian.env`**, token, or `git config user.email` is missing, **help the user** copy **`templates/atlassian.env.example`** to the path from **`agent_config.py --atlassian-env`** and finish setup per **AGENTS.md**.
+- Bundled **`jira-api`** / **`jira-request`** are required; sync shared files per **AGENTS.md** if helpers are missing from the install root.
 - Prefer bundled helpers before Jira or Atlassian MCP.
 - Keep helper execution routed through `jira-api` or `jira-request`, never direct `curl`.
 - Resolve auth and base URL defaults before invoking helpers.

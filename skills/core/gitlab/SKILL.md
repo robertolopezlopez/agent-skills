@@ -241,6 +241,7 @@ If the repo is not hosted on GitLab, stop and report that the remote host is not
 
 ## Validation
 
+- Before fetching, run **`scripts/check_skill_prereqs.sh gitlab`** then **`scripts/check_skill_config.sh gitlab`**. If `glab` is missing, **ask the user** to install using the **OS-appropriate** `suggest (...)` line; if auth is missing, **help the user** run `glab auth login` before falling back to GitLab MCP.
 - Prefer local `glab` before GitLab MCP.
 - Keep the same normalized MR context contract regardless of transport.
 - Verify that `mr_iid`, `mr_link`, and project identity fields stay consistent across local tool commands.

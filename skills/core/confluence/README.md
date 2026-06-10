@@ -8,6 +8,14 @@ Agents use this skill to access **Confluence Cloud** through the REST API when b
 
 Configuration for fallback helpers lives in the runtime **`atlassian.env`** file for the active install. Resolve it with **`scripts/agent_config.py --atlassian-env`**. The **`jira`** skill uses the same file. See **AGENTS.md** for runtime detection.
 
+Check readiness:
+
+```bash
+python3 ~/.cursor/skills/scripts/check_skill_config.sh confluence
+```
+
+If setup is incomplete, help the user using **`templates/atlassian.env.example`** and **AGENTS.md** (runtime tool and helper configuration).
+
 ## Files
 
 - `SKILL.md`: skill definition and workflow

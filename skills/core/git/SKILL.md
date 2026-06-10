@@ -73,6 +73,7 @@ python3 git/scripts/resolve_project_id.py --fetch-id --json
 
 ## Validation
 
+- When `--fetch-id` or GitLab companions need `glab`, run **`scripts/check_skill_prereqs.sh git`** and **`scripts/check_skill_config.sh git`**. **Help the user** install and authenticate `glab` before expecting `project_id` resolution.
 - Prefer the helper script for consistent parsing and machine-readable output.
 - Read `origin` first unless the user or repo conventions require another remote.
 - Preserve nested groups and stable encoding rules in returned project identity fields.

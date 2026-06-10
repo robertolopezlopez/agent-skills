@@ -39,6 +39,7 @@ Do not use this skill when:
 ## First Read
 
 - Read local workflow and contributor docs first when they exist: `AGENTS.md`, `README`, `CONTRIBUTING.md`, `Makefile`, and `pyproject.toml`.
+- When investigation needs fast search (`rg`, `ag`) or `jq`, run **`scripts/check_skill_prereqs.sh investigate`**. If a recommended tool is missing, **ask the user** to install using the **OS-appropriate** `suggest (...)` line before slower fallback search (see **AGENTS.md** missing CLI tools).
 - Prefer evidence collection before proposing fixes.
 - If the user provides a local workflow artifact, read it first and reuse its links, assumptions, prior plan, and open questions as investigation anchors.
 - Do not edit code until the failure mode or hypothesis is clear enough to defend.

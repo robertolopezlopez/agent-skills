@@ -69,6 +69,7 @@ Confirm ambiguous slugs with the user when multiple remotes or organizations cou
 
 ## Validation
 
+- Run **`scripts/check_skill_prereqs.sh circleci`** and **`scripts/check_skill_config.sh circleci`**. **Help the user** install `circleci` when needed and configure **`CIRCLE_TOKEN`** (export and/or **`circleci.env`** from **`templates/circleci.env.example`**) before API calls fail.
 - Prefer local `circleci` CLI and `circleci-request` before CircleCI MCP.
 - Keep HTTP access behind `scripts/circleci-request`, not ad hoc `curl`.
 - Stop when authenticated API access fails and report missing or invalid token clearly.
@@ -99,12 +100,9 @@ The generic request helper lives at `scripts/circleci-request`, resolved relativ
 
 ## Local Defaults File
 
-Bundled helpers load defaults from **one** runtime config home (see **AGENTS.md**):
+Bundled helpers load defaults from **one** runtime config home (see **AGENTS.md**). Resolve with **`scripts/agent_config.py --circleci-env`** (shell: **`scripts/agent-config.sh --circleci-env`**).
 
-- Cursor install: **`~/.cursor/circleci.env`**
-- Codex install: **`~/.codex/circleci.env`**
-
-Override detection with **`AGENT_SKILLS_RUNTIME=cursor`** or **`codex`**. Let **`circleci-request`** read the file; agents must not open it unless debugging config resolution.
+Override detection with **`AGENT_SKILLS_RUNTIME=cursor`** or **`codex`**. Let **`circleci-request`** read the file; agents must not open it unless debugging config resolution. Scaffold from **`templates/circleci.env.example`** when helping the user set up config.
 
 Preferred usage (non-secret base URL only in file; token optional if you already export it):
 

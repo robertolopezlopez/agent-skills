@@ -78,6 +78,48 @@ Transport skills (GitHub, GitLab, Jira, Confluence, CircleCI, and similar) use t
 
 Do not issue raw assistant `curl` where a skill routes HTTP through helpers. Keep the same normalized output contract regardless of transport path.
 
+## Missing CLI tools — ask before fallback
+
+When a skill needs a host CLI, check availability first (`command -v <tool>` or **`scripts/check_skill_prereqs.sh <skill>`** after sync). The helper detects **`uname -s`** and available package managers (`brew`, `apt-get`, `dnf`, `pacman`, …) and prints **OS-appropriate** install suggestions.
+
+If the tool is **missing** and a **safe, standard** install path exists:
+
+1. **Ask the user** to install it. Give the command that matches **their OS**, not only macOS Homebrew. Prefer the **`suggest (...)`** line from **`check_skill_prereqs.sh`** when it matches the user's platform; otherwise pick the closest standard package-manager command or official vendor doc link the skill lists.
+2. **Do not install** packages yourself unless the user explicitly asks you to run the install command.
+3. **OS guidance (examples — verify against helper output):**
+   - **macOS** — Homebrew when `brew` is available (`brew install gh`, `brew install glab`, …)
+   - **Debian/Ubuntu** — `apt` when available (`sudo apt install gh`, `sudo apt install jq`, …)
+   - **Fedora/RHEL** — `dnf` when available (`sudo dnf install gh`, …)
+   - **Arch** — `pacman` when available (`sudo pacman -S github-cli`, …)
+   - **Other / unsupported distro** — official vendor install URL from the skill or helper `vendor:` line
+4. Treat **bundled repo scripts** (synced helpers under the skills install root) as already available — do not ask to install those.
+5. Only after the user declines, install is blocked, or auth setup is still required, continue with the next transport layer per **Transport preference** (helpers, then MCP last) and say which tool was skipped.
+
+Unsafe or non-standard installs (random `curl | bash`, unknown taps, sudo-heavy scripts) require explicit user approval — default to asking, not doing.
+
+## Runtime tool and helper configuration
+
+Host CLIs and bundled helpers often need **auth or defaults files** under **`$AGENT_CONFIG_HOME`** (Cursor: **`~/.cursor/`**; Codex: **`~/.codex/`**). After install checks, run **`scripts/check_skill_config.sh <skill>`** (synced shared file).
+
+When config is **missing or incomplete**:
+
+1. **Help the user finish setup** before falling back to MCP or giving up. Give the resolved file path (`agent_config.py --atlassian-env`, `--circleci-env`, …), the variables needed, and vendor doc links for tokens.
+2. Use **`templates/*.env.example`** from this repository as scaffolds. Offer to copy the template to the resolved runtime path **only when the user agrees**; let them paste secrets locally.
+3. **CLI auth** — guide `gh auth login`, `glab auth login`, and similar when `check_skill_config.sh` reports `NEEDS … auth`.
+4. **Bundled helpers** — if shared scripts are missing from **`$AGENT_CONFIG_HOME/skills/scripts/`**, run **`./scripts/sync_skills.sh --all`** from the agent-skills repo (or ask the user to).
+5. **Do not read defaults files with the Read tool** to extract tokens unless the user explicitly asked to debug config. Use helper errors and **`check_skill_config.sh`** instead.
+6. **Do not commit secrets** to this repository, artifacts, or chat. Prefer export, official credential files, or runtime `*.env` the user controls.
+7. After setup, re-run **`check_skill_config.sh`** or a minimal probe (`gh auth status`, `jira-api <KEY>`) before continuing the skill workflow.
+
+| Skill / helper | Config / auth |
+|----------------|---------------|
+| `jira`, `confluence` | **`atlassian.env`** — `ATLASSIAN_API_BASE_URL`, `ATLASSIAN_API_TOKEN` (or export / `~/.config/.jira/.credentials`), `git config user.email` |
+| `circleci` | **`CIRCLE_TOKEN`** export and/or **`circleci.env`** |
+| `github` | **`gh auth login`** |
+| `gitlab`, `git --fetch-id` | **`glab auth login`** |
+
+Templates: **`templates/atlassian.env.example`**, **`templates/circleci.env.example`**.
+
 ## Design rules
 
 - Keep skills modular. Prefer a small focused skill over a large mixed-purpose skill.
@@ -103,7 +145,7 @@ Skills synced under **`~/.cursor/skills/`** use **`~/.cursor/`** for local defau
 
 **Agents must not read defaults files directly** — invoke bundled helpers (`jira-api`, `confluence-api`, `circleci-request`, …) or bootstrap scripts, which load the runtime-appropriate file via **`scripts/agent-config.sh`**. Do not probe the other runtime's config home unless the user is debugging cross-runtime setup.
 
-Resolve runtime config paths with **`scripts/agent_config.py`** (synced next to **`scripts/resolve_artifact_path.py`**): **`--atlassian-env`**, **`--config-home`**, **`--runtime`**, **`--defaults-hint atlassian.env`**, **`--api-docs-root`**, or **`--api-docs-dir <slug>`**. Shell equivalent: **`scripts/agent-config.sh`** with the same flags.
+Resolve runtime config paths with **`scripts/agent_config.py`** (synced next to **`scripts/resolve_artifact_path.py`**): **`--atlassian-env`**, **`--circleci-env`**, **`--config-home`**, **`--runtime`**, **`--defaults-hint atlassian.env`**, **`--api-docs-root`**, or **`--api-docs-dir <slug>`**. Shell equivalent: **`scripts/agent-config.sh`** with the same flags.
 
 ## REST API reference cache
 

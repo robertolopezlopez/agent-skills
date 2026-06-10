@@ -204,6 +204,7 @@ gh api repos/<owner>/<repo>/pulls/<number>/reviews
 
 ## Validation
 
+- Before fetching, run **`scripts/check_skill_prereqs.sh github`** then **`scripts/check_skill_config.sh github`**. If `gh` is missing, **ask the user** to install using the **OS-appropriate** `suggest (...)` line; if auth is missing, **help the user** run `gh auth login` before falling back to GitHub MCP.
 - Prefer local `gh` / `gh api` before GitHub MCP.
 - Keep transport behavior separate from workflow logic.
 - Verify `issue` vs `pull_request` before fetching when the identifier is ambiguous.

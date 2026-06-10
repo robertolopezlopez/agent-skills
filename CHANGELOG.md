@@ -17,6 +17,8 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 - **Transport preference inverted** across transport skills and **AGENTS.md**: local CLI tools and bundled shell helpers (`gh`, `glab`, `jira-api`, `circleci-request`, …) are preferred before MCP. MCP is the last resort when local tools are missing or insufficient.
 - **REST API reference cache** in **AGENTS.md**: on first REST API need, fetch or summarize official docs into **`$AGENT_CONFIG_HOME/api-docs/<service-slug>/`** (`~/.cursor/api-docs/` or `~/.codex/api-docs/`); read the cache on later uses. Path resolution via **`agent_config.py --api-docs-root`** / **`--api-docs-dir`**.
+- **Missing CLI tools — ask before fallback** in **AGENTS.md**: when a skill needs a host CLI, check availability; if a safe install exists, ask the user with an **OS-appropriate** command (Homebrew, `apt`, `dnf`, `pacman`, or vendor docs — not Homebrew-only). Shared helper **`scripts/check_skill_prereqs.sh`** detects OS and package managers; transport and investigation skills updated.
+- **Runtime tool and helper configuration** in **AGENTS.md**: **`scripts/check_skill_config.sh`** reports missing `atlassian.env`, `circleci.env`, CLI auth, and synced helpers; agents help users finish setup. Added **`templates/circleci.env.example`**, **`agent_config.py --circleci-env`**.
 
 ### Added
 

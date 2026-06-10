@@ -43,6 +43,7 @@ Accept any of:
 ## First Read
 
 - Read `AGENTS.md`, `README.md`, `Makefile`, and any repo-specific contributor docs first when present.
+- When the repro loop benefits from `entr`, `watchexec`, or `hyperfine`, check `command -v` first; if missing, **ask the user** to install with the command appropriate for their OS (`brew`, `apt`, `dnf`, …) before improvising (see **AGENTS.md** missing CLI tools).
 - If the user provides a local artifact such as `$ARTIFACTS/<meaningful_id>/analysis_<name>.md` (or legacy root-level `analysis_<name>.md`), read it first.
 - Reuse `repository-technical-analysis` expectations for evidence, confidence labels, and blockers.
 - Do not edit code until the repro and failure mode are clear enough to defend.

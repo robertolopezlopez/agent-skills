@@ -60,6 +60,8 @@ Accept, depending on the requested action:
 
 ## Validation
 
+- Run **`scripts/check_skill_config.sh confluence`** (and **`check_skill_prereqs.sh confluence`** for optional `jq`). If Atlassian defaults or auth are missing, **help the user** finish **`atlassian.env`** setup (shared with **`jira`**) per **AGENTS.md**.
+- Bundled **`confluence-api`** / **`confluence-request`** are required; sync shared files per **AGENTS.md** if helpers are missing from the install root.
 - Prefer bundled helpers before Confluence or Atlassian MCP.
 - Keep helper execution routed through `confluence-api` or `confluence-request`, never direct `curl`.
 - Resolve auth and base URL defaults before invoking helpers.

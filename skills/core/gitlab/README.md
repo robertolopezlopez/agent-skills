@@ -2,6 +2,10 @@
 
 The `gitlab` skill fetches and normalizes GitLab merge request context.
 
+## Prerequisites
+
+- **`glab`** on `PATH` (primary transport). Run **`scripts/check_skill_prereqs.sh gitlab`** then **`scripts/check_skill_config.sh gitlab`**. Help the user install (OS-appropriate command) and complete **`glab auth login`** when needed.
+
 Bootstrap artifacts follow the shared schema in `../ARTIFACTS.md`.
 
 ## Optional local artifact bootstrap

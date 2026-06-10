@@ -3,6 +3,8 @@ shared_files:
   - scripts/agent-config.sh
   - scripts/agent_config.py
   - scripts/atlassian-auth.sh
+  - scripts/check_skill_prereqs.sh
+  - scripts/check_skill_config.sh
   - scripts/migrate_legacy_artifacts.py
   - scripts/resolve_artifact_path.py
   - scripts/validate_artifact.py
