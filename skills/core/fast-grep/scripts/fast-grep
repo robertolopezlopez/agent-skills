@@ -1,0 +1,191 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Search PATH under the current directory tree (fastest host CLI first):
+# rg > ugrep > ag > git grep > ack > grep -R
+# Exit 0 on success; exit 4 when no host search tool is available (use agent Grep/SemanticSearch).
+
+usage() {
+  cat <<'EOF'
+Usage: fast-grep [OPTIONS] PATTERN [PATH]
+
+Search for PATTERN under PATH (default: .).
+
+Options:
+  -i, --ignore-case     Case-insensitive search
+  -l, --literal           Treat PATTERN as a fixed string (not regex)
+  -g, --glob GLOB         File glob filter (may be repeated)
+  -h, --help              Show this help
+
+Tool order: rg, ugrep, ag, git grep, ack, grep -R
+Exit 4 when no host tool is on PATH.
+EOF
+}
+
+IGNORE_CASE=0
+LITERAL=0
+GLOBS=()
+PATTERN=""
+SEARCH_PATH="."
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -i|--ignore-case) IGNORE_CASE=1; shift ;;
+    -l|--literal) LITERAL=1; shift ;;
+    -g|--glob)
+      [[ $# -ge 2 ]] || { echo "fast-grep: --glob requires an argument" >&2; exit 2; }
+      GLOBS+=("$2")
+      shift 2
+      ;;
+    -h|--help) usage; exit 0 ;;
+    --) shift; break ;;
+    -*) echo "fast-grep: unknown option: $1" >&2; exit 2 ;;
+    *)
+      if [[ -z "$PATTERN" ]]; then
+        PATTERN=$1
+      elif [[ "$SEARCH_PATH" == "." ]]; then
+        SEARCH_PATH=$1
+      else
+        echo "fast-grep: unexpected argument: $1" >&2; exit 2
+      fi
+      shift
+      ;;
+  esac
+done
+
+while [[ $# -gt 0 ]]; do
+  if [[ -z "$PATTERN" ]]; then
+    PATTERN=$1
+  elif [[ "$SEARCH_PATH" == "." ]]; then
+    SEARCH_PATH=$1
+  else
+    echo "fast-grep: unexpected argument: $1" >&2
+    exit 2
+  fi
+  shift
+done
+
+if [[ -z "$PATTERN" ]]; then
+  usage >&2
+  exit 2
+fi
+
+if [[ ! -e "$SEARCH_PATH" ]]; then
+  echo "fast-grep: path not found: $SEARCH_PATH" >&2
+  exit 3
+fi
+
+tool_label=""
+run_ag() {
+  command -v ag >/dev/null 2>&1 || return 1
+  tool_label=ag
+  local -a cmd=(ag --nogroup --nocolor --numbers)
+  [[ "$IGNORE_CASE" -eq 1 ]] && cmd+=(--ignore-case)
+  [[ "$LITERAL" -eq 1 ]] && cmd+=(--literal)
+  if ((${#GLOBS[@]} > 0)); then
+    local g
+    for g in "${GLOBS[@]}"; do cmd+=(--glob "$g"); done
+  fi
+  cmd+=("$PATTERN" "$SEARCH_PATH")
+  "${cmd[@]}"
+}
+
+run_ack() {
+  command -v ack >/dev/null 2>&1 || return 1
+  tool_label=ack
+  local -a cmd=(ack --noheading --with-filename --line)
+  [[ "$IGNORE_CASE" -eq 1 ]] && cmd+=(-i)
+  if [[ "$LITERAL" -eq 1 ]]; then
+    cmd+=(-Q)
+  fi
+  if ((${#GLOBS[@]} > 0)); then
+    local g
+    for g in "${GLOBS[@]}"; do cmd+=(--match "$g"); done
+  fi
+  cmd+=("$PATTERN" "$SEARCH_PATH")
+  "${cmd[@]}"
+}
+
+run_rg() {
+  command -v rg >/dev/null 2>&1 || return 1
+  tool_label=rg
+  local -a cmd=(rg --no-heading --line-number --color=never)
+  [[ "$IGNORE_CASE" -eq 1 ]] && cmd+=(-i)
+  [[ "$LITERAL" -eq 1 ]] && cmd+=(-F)
+  if ((${#GLOBS[@]} > 0)); then
+    local g
+    for g in "${GLOBS[@]}"; do cmd+=(--glob "$g"); done
+  fi
+  cmd+=("$PATTERN" "$SEARCH_PATH")
+  "${cmd[@]}"
+}
+
+run_ugrep() {
+  command -v ugrep >/dev/null 2>&1 || return 1
+  tool_label=ugrep
+  local -a cmd=(ugrep -n --color=never)
+  [[ "$IGNORE_CASE" -eq 1 ]] && cmd+=(-i)
+  [[ "$LITERAL" -eq 1 ]] && cmd+=(-F)
+  if ((${#GLOBS[@]} > 0)); then
+    local g
+    for g in "${GLOBS[@]}"; do cmd+=(-g "$g"); done
+  fi
+  cmd+=("$PATTERN" "$SEARCH_PATH")
+  "${cmd[@]}"
+}
+
+run_git_grep() {
+  command -v git >/dev/null 2>&1 || return 1
+  git rev-parse --is-inside-work-tree >/dev/null 2>&1 || return 1
+  [[ ${#GLOBS[@]} -eq 0 ]] || return 1
+  tool_label=git-grep
+  local -a cmd=(git grep -n)
+  [[ "$IGNORE_CASE" -eq 1 ]] && cmd+=(-i)
+  [[ "$LITERAL" -eq 1 ]] && cmd+=(-F)
+  cmd+=("$PATTERN" -- "$SEARCH_PATH")
+  "${cmd[@]}"
+}
+
+run_posix_grep() {
+  command -v grep >/dev/null 2>&1 || return 1
+  tool_label=grep
+  local -a cmd=(grep -R -n -H)
+  [[ "$IGNORE_CASE" -eq 1 ]] && cmd+=(-i)
+  [[ "$LITERAL" -eq 1 ]] && cmd+=(-F)
+  cmd+=(--exclude-dir=.git --exclude-dir=node_modules --exclude-dir=dist --exclude-dir=build)
+  if [[ ${#GLOBS[@]} -gt 0 ]]; then
+    local g
+    for g in "${GLOBS[@]}"; do cmd+=(--include="$g"); done
+  fi
+  cmd+=("$PATTERN" "$SEARCH_PATH")
+  "${cmd[@]}"
+}
+
+if run_rg; then
+  printf '\n# fast-grep: tool=%s\n' "$tool_label" >&2
+  exit 0
+fi
+if run_ugrep; then
+  printf '\n# fast-grep: tool=%s\n' "$tool_label" >&2
+  exit 0
+fi
+if run_ag; then
+  printf '\n# fast-grep: tool=%s\n' "$tool_label" >&2
+  exit 0
+fi
+if run_git_grep; then
+  printf '\n# fast-grep: tool=%s\n' "$tool_label" >&2
+  exit 0
+fi
+if run_ack; then
+  printf '\n# fast-grep: tool=%s\n' "$tool_label" >&2
+  exit 0
+fi
+if run_posix_grep; then
+  printf '\n# fast-grep: tool=%s\n' "$tool_label" >&2
+  exit 0
+fi
+
+echo "fast-grep: no host search tool found (tried rg, ugrep, ag, git grep, ack, grep)" >&2
+echo "fast-grep: use agent Grep or SemanticSearch (see fast-grep SKILL.md)" >&2
+exit 4

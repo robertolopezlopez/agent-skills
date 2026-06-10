@@ -16,6 +16,8 @@ skills:
     type: core
     repo_scope: generic
     release_group: core
+    companion_skills:
+      - fast-grep
   - name: diagnose
     path: skills/core/diagnose
     status: stable
@@ -24,6 +26,15 @@ skills:
     release_group: core
     companion_skills:
       - repository-technical-analysis
+  - name: fast-grep
+    path: skills/core/fast-grep
+    status: stable
+    type: core
+    repo_scope: generic
+    release_group: core
+    companion_skills:
+      - repository-technical-analysis
+      - diagnose
   - name: git
     path: skills/core/git
     status: stable
@@ -36,6 +47,8 @@ skills:
     type: core
     repo_scope: generic
     release_group: core
+    companion_skills:
+      - fast-grep
   - name: github
     path: skills/core/github
     status: stable
@@ -133,6 +146,7 @@ skills:
       - tdd
       - diagnose
       - repository-technical-analysis
+      - fast-grep
       - circleci
   - name: private-technical-analysis
     path: skills/cli/technical-analysis
@@ -221,6 +235,7 @@ skills:
     release_group: core
     companion_skills:
       - repository-technical-analysis
+      - fast-grep
   - name: tdd
     path: skills/core/tdd
     status: stable
@@ -237,3 +252,5 @@ skills:
     type: core
     repo_scope: generic
     release_group: core
+    companion_skills:
+      - fast-grep

@@ -1,6 +1,6 @@
 ---
 name: repository-technical-analysis
-description: Use this when performing technical analysis in a code repository, including test failure investigation, root-cause analysis, architecture inspection, incident debugging, regression triage, or performance analysis. Covers evidence-first investigation, targeted reproduction, root-cause grouping, and concise recommendations. Non-trivial analysis writes to `$ARTIFACTS/<meaningful_id>/analysis_<relevant_name>.md` by default; legacy root-level analysis files remain valid.
+description: Use this when performing technical analysis in a code repository, including test failure investigation, root-cause analysis, architecture inspection, incident debugging, regression triage, or performance analysis. Covers evidence-first investigation, targeted reproduction, root-cause grouping, and concise recommendations. Uses the fast-grep companion for speed-ordered literal codebase search. Non-trivial analysis writes to `$ARTIFACTS/<meaningful_id>/analysis_<relevant_name>.md` by default; legacy root-level analysis files remain valid.
 ---
 
 # Repository Technical Analysis
@@ -39,7 +39,8 @@ Do not use this skill when:
 ## First Read
 
 - Read local workflow and contributor docs first when they exist: `AGENTS.md`, `README`, `CONTRIBUTING.md`, `Makefile`, and `pyproject.toml`.
-- When investigation needs fast search (`rg`, `ag`) or `jq`, run **`scripts/check_skill_prereqs.sh investigate`**. If a recommended tool is missing, **ask the user** to install using the **OS-appropriate** `suggest (...)` line before slower fallback search (see **AGENTS.md** missing CLI tools).
+- Literal codebase search: workflow **step 3** via the **`fast-grep`** companion (details live in `fast-grep/SKILL.md` only).
+- When investigation needs JSON filtering, run **`scripts/check_skill_prereqs.sh investigate`** for optional `jq`.
 - Prefer evidence collection before proposing fixes.
 - If the user provides a local workflow artifact, read it first and reuse its links, assumptions, prior plan, and open questions as investigation anchors.
 - Do not edit code until the failure mode or hypothesis is clear enough to defend.
@@ -50,12 +51,17 @@ Use this loop for technical analysis tasks:
 
 1. Start from the user's task and gather the repositories, documents, tickets, URLs, or artifacts they provided. Read any local artifact first.
 2. Identify the narrowest reliable reproduction. Expand to broader coverage only when the failure surface is still unclear.
-3. Use any relevant local material as research input, including repositories, notes, logs, and prior analysis files.
-4. Fetch online material when needed, including documentation or API references.
-5. Run the tests, scripts, benchmarks, or reproduction steps that best isolate the issue.
-6. When rerunning or extending an existing analysis artifact (`$ARTIFACTS/…/analysis_<relevant_name>.md` by preference, or a legacy root-level file when already in use), preserve durable learned sections such as `Follow-up Findings`, `Improvement Candidates`, `Root Cause Lessons`, `Known Patterns`, `Dead Ends Tried`, `Fastest Reliable Repro`, or `Next-Time Checks` when they still match current evidence, explicitly mark stale heuristics, and promote repeated confirmed observations into reusable checks.
-7. Write the analysis incrementally to `$ARTIFACTS/<meaningful_id>/analysis_<relevant_name>.md` when the investigation is non-trivial and no explicit or legacy path is already in use.
-8. Iterate until the findings are confirmed, reduced to a small set of defensible hypotheses, or blocked by a clearly stated dependency.
+3. **Repository code search** — when you need literal anchors in the codebase (failure strings, symbols, imports, feature flags, config keys):
+   - Follow **`fast-grep`** end to end: resolve tools with **`fast-grep/scripts/fast-grep-resolve`**, ask before installing missing **`rg`**, **`ugrep`**, or **`ag`**, then run **`fast-grep/scripts/fast-grep`**.
+   - Tighten scope with **`path`** and **`glob`** (for example the failing package, `*.test.ts`, or `src/auth/`) instead of searching the whole monorepo first.
+   - Use **SemanticSearch** only when the target is behavioral or naming is uncertain; confirm candidates with **`fast-grep`** or file reads.
+   - Record the search tool used (`rg`, `ag`, `agent-grep`, …) in the analysis artifact when it materially affects confidence or reproducibility.
+4. Use any relevant local material as research input, including repositories, notes, logs, and prior analysis files.
+5. Fetch online material when needed, including documentation or API references.
+6. Run the tests, scripts, benchmarks, or reproduction steps that best isolate the issue.
+7. When rerunning or extending an existing analysis artifact (`$ARTIFACTS/…/analysis_<relevant_name>.md` by preference, or a legacy root-level file when already in use), preserve durable learned sections such as `Follow-up Findings`, `Improvement Candidates`, `Root Cause Lessons`, `Known Patterns`, `Dead Ends Tried`, `Fastest Reliable Repro`, or `Next-Time Checks` when they still match current evidence, explicitly mark stale heuristics, and promote repeated confirmed observations into reusable checks.
+8. Write the analysis incrementally to `$ARTIFACTS/<meaningful_id>/analysis_<relevant_name>.md` when the investigation is non-trivial and no explicit or legacy path is already in use.
+9. Iterate until the findings are confirmed, reduced to a small set of defensible hypotheses, or blocked by a clearly stated dependency.
 
 ## Investigation Rules
 
@@ -71,6 +77,7 @@ Use this loop for technical analysis tasks:
 ## Validation
 
 - Use repo commands where practical, but prefer direct commands when tighter control is needed.
+- For codebase text search during analysis, validate that **`fast-grep`** (or its documented agent fallback) was used instead of unbounded manual file walks.
 - After approved code changes, run the lint, format, and test commands that are relevant to the fix.
 - Prefer the smallest validation set that proves or disproves the hypothesis before expanding coverage.
 
@@ -97,10 +104,13 @@ When the work is non-trivial, this skill may also write or enrich:
 
 Use this skill as the generic investigation layer.
 
+- **`fast-grep`** — required for step 3 (workflow owner for search prose)
+
 Common pairings:
 
 - repository-specific overlay skills for local commands, configs, and validation
 - transport skills such as `jira`, `confluence`, or `gitlab` when the investigation starts from remote issue, wiki, or MR context
+- `diagnose` when a concrete bug repro is already known and the work shifts from scoping to instrumentation
 
 ## Artifact-Aware Behavior
 

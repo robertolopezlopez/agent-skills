@@ -1,0 +1,107 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Resolve which fast-grep host tool would run, or the first missing tier that offers install.
+#
+# Usage:
+#   fast-grep-resolve              # print selected binary (rg, ugrep, ag, ...) or empty
+#   fast-grep-resolve --missing    # print first missing install-offer tier: tool_id binary label
+#   fast-grep-resolve --chain      # print full speed-ordered chain with ok/missing status
+
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+
+# tool_id binary label offer_install(0|1)
+CHAIN=(
+  "ripgrep:rg:ripgrep:1"
+  "ugrep:ugrep:ugrep:1"
+  "silver_searcher:ag:The Silver Searcher:1"
+  "git:git:git grep:0"
+  "ack:ack:ack 3:0"
+  "grep:grep:POSIX grep:0"
+)
+
+tool_available() {
+  local binary=$1
+  case "$binary" in
+    git)
+      command -v git >/dev/null 2>&1 && git rev-parse --is-inside-work-tree >/dev/null 2>&1
+      ;;
+    *)
+      command -v "$binary" >/dev/null 2>&1
+      ;;
+  esac
+}
+
+mode="${1:-}"
+
+print_chain() {
+  local entry tool_id binary label offer status
+  for entry in "${CHAIN[@]}"; do
+    IFS=: read -r tool_id binary label offer <<<"$entry"
+    if tool_available "$binary"; then
+      status=ok
+    else
+      status=missing
+    fi
+    printf '%s %s %s offer_install=%s\n' "$status" "$binary" "$label" "$offer"
+  done
+}
+
+first_selected() {
+  local entry tool_id binary label offer
+  for entry in "${CHAIN[@]}"; do
+    IFS=: read -r tool_id binary label offer <<<"$entry"
+    if tool_available "$binary"; then
+      printf '%s\n' "$binary"
+      return 0
+    fi
+  done
+  return 1
+}
+
+first_missing_offer() {
+  local entry tool_id binary label offer install_cmd=""
+  for entry in "${CHAIN[@]}"; do
+    IFS=: read -r tool_id binary label offer <<<"$entry"
+    if tool_available "$binary"; then
+      continue
+    fi
+    if [[ "$offer" != "1" ]]; then
+      continue
+    fi
+    if install_cmd=$("$SCRIPT_DIR/install-cmd.sh" "$tool_id" 2>/dev/null); then
+      printf 'tool_id=%s\nbinary=%s\nlabel=%s\ninstall_cmd=%s\n' \
+        "$tool_id" "$binary" "$label" "$install_cmd"
+    else
+      printf 'tool_id=%s\nbinary=%s\nlabel=%s\ninstall_cmd=\n' \
+        "$tool_id" "$binary" "$label"
+    fi
+    return 0
+  done
+  return 1
+}
+
+case "$mode" in
+  --chain)
+    print_chain
+    ;;
+  --missing)
+    first_missing_offer
+    ;;
+  --help|-h)
+    cat <<'EOF'
+Usage: fast-grep-resolve [--missing | --chain]
+
+  (no args)   Print the binary that fast-grep would use today (rg, ag, ...).
+  --missing   Print the first missing install-offer tier (rg, ugrep, ag) and install_cmd.
+  --chain     Print the full speed-ordered chain with ok/missing status.
+EOF
+    ;;
+  "")
+    first_selected
+    ;;
+  *)
+    echo "fast-grep-resolve: unknown option: $mode" >&2
+    exit 2
+    ;;
+esac

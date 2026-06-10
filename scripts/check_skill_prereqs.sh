@@ -31,7 +31,15 @@ detect_os() {
   case "$OS_NAME" in
     Darwin) OS_FAMILY=darwin ;;
     Linux) OS_FAMILY=linux ;;
-    *) OS_FAMILY=other ;;
+    MINGW*|MSYS*|CYGWIN*|Windows_NT) OS_FAMILY=windows ;;
+    *)
+      if [[ -n "${WINDIR:-}" || -n "${windir:-}" ]]; then
+        OS_FAMILY=windows
+        OS_NAME=Windows
+      else
+        OS_FAMILY=other
+      fi
+      ;;
   esac
 }
 
@@ -41,6 +49,33 @@ has_dnf() { command -v dnf >/dev/null 2>&1; }
 has_yum() { command -v yum >/dev/null 2>&1; }
 has_pacman() { command -v pacman >/dev/null 2>&1; }
 has_zypper() { command -v zypper >/dev/null 2>&1; }
+has_winget() { command -v winget >/dev/null 2>&1; }
+has_scoop() { command -v scoop >/dev/null 2>&1; }
+has_choco() { command -v choco >/dev/null 2>&1; }
+
+# Resolve fast-grep install-cmd.sh (synced install or repo checkout).
+fast_grep_install_cmd_sh() {
+  local script_dir
+  script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+  if [[ -x "$script_dir/../fast-grep/scripts/install-cmd.sh" ]]; then
+    printf '%s\n' "$script_dir/../fast-grep/scripts/install-cmd.sh"
+    return 0
+  fi
+  if [[ -x "$script_dir/../skills/core/fast-grep/scripts/install-cmd.sh" ]]; then
+    printf '%s\n' "$script_dir/../skills/core/fast-grep/scripts/install-cmd.sh"
+    return 0
+  fi
+  return 1
+}
+
+# print_fast_grep_install TOOL_ID — one OS-specific command when install-cmd.sh exists.
+print_fast_grep_install() {
+  local tool_id=$1
+  local installer cmd
+  installer=$(fast_grep_install_cmd_sh) || return 1
+  cmd=$("$installer" "$tool_id" 2>/dev/null) || return 1
+  printf '       install_cmd: %s\n' "$cmd"
+}
 
 # suggest_install TOOL_ID LABEL VENDOR_URL
 # Prints one or more "suggest:" lines based on OS and available package managers.
@@ -132,6 +167,20 @@ suggest_install() {
           printed=1
         fi
       fi
+      if [[ "$OS_FAMILY" == windows ]]; then
+        if has_winget; then
+          printf '       suggest (Windows/winget): winget install --id BurntSushi.ripgrep.MSVC -e\n'
+          printed=1
+        fi
+        if has_scoop; then
+          printf '       suggest (Windows/Scoop): scoop install ripgrep\n'
+          printed=1
+        fi
+        if has_choco; then
+          printf '       suggest (Windows/Chocolatey): choco install ripgrep -y\n'
+          printed=1
+        fi
+      fi
       ;;
     silver_searcher)
       if [[ "$OS_FAMILY" == darwin ]] && has_brew; then
@@ -149,6 +198,84 @@ suggest_install() {
         fi
         if has_pacman; then
           printf '       suggest (Arch): sudo pacman -S silver-searcher-git\n'
+          printed=1
+        fi
+      fi
+      if [[ "$OS_FAMILY" == windows ]]; then
+        if has_scoop; then
+          printf '       suggest (Windows/Scoop): scoop install ag\n'
+          printed=1
+        fi
+        if has_choco; then
+          printf '       suggest (Windows/Chocolatey): choco install ag -y\n'
+          printed=1
+        fi
+        if has_winget; then
+          printf '       suggest (Windows/winget): winget install --id ggreer.the_silver_searcher -e\n'
+          printed=1
+        fi
+      fi
+      ;;
+    ack)
+      if [[ "$OS_FAMILY" == darwin ]] && has_brew; then
+        printf '       suggest (macOS/Homebrew): brew install ack\n'
+        printed=1
+      fi
+      if [[ "$OS_FAMILY" == linux ]]; then
+        if has_apt; then
+          printf '       suggest (Debian/Ubuntu): sudo apt install ack\n'
+          printed=1
+        fi
+        if has_dnf; then
+          printf '       suggest (Fedora/RHEL): sudo dnf install ack\n'
+          printed=1
+        fi
+        if has_pacman; then
+          printf '       suggest (Arch): sudo pacman -S ack\n'
+          printed=1
+        fi
+      fi
+      if [[ "$OS_FAMILY" == windows ]]; then
+        if has_choco; then
+          printf '       suggest (Windows/Chocolatey): choco install ack -y\n'
+          printed=1
+        fi
+        if has_scoop; then
+          printf '       suggest (Windows/Scoop): scoop install ack\n'
+          printed=1
+        fi
+      fi
+      ;;
+    ugrep)
+      if [[ "$OS_FAMILY" == darwin ]] && has_brew; then
+        printf '       suggest (macOS/Homebrew): brew install ugrep\n'
+        printed=1
+      fi
+      if [[ "$OS_FAMILY" == linux ]]; then
+        if has_apt; then
+          printf '       suggest (Debian/Ubuntu): sudo apt install ugrep\n'
+          printed=1
+        fi
+        if has_dnf; then
+          printf '       suggest (Fedora/RHEL): sudo dnf install ugrep\n'
+          printed=1
+        fi
+        if has_pacman; then
+          printf '       suggest (Arch): sudo pacman -S ugrep\n'
+          printed=1
+        fi
+      fi
+      if [[ "$OS_FAMILY" == windows ]]; then
+        if has_winget; then
+          printf '       suggest (Windows/winget): winget install --id Genivia.ugrep -e\n'
+          printed=1
+        fi
+        if has_scoop; then
+          printf '       suggest (Windows/Scoop): scoop install ugrep\n'
+          printed=1
+        fi
+        if has_choco; then
+          printf '       suggest (Windows/Chocolatey): choco install ugrep -y\n'
           printed=1
         fi
       fi
@@ -228,18 +355,52 @@ check_group() {
       ;;
     investigate|repository-technical-analysis|diagnose)
       check_tool jq jq "JSON filter (optional)" "https://jqlang.org/" || true
-      if ! command -v rg >/dev/null 2>&1 && ! command -v ag >/dev/null 2>&1; then
-        printf 'MISSING rg or ag (fast search, optional)\n'
-        suggest_install ripgrep "ripgrep" "https://github.com/BurntSushi/ripgrep"
-        printf '       alt: '
-        suggest_install silver_searcher "The Silver Searcher" "https://github.com/ggreer/the_silver_searcher"
-        missing=$((missing + 1))
-      else
-        command -v rg >/dev/null 2>&1 && printf 'ok   rg (fast search)\n' || printf 'ok   ag (fast search)\n'
-      fi
+      printf 'note: repository text search — follow fast-grep skill (scripts/check_skill_prereqs.sh fast-grep)\n'
       ;;
     parallel-tests|private-parallel-tests|private-service-parallel-tests)
       check_tool parallel parallel "GNU parallel (optional)" "https://www.gnu.org/software/parallel/" || true
+      ;;
+    fast-grep)
+      local fast_missing=0
+      local offer_tools=(ripgrep:rg:ripgrep ugrep:ugrep:ugrep silver_searcher:ag:"The Silver Searcher")
+      local entry tool_id binary label
+      for entry in "${offer_tools[@]}"; do
+        IFS=: read -r tool_id binary label <<<"$entry"
+        if command -v "$binary" >/dev/null 2>&1; then
+          printf 'ok   %s (%s)\n' "$binary" "$label"
+          continue
+        fi
+        printf 'MISSING %s (%s)\n' "$binary" "$label"
+        if ! print_fast_grep_install "$tool_id"; then
+          case "$tool_id" in
+            ripgrep) suggest_install ripgrep "$label" "https://github.com/BurntSushi/ripgrep" ;;
+            ugrep) suggest_install ugrep "$label" "https://github.com/Genivia/ugrep" ;;
+            silver_searcher) suggest_install silver_searcher "$label" "https://github.com/ggreer/the_silver_searcher" ;;
+          esac
+        fi
+        [[ "$tool_id" == ripgrep ]] && fast_missing=$((fast_missing + 1))
+      done
+      if command -v git >/dev/null 2>&1; then
+        printf 'ok   git (git grep, fast scoped)\n'
+      else
+        printf 'MISSING git (git grep, fast scoped)\n'
+        fast_missing=$((fast_missing + 1))
+      fi
+      if command -v ack >/dev/null 2>&1; then
+        printf 'ok   ack (ack3, moderate)\n'
+      else
+        printf 'MISSING ack (ack3, moderate)\n'
+      fi
+      if command -v grep >/dev/null 2>&1; then
+        printf 'ok   grep (POSIX, slowest host)\n'
+      else
+        printf 'MISSING grep (POSIX, slowest host)\n'
+        fast_missing=$((fast_missing + 1))
+      fi
+      printf 'note: ask the user before installing; install_cmd from fast-grep/scripts/install-cmd.sh when shown\n'
+      if [[ "$fast_missing" -gt 0 ]]; then
+        printf 'note: if install is declined, fall back to the next ok tier or agent Grep/SemanticSearch\n'
+      fi
       ;;
     *)
       echo "unknown skill/group: $group" >&2
@@ -258,7 +419,7 @@ detect_os
 
 targets=()
 if [[ "${1:-}" == "--all" ]]; then
-  targets=(github gitlab git circleci jira confluence investigate parallel-tests)
+  targets=(github gitlab git circleci jira confluence investigate fast-grep parallel-tests)
 elif [[ $# -eq 0 ]]; then
   usage >&2
   exit 2

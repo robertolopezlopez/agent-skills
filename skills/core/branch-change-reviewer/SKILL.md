@@ -38,6 +38,7 @@ Do not use this skill when:
 
 ## Inspect the repository first
 
+- When the diff alone does not explain impact (call sites, rename fallout, shared helpers), use **`fast-grep`** to find literal references before concluding on regressions.
 - Run `git status --short --branch`.
 - Determine the current branch name and resolve the default output path under `$ARTIFACTS/<meaningful_id>/` (or an existing legacy review file when already present).
 - Refresh the target branch with `git fetch` before reviewing.
