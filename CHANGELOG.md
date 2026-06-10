@@ -15,12 +15,19 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 ### Changed
 
+- **Literal code search migration** — routine literal search no longer uses an installable **`fast-grep`** skill. Policy lives in synced **`LITERAL-CODE-SEARCH.md`** (`agent_config.py --literal-search-policy`); helpers sync under **`agent_config.py --literal-search-dir`**. Optional Cursor rule: **`templates/cursor/rules/literal-code-search.mdc`** via **`bootstrap_literal_search.sh --cursor-rule`**. Codex and other agents use the synced doc + skills (no `.mdc`). **`skills/core/fast-grep/`** removed.
+- **Literal search OS portability** — **`LITERAL-CODE-SEARCH.md`**, Cursor rule, RTA step 3, **`install-cmd.sh`**, and **`check_skill_prereqs.sh literal-search`** enforce OS-detected installs (`brew`/`apt`/`dnf`/`yum`/`zypper`/`pacman`/`winget`/`scoop`/`choco`/`pkg`); **`fast-grep-resolve --missing`** includes **`os=`**; ask-before-install, never Homebrew-only.
 - **Transport preference inverted** across transport skills and **AGENTS.md**: local CLI tools and bundled shell helpers (`gh`, `glab`, `jira-api`, `circleci-request`, …) are preferred before MCP. MCP is the last resort when local tools are missing or insufficient.
 - **REST API reference cache** in **AGENTS.md**: on first REST API need, fetch or summarize official docs into **`$AGENT_CONFIG_HOME/api-docs/<service-slug>/`** (`~/.cursor/api-docs/` or `~/.codex/api-docs/`); read the cache on later uses. Path resolution via **`agent_config.py --api-docs-root`** / **`--api-docs-dir`**.
 - **Missing CLI tools — ask before fallback** in **AGENTS.md**: when a skill needs a host CLI, check availability; if a safe install exists, ask the user with an **OS-appropriate** command (Homebrew, `apt`, `dnf`, `pacman`, or vendor docs — not Homebrew-only). Shared helper **`scripts/check_skill_prereqs.sh`** detects OS and package managers; transport and investigation skills updated.
 - **Runtime tool and helper configuration** in **AGENTS.md**: **`scripts/check_skill_config.sh`** reports missing `atlassian.env`, `circleci.env`, CLI auth, and synced helpers; agents help users finish setup. Added **`templates/circleci.env.example`**, **`agent_config.py --circleci-env`**.
 
 ### Added
+
+- **`LITERAL-CODE-SEARCH.md`**: synced portable literal-search policy (`shared_files`; resolve with **`agent_config.py --literal-search-policy`**)
+- **`scripts/sync_cursor_rules.sh`**: sync **`templates/cursor/rules/*.mdc`** to **`~/.cursor/rules/`** (post-commit uses **`--overwrite`**)
+- **`templates/cursor/rules/literal-code-search.mdc`** and **`scripts/bootstrap_literal_search.sh`**: optional Cursor always-on rule; Codex uses synced doc + skills
+- **`agent_config.py` / `agent-config.sh`**: **`--skills-root`**, **`--literal-search-dir`**, **`--literal-search-policy`**
 
 - **`templates/agent-artifacts/`** and **`templates/cursor/rules/agent-artifacts-directory.mdc`**: portable store index and Cursor phrase rule for "the artifacts directory"
 - **`scripts/bootstrap_agent_artifacts.sh`**: one-time bootstrap for **`$AGENT_ARTIFACTS_HOME/README.md`**, **`$GLOBAL/NEXT_TIME_CHECKS.md`**, and optional Cursor rule (Codex uses **`AGENTS.md`** + **`ARTIFACTS.md`** for the same contract)
@@ -50,7 +57,7 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 - Atlassian auth is a single manifest **shared_files** script (`scripts/atlassian-auth.sh`); `jira` and `confluence` helpers source it from the skills install root `scripts/` directory next to `validate_artifact.py` instead of copying to `$HOME/.local/share/jira/`
 - `scripts/sync_skills.sh --delete-missing` skips the non-skill `scripts/` directory under each install root (it carries shared helpers such as `validate_artifact.py`)
 - CLI overlay skills: `private-prefix-*` → `cli-*`, directory `skills/private-prefix/` → `skills/cli/`, manifest `repo_scope` / `release_group` → `cli`; prose is agent- and IDE-agnostic
-- `git-hooks/post-commit` forces `AGENT_SKILLS_SYNC_TARGETS=codex,cursor` and resolves the repo with `git rev-parse`; `git-hooks/pre-commit` uses the same repo resolution for symlink-safe paths
+- `git-hooks/post-commit` forces `AGENT_SKILLS_SYNC_TARGETS=codex,cursor`, runs **`scripts/sync_cursor_rules.sh --overwrite`** after skill sync, and resolves the repo with `git rev-parse`; `git-hooks/pre-commit` uses the same repo resolution for symlink-safe paths
 - **`jira`** / **`confluence`** helpers and Jira artifact bootstrap read `ATLASSIAN_API_BASE_URL` from **`~/.cursor/atlassian.env`** before **`~/.codex/atlassian.env`**; **`~/.cursor/jira.env`** / **`~/.codex/jira.env`** are no longer read (rename existing files if needed).
 - top-level skills normalized to the shared schema
 - `scripts/validate_skill.py` now distinguishes hard failures from schema-drift warnings and checks manifest consistency

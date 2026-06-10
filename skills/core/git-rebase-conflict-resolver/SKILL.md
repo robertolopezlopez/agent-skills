@@ -32,7 +32,7 @@ Do not use this skill when:
 
 ## Inspect state first
 
-- When conflict hunks need surrounding context (imports, callers, renamed symbols), use **`fast-grep`** to locate related references before choosing a resolution.
+- When conflict hunks need surrounding context (imports, callers, renamed symbols), follow synced **`LITERAL-CODE-SEARCH.md`** to locate related references before choosing a resolution.
 - Run `git status --short --branch`.
 - Detect whether a rebase is already in progress before starting a new one.
 - If the worktree is dirty, separate unrelated user changes from rebase work.

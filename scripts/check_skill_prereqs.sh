@@ -31,6 +31,7 @@ detect_os() {
   case "$OS_NAME" in
     Darwin) OS_FAMILY=darwin ;;
     Linux) OS_FAMILY=linux ;;
+    FreeBSD) OS_FAMILY=freebsd ;;
     MINGW*|MSYS*|CYGWIN*|Windows_NT) OS_FAMILY=windows ;;
     *)
       if [[ -n "${WINDIR:-}" || -n "${windir:-}" ]]; then
@@ -52,17 +53,14 @@ has_zypper() { command -v zypper >/dev/null 2>&1; }
 has_winget() { command -v winget >/dev/null 2>&1; }
 has_scoop() { command -v scoop >/dev/null 2>&1; }
 has_choco() { command -v choco >/dev/null 2>&1; }
+has_pkg() { command -v pkg >/dev/null 2>&1; }
 
 # Resolve fast-grep install-cmd.sh (synced install or repo checkout).
 fast_grep_install_cmd_sh() {
   local script_dir
   script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-  if [[ -x "$script_dir/../fast-grep/scripts/install-cmd.sh" ]]; then
-    printf '%s\n' "$script_dir/../fast-grep/scripts/install-cmd.sh"
-    return 0
-  fi
-  if [[ -x "$script_dir/../skills/core/fast-grep/scripts/install-cmd.sh" ]]; then
-    printf '%s\n' "$script_dir/../skills/core/fast-grep/scripts/install-cmd.sh"
+  if [[ -x "$script_dir/literal-search/install-cmd.sh" ]]; then
+    printf '%s\n' "$script_dir/literal-search/install-cmd.sh"
     return 0
   fi
   return 1
@@ -162,10 +160,22 @@ suggest_install() {
           printf '       suggest (Fedora/RHEL): sudo dnf install ripgrep\n'
           printed=1
         fi
+        if has_yum; then
+          printf '       suggest (RHEL/yum): sudo yum install ripgrep\n'
+          printed=1
+        fi
+        if has_zypper; then
+          printf '       suggest (openSUSE): sudo zypper install ripgrep\n'
+          printed=1
+        fi
         if has_pacman; then
           printf '       suggest (Arch): sudo pacman -S ripgrep\n'
           printed=1
         fi
+      fi
+      if [[ "$OS_FAMILY" == freebsd ]] && has_pkg; then
+        printf '       suggest (FreeBSD): pkg install -y ripgrep\n'
+        printed=1
       fi
       if [[ "$OS_FAMILY" == windows ]]; then
         if has_winget; then
@@ -196,10 +206,22 @@ suggest_install() {
           printf '       suggest (Fedora/RHEL): sudo dnf install the_silver_searcher\n'
           printed=1
         fi
+        if has_yum; then
+          printf '       suggest (RHEL/yum): sudo yum install the_silver_searcher\n'
+          printed=1
+        fi
+        if has_zypper; then
+          printf '       suggest (openSUSE): sudo zypper install the_silver_searcher\n'
+          printed=1
+        fi
         if has_pacman; then
           printf '       suggest (Arch): sudo pacman -S silver-searcher-git\n'
           printed=1
         fi
+      fi
+      if [[ "$OS_FAMILY" == freebsd ]] && has_pkg; then
+        printf '       suggest (FreeBSD): pkg install -y silver-searcher\n'
+        printed=1
       fi
       if [[ "$OS_FAMILY" == windows ]]; then
         if has_scoop; then
@@ -260,10 +282,22 @@ suggest_install() {
           printf '       suggest (Fedora/RHEL): sudo dnf install ugrep\n'
           printed=1
         fi
+        if has_yum; then
+          printf '       suggest (RHEL/yum): sudo yum install ugrep\n'
+          printed=1
+        fi
+        if has_zypper; then
+          printf '       suggest (openSUSE): sudo zypper install ugrep\n'
+          printed=1
+        fi
         if has_pacman; then
           printf '       suggest (Arch): sudo pacman -S ugrep\n'
           printed=1
         fi
+      fi
+      if [[ "$OS_FAMILY" == freebsd ]] && has_pkg; then
+        printf '       suggest (FreeBSD): pkg install -y ugrep\n'
+        printed=1
       fi
       if [[ "$OS_FAMILY" == windows ]]; then
         if has_winget; then
@@ -355,12 +389,13 @@ check_group() {
       ;;
     investigate|repository-technical-analysis|diagnose)
       check_tool jq jq "JSON filter (optional)" "https://jqlang.org/" || true
-      printf 'note: repository text search — follow fast-grep skill (scripts/check_skill_prereqs.sh fast-grep)\n'
+      printf 'note: repository text search — LITERAL-CODE-SEARCH.md (agent_config.py --literal-search-policy; check_skill_prereqs.sh literal-search)\n'
       ;;
     parallel-tests|private-parallel-tests|private-service-parallel-tests)
       check_tool parallel parallel "GNU parallel (optional)" "https://www.gnu.org/software/parallel/" || true
       ;;
-    fast-grep)
+    fast-grep|literal-search)
+      printf 'os: %s\n' "$OS_NAME"
       local fast_missing=0
       local offer_tools=(ripgrep:rg:ripgrep ugrep:ugrep:ugrep silver_searcher:ag:"The Silver Searcher")
       local entry tool_id binary label
@@ -397,9 +432,10 @@ check_group() {
         printf 'MISSING grep (POSIX, slowest host)\n'
         fast_missing=$((fast_missing + 1))
       fi
-      printf 'note: ask the user before installing; install_cmd from fast-grep/scripts/install-cmd.sh when shown\n'
+      printf 'note: ask the user before installing; use install_cmd or suggest lines for their OS (brew/apt/dnf/yum/pacman/zypper/winget/scoop/choco/pkg)\n'
+      printf 'note: do not install packages yourself unless the user explicitly asks\n'
       if [[ "$fast_missing" -gt 0 ]]; then
-        printf 'note: if install is declined, fall back to the next ok tier or agent Grep/SemanticSearch\n'
+        printf 'note: if install is declined, fall back to the next ok tier (git grep, grep) or agent Grep tool\n'
       fi
       ;;
     *)
@@ -419,7 +455,7 @@ detect_os
 
 targets=()
 if [[ "${1:-}" == "--all" ]]; then
-  targets=(github gitlab git circleci jira confluence investigate fast-grep parallel-tests)
+  targets=(github gitlab git circleci jira confluence investigate literal-search parallel-tests)
 elif [[ $# -eq 0 ]]; then
   usage >&2
   exit 2

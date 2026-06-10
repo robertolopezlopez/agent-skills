@@ -45,7 +45,7 @@ Accept any of:
 - Read `AGENTS.md`, `README.md`, `Makefile`, and any repo-specific contributor docs first when present.
 - When the repro loop benefits from `entr`, `watchexec`, or `hyperfine`, check `command -v` first; if missing, **ask the user** to install with the command appropriate for their OS (`brew`, `apt`, `dnf`, …) before improvising (see **AGENTS.md** missing CLI tools).
 - If the user provides a local artifact such as `$ARTIFACTS/<meaningful_id>/analysis_<name>.md` (or legacy root-level `analysis_<name>.md`), read it first.
-- When locating failure strings, stack frames, symbols, or config keys, use **`fast-grep`**.
+- When locating failure strings, stack frames, symbols, or config keys, follow synced **`LITERAL-CODE-SEARCH.md`** (`agent_config.py --literal-search-policy`).
 - Reuse `repository-technical-analysis` expectations for evidence, confidence labels, and blockers.
 - Do not edit code until the repro and failure mode are clear enough to defend.
 
@@ -111,7 +111,7 @@ Use this skill as a specialized debugging companion.
 
 Common pairings:
 
-- `repository-technical-analysis` for broader investigation framing (step 3 delegates to **`fast-grep`**)
+- `repository-technical-analysis` for broader investigation framing (step 3: **`LITERAL-CODE-SEARCH.md`**)
 - repository-specific overlay skills for local commands and validation
 - contributor skills such as `python-fastapi-contributor` after root cause is clear
 

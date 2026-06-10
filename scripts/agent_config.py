@@ -55,6 +55,18 @@ def api_docs_dir(slug: str, infer_from: Path | None = None) -> Path:
     return api_docs_root(infer_from=infer_from) / sanitize_api_docs_slug(slug)
 
 
+def skills_root(infer_from: Path | None = None) -> Path:
+    return config_home(infer_from=infer_from) / "skills"
+
+
+def literal_search_dir(infer_from: Path | None = None) -> Path:
+    return skills_root(infer_from=infer_from) / "scripts" / "literal-search"
+
+
+def literal_search_policy(infer_from: Path | None = None) -> Path:
+    return skills_root(infer_from=infer_from) / "LITERAL-CODE-SEARCH.md"
+
+
 def defaults_hint(basename: str, infer_from: Path | None = None) -> str:
     runtime = detect_runtime(infer_from)
     path = config_home(runtime=runtime, infer_from=infer_from) / basename
@@ -126,6 +138,21 @@ def build_parser() -> argparse.ArgumentParser:
         help="Print the resolved fast-grep.env path for the active runtime.",
     )
     parser.add_argument(
+        "--skills-root",
+        action="store_true",
+        help="Print the synced skills install root for the active runtime.",
+    )
+    parser.add_argument(
+        "--literal-search-dir",
+        action="store_true",
+        help="Print the synced literal-search helpers directory.",
+    )
+    parser.add_argument(
+        "--literal-search-policy",
+        action="store_true",
+        help="Print the synced LITERAL-CODE-SEARCH.md path.",
+    )
+    parser.add_argument(
         "--defaults-hint",
         metavar="FILENAME",
         help="Print a human-readable defaults-file hint (for example atlassian.env).",
@@ -154,6 +181,9 @@ def main() -> None:
         args.atlassian_env,
         args.circleci_env,
         args.fast_grep_env,
+        args.skills_root,
+        args.literal_search_dir,
+        args.literal_search_policy,
         bool(args.defaults_hint),
         args.api_docs_root,
         bool(args.api_docs_dir),
@@ -161,7 +191,8 @@ def main() -> None:
     if sum(int(flag) for flag in flags) != 1:
         parser.error(
             "specify exactly one of --runtime, --config-home, --atlassian-env, "
-            "--defaults-hint, --circleci-env, --fast-grep-env, --api-docs-root, or --api-docs-dir"
+            "--defaults-hint, --circleci-env, --fast-grep-env, --skills-root, "
+            "--literal-search-dir, --literal-search-policy, --api-docs-root, or --api-docs-dir"
         )
 
     if args.runtime:
@@ -178,6 +209,15 @@ def main() -> None:
         return
     if args.fast_grep_env:
         print(env_file_path("fast-grep.env", infer_from=infer_from))
+        return
+    if args.skills_root:
+        print(skills_root(infer_from=infer_from))
+        return
+    if args.literal_search_dir:
+        print(literal_search_dir(infer_from=infer_from))
+        return
+    if args.literal_search_policy:
+        print(literal_search_policy(infer_from=infer_from))
         return
     if args.api_docs_root:
         print(api_docs_root(infer_from=infer_from))

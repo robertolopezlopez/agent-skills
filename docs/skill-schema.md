@@ -108,29 +108,29 @@ Responsible for:
 Examples:
 - `private-service-*`
 
-### Fast-grep integration (`fast-grep`)
+### Literal code search (`LITERAL-CODE-SEARCH.md`)
 
-`fast-grep` is the shared literal search layer for the **current directory tree** (speed-ordered host CLIs, ask-before-install, agent Grep/SemanticSearch last). Wire it deliberately by skill type — do not add it to every manifest entry.
+Literal search for the **current directory tree** is portable policy in synced **`LITERAL-CODE-SEARCH.md`** at **`$AGENT_CONFIG_HOME/skills/`** (resolve: **`agent_config.py --literal-search-policy`**). Helpers sync to **`agent_config.py --literal-search-dir`**. Read **`fast-grep.env`** after first discover; speed-ordered host CLIs; **OS-appropriate** install offers via **`install-cmd.sh`** / **`check_skill_prereqs.sh literal-search`** (never Homebrew-only); ask-before-install; **agent Grep tool** as last literal resort. **SemanticSearch** is separate (behavioral queries only). Cursor may install an optional always-on rule via **`bootstrap_literal_search.sh --cursor-rule`**; Codex and other agents use the synced doc + skills.
 
-| Skill type | Wire `fast-grep`? | How |
-|------------|-------------------|-----|
+| Skill type | Wire literal search? | How |
+|------------|----------------------|-----|
 | **Transport** (`jira`, `confluence`, `gitlab`, `github`, `git`, `circleci`) | No | Remote fetch only; when code search is needed, hand off to investigation or contributor companions. |
-| **Investigation hub** (`repository-technical-analysis`) | Yes — owner | Workflow step 3 + `companion_skills: [fast-grep]` in `skills_manifest.yaml`. |
-| **Investigation overlay** (`private-technical-analysis`, `private-service-technical-analysis`, …) | Inherit | Load `repository-technical-analysis`; one line in **First Read** pointing to RTA step 3 / `fast-grep`. Do not duplicate the full search workflow. |
-| **Debugging** (`diagnose`) | Inherit + pointer | **First Read** one-liner to **`fast-grep`**; manifest pairs **`repository-technical-analysis`** (which owns step 3). |
-| **Implementation / contributor** (`python-fastapi-contributor`, `private-contributor`, …) | Yes — direct | `companion_skills: [fast-grep]` on skills that search without always loading RTA (e.g. `python-fastapi-contributor`, `private-contributor`). **First Read** one-liner only. Repo overlays inherit via parent contributor or RTA — no extra `fast-grep` prose. |
-| **TDD** (`tdd`) | Pointer only | **First Read** one-liner; manifest chains through `python-fastapi-contributor` or `repository-technical-analysis` — omit duplicate `fast-grep` entry. |
-| **Branch review / rebase** (`branch-change-reviewer`, `git-rebase-conflict-resolver`) | Yes — direct | When diff alone is insufficient (call sites, rename fallout, conflict intent). |
-| **Comment-analysis workflow** (`github-pr-comment-analysis`, `gitlab-mr-comment-analysis`, `private-pr-comment-analysis`, …) | Inherit | Transport + grouping here; fixes use contributor / RTA chains that already carry `fast-grep`. |
+| **Investigation hub** (`repository-technical-analysis`) | Yes — owner | Workflow step 3 holds the full procedure. No manifest `companion_skills` entry for search. |
+| **Investigation overlay** (`private-technical-analysis`, `private-service-technical-analysis`, …) | Inherit | Load `repository-technical-analysis`; one line in **First Read** pointing to RTA step 3 / **`LITERAL-CODE-SEARCH.md`**. Do not duplicate the full search workflow. |
+| **Debugging** (`diagnose`) | Inherit + pointer | **First Read** one-liner to **`LITERAL-CODE-SEARCH.md`**; manifest pairs **`repository-technical-analysis`**. |
+| **Implementation / contributor** (`python-fastapi-contributor`, `private-contributor`, …) | Pointer only | **First Read** one-liner to **`LITERAL-CODE-SEARCH.md`**. Repo overlays inherit via parent contributor or RTA — no extra search prose. |
+| **TDD** (`tdd`) | Pointer only | **First Read** one-liner; manifest chains through `python-fastapi-contributor` or `repository-technical-analysis`. |
+| **Branch review / rebase** (`branch-change-reviewer`, `git-rebase-conflict-resolver`) | Pointer only | When diff alone is insufficient (call sites, rename fallout, conflict intent). |
+| **Comment-analysis workflow** (`github-pr-comment-analysis`, `gitlab-mr-comment-analysis`, `private-pr-comment-analysis`, …) | Inherit | Transport + grouping here; fixes use contributor / RTA chains that already carry literal search policy. |
 | **Planning / meta** (`plan-issues`, `learn-daily`, `multi-spawn-agent`) | No | No routine codebase literal search. |
 
-**Manifest rule:** add `fast-grep` under `companion_skills` only for **direct** consumers (table rows marked Yes — direct). Overlays that always load `repository-technical-analysis` inherit search through that hub unless they also do standalone symbol lookup without RTA.
+**Manifest rule:** do **not** add a literal-search skill under `companion_skills`. Policy lives in synced **`LITERAL-CODE-SEARCH.md`** + **`agent_config.py --literal-search-dir`** helpers.
 
-**SKILL.md rule:** at most **one** short **First Read** bullet *or* **Companion Skills** line per skill — never both. Link to `fast-grep` or RTA step 3; do not copy install order, tool chain, or helper flags (canonical copy: `fast-grep/SKILL.md` workflow + step 3 in `repository-technical-analysis`).
+**SKILL.md rule:** at most **one** short **First Read** bullet *or* **Companion Skills** line per skill — never both. Link to synced **`LITERAL-CODE-SEARCH.md`** or RTA step 3; do not copy install order, tool chain, or helper flags.
 
-**Single owner:** `repository-technical-analysis` workflow step 3 and `fast-grep/SKILL.md` hold the full search procedure. Overlays and contributors inherit via `repository-technical-analysis` or a direct consumer; do not restate step 3 in overlay **First Read** lines.
+**Single owner:** `repository-technical-analysis` workflow step 3 and **`LITERAL-CODE-SEARCH.md`** hold the full search procedure. Overlays and contributors inherit via `repository-technical-analysis` or a one-line pointer; do not restate step 3 in overlay **First Read** lines.
 
-**Prereqs:** `scripts/check_skill_prereqs.sh fast-grep` is the only search-tool audit; `investigate` / `repository-technical-analysis` / `diagnose` defer to it. OS install commands: `fast-grep/scripts/install-cmd.sh` (not duplicated in consumer skills).
+**Prereqs:** `scripts/check_skill_prereqs.sh literal-search` (alias: `fast-grep`) is the search-tool audit; `investigate` / `repository-technical-analysis` / `diagnose` defer to it. OS install commands: **`scripts/literal-search/install-cmd.sh`** (not duplicated in consumer skills).
 
 ## Validation guidance
 

@@ -44,7 +44,7 @@ Overlays for the **CLI product** source repository (agent- and IDE-agnostic: wor
 ### Other tracked assets
 
 - `codex-multi-agent-template/`: copy-ready multi-agent starter with `.codex/`, `AGENTS.md`, and prompts
-- `git-hooks/post-commit`: copies committed skills into the configured install roots (default: `~/.codex/skills` and `~/.cursor/skills`)
+- `git-hooks/post-commit`: copies committed skills into the configured install roots (default: `~/.codex/skills` and `~/.cursor/skills`) and refreshes Cursor rules under `~/.cursor/rules/`
 
 The private-service and **CLI product** (`skills/cli/`) skills are overlays. Use them with the matching generic skills when working in those repositories.
 Use `jira` for generic Atlassian/Jira access when runtime **`atlassian.env`** sets `ATLASSIAN_API_BASE_URL=https://example.atlassian.net` (resolve with **`scripts/agent_config.py --atlassian-env`**).
@@ -243,7 +243,7 @@ test -x .git/hooks/post-commit && echo "ok: post-commit hook" || echo "MISSING: 
 
 ## Behavior
 
-After each commit in this repository, the installed `post-commit` hook runs `scripts/sync_skills.sh --all` with `AGENT_SKILLS_SYNC_TARGETS=codex,cursor`, so **both** Codex and Cursor install roots are updated on every commit. Manual runs can still use `--codex-only`, `--cursor-only`, or a custom `AGENT_SKILLS_SYNC_TARGETS`. Uses `git rev-parse --show-toplevel` so the hook works when `.git/hooks/post-commit` is a symlink.
+After each commit in this repository, the installed `post-commit` hook runs `scripts/sync_skills.sh --all` with `AGENT_SKILLS_SYNC_TARGETS=codex,cursor`, then `scripts/sync_cursor_rules.sh --overwrite`, so **both** Codex and Cursor install roots and **Cursor always-on rules** (`templates/cursor/rules/*.mdc` → `~/.cursor/rules/`) are updated on every commit. Manual runs can still use `--codex-only`, `--cursor-only`, or a custom `AGENT_SKILLS_SYNC_TARGETS`. Uses `git rev-parse --show-toplevel` so the hook works when `.git/hooks/post-commit` is a symlink.
 
 - copies `ARTIFACTS.md`, `scripts/validate_artifact.py`, and `scripts/atlassian-auth.sh` into each destination skills tree
 - reads manifest-declared skill directories from `skills_manifest.yaml`

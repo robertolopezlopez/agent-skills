@@ -5,4 +5,7 @@ set -euo pipefail
 repo_root="$(git rev-parse --show-toplevel)"
 
 # Install skills for both Codex and Cursor on each commit (do not inherit a narrowed AGENT_SKILLS_SYNC_TARGETS from the user's shell).
-exec env AGENT_SKILLS_SYNC_TARGETS=codex,cursor "$repo_root/scripts/sync_skills.sh" --all
+env AGENT_SKILLS_SYNC_TARGETS=codex,cursor "$repo_root/scripts/sync_skills.sh" --all
+
+# Refresh Cursor always-on rules from templates/cursor/rules/ (skip when ~/.cursor is absent).
+"$repo_root/scripts/sync_cursor_rules.sh" --overwrite

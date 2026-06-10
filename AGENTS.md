@@ -22,7 +22,7 @@ To sync only one stack, use `./scripts/sync_skills.sh --codex-only` or `./script
 
 To **omit** manifest skills when installing (e.g. skip all `private-service` overlays), set `AGENT_SKILLS_EXCLUDE_RELEASE_GROUPS` and/or `AGENT_SKILLS_EXCLUDE_SKILL_NAMES` when running `scripts/sync_skills.sh` (see script usage). The hook does not set these by default.
 
-The `git-hooks/post-commit` hook runs `scripts/sync_skills.sh --all` with `AGENT_SKILLS_SYNC_TARGETS=codex,cursor` so each commit refreshes **both** default install roots (update the hook if you need different behavior).
+The `git-hooks/post-commit` hook runs `scripts/sync_skills.sh --all` with `AGENT_SKILLS_SYNC_TARGETS=codex,cursor` and `scripts/sync_cursor_rules.sh --overwrite` so each commit refreshes **both** default install roots and **Cursor always-on rules** from `templates/cursor/rules/` (update the hook if you need different behavior).
 
 Treat this sync as part of the required workflow for skill changes in this repository.
 
@@ -97,6 +97,30 @@ If the tool is **missing** and a **safe, standard** install path exists:
 
 Unsafe or non-standard installs (random `curl | bash`, unknown taps, sudo-heavy scripts) require explicit user approval — default to asking, not doing.
 
+## Literal code search
+
+Routine literal search uses synced **`LITERAL-CODE-SEARCH.md`** and helpers under **`$AGENT_CONFIG_HOME/skills/scripts/literal-search/`** (Cursor: **`~/.cursor/skills/…`**; Codex: **`~/.codex/skills/…`**). Resolve paths with **`scripts/agent_config.py`** (or **`scripts/agent-config.sh`**).
+
+```text
+Read fast-grep.env (when set) → host rg/ag/… → agent Grep tool (last literal resort)
+First time only: discover → ask install or fast-grep-prefs.sh use/decline → write fast-grep.env
+SemanticSearch — behavioral queries only
+```
+
+| Task | Resolver / command |
+|------|------------------|
+| Policy doc | `agent_config.py --literal-search-policy` |
+| Helper scripts | `agent_config.py --literal-search-dir` |
+| Prefs file | `agent_config.py --fast-grep-env` |
+| Prereqs | `check_skill_prereqs.sh literal-search` (under synced `skills/scripts/`) |
+
+- **Cursor (optional):** install **`templates/cursor/rules/literal-code-search.mdc`** with **`./scripts/bootstrap_literal_search.sh --cursor-rule`**
+- **Codex / other agents:** rely on synced **`LITERAL-CODE-SEARCH.md`** and investigation skills (no `.mdc` rule)
+
+**OS portability:** literal search follows **Missing CLI tools — ask before fallback** above. Run **`check_skill_prereqs.sh literal-search`** or **`fast-grep-resolve --missing`** (`os=` + **`install_cmd`**). Never assume Homebrew; ask before installing; do not install unless the user explicitly requests it.
+
+In IDE runtimes, prefer the **agent Grep tool** for literals when shell is unnecessary. **`repository-technical-analysis`** step 3 owns investigation search workflow.
+
 ## Runtime tool and helper configuration
 
 Host CLIs and bundled helpers often need **auth or defaults files** under **`$AGENT_CONFIG_HOME`** (Cursor: **`~/.cursor/`**; Codex: **`~/.codex/`**). After install checks, run **`scripts/check_skill_config.sh <skill>`** (synced shared file).
@@ -145,7 +169,7 @@ Skills synced under **`~/.cursor/skills/`** use **`~/.cursor/`** for local defau
 
 **Agents must not read defaults files directly** — invoke bundled helpers (`jira-api`, `confluence-api`, `circleci-request`, …) or bootstrap scripts, which load the runtime-appropriate file via **`scripts/agent-config.sh`**. Do not probe the other runtime's config home unless the user is debugging cross-runtime setup.
 
-Resolve runtime config paths with **`scripts/agent_config.py`** (synced next to **`scripts/resolve_artifact_path.py`**): **`--atlassian-env`**, **`--circleci-env`**, **`--config-home`**, **`--runtime`**, **`--defaults-hint atlassian.env`**, **`--api-docs-root`**, or **`--api-docs-dir <slug>`**. Shell equivalent: **`scripts/agent-config.sh`** with the same flags.
+Resolve runtime config paths with **`scripts/agent_config.py`** (synced next to **`scripts/resolve_artifact_path.py`**): **`--atlassian-env`**, **`--circleci-env`**, **`--fast-grep-env`**, **`--skills-root`**, **`--literal-search-dir`**, **`--literal-search-policy`**, **`--config-home`**, **`--runtime`**, **`--defaults-hint atlassian.env`**, **`--api-docs-root`**, or **`--api-docs-dir <slug>`**. Shell equivalent: **`scripts/agent-config.sh`** with the same flags.
 
 ## REST API reference cache
 

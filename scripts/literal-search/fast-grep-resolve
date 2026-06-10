@@ -78,12 +78,14 @@ first_missing_offer() {
     if tool_id_declined "$tool_id"; then
       continue
     fi
+    local os_name
+    os_name=$(uname -s 2>/dev/null || echo unknown)
     if install_cmd=$("$SCRIPT_DIR/install-cmd.sh" "$tool_id" 2>/dev/null); then
-      printf 'tool_id=%s\nbinary=%s\nlabel=%s\ninstall_cmd=%s\n' \
-        "$tool_id" "$binary" "$label" "$install_cmd"
+      printf 'os=%s\ntool_id=%s\nbinary=%s\nlabel=%s\ninstall_cmd=%s\n' \
+        "$os_name" "$tool_id" "$binary" "$label" "$install_cmd"
     else
-      printf 'tool_id=%s\nbinary=%s\nlabel=%s\ninstall_cmd=\n' \
-        "$tool_id" "$binary" "$label"
+      printf 'os=%s\ntool_id=%s\nbinary=%s\nlabel=%s\ninstall_cmd=\nvendor_hint=check_skill_prereqs.sh literal-search\n' \
+        "$os_name" "$tool_id" "$binary" "$label"
     fi
     return 0
   done

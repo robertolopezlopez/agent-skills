@@ -5,7 +5,6 @@ script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd -- "$script_dir/.." && pwd)"
 resolver="$repo_root/scripts/resolve_artifact_path.py"
 
-cursor_rules_dir="${CURSOR_RULES_HOME:-$HOME/.cursor/rules}"
 install_cursor_rule=0
 install_store_readme=1
 scaffold_global_playbook=1
@@ -59,7 +58,6 @@ global_root="$(python3 "$resolver" --global-artifacts-root)"
 global_playbook="$(python3 "$resolver" --global-next-time-checks)"
 
 readme_template="$repo_root/templates/agent-artifacts/README.md"
-rule_template="$repo_root/templates/cursor/rules/agent-artifacts-directory.mdc"
 playbook_template="$repo_root/templates/agent-artifacts/NEXT_TIME_CHECKS.global.scaffold.md"
 
 run_or_echo() {
@@ -111,11 +109,15 @@ if [[ "$scaffold_global_playbook" -eq 1 ]]; then
 fi
 
 if [[ "$install_cursor_rule" -eq 1 ]]; then
-  if [[ ! -d "${HOME}/.cursor" && -z "${CURSOR_RULES_HOME:-}" ]]; then
-    echo "skip (--cursor-rule): ~/.cursor not found; set CURSOR_RULES_HOME or create ~/.cursor" >&2
-  else
-    install_file "$rule_template" "$cursor_rules_dir/agent-artifacts-directory.mdc" "Cursor rule"
+  sync_rules="$repo_root/scripts/sync_cursor_rules.sh"
+  if [[ ! -x "$sync_rules" ]]; then
+    echo "missing helper: $sync_rules" >&2
+    exit 1
   fi
+  rule_args=(--only agent-artifacts-directory)
+  [[ "$overwrite" -eq 1 ]] && rule_args+=(--overwrite)
+  [[ "$dry_run" -eq 1 ]] && rule_args+=(--dry-run)
+  "$sync_rules" "${rule_args[@]}"
 fi
 
 echo "done."

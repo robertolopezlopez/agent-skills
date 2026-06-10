@@ -19,6 +19,7 @@ SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 resolve_agent_config_sh() {
   local candidate
   for candidate in \
+    "$SCRIPT_DIR/../agent-config.sh" \
     "$SCRIPT_DIR/../../scripts/agent-config.sh" \
     "$SCRIPT_DIR/../../../../scripts/agent-config.sh"; do
     if [[ -f "$candidate" ]]; then

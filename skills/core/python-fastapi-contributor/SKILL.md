@@ -27,7 +27,7 @@ Do not use this skill when:
 ## First Read
 
 - Read local contributor docs first when they exist: `AGENTS.md`, `README`, `CONTRIBUTING.md`, `Makefile`, and `pyproject.toml`.
-- When locating modules, routes, tests, imports, or error strings in the tree, use **`fast-grep`** before ad-hoc `grep -R` or agent Grep.
+- When locating modules, routes, tests, imports, or error strings in the tree, follow synced **`LITERAL-CODE-SEARCH.md`** (host CLI + **`fast-grep.env`**; agent Grep tool as last resort).
 - Prefer repo-native tooling and scripts over ad hoc command variants.
 - Keep comments minimal and only explain non-obvious constraints or patterns.
 - If the user provides a local workflow artifact such as `$ARTIFACTS/<meaningful_id>/task_<issue>.md`, `review_mr_<MR>.md`, or `analysis_mr_<MR>.md` (or legacy root-level equivalents), read it first and reuse its repository, links, assumptions, plan, and open questions before changing code.

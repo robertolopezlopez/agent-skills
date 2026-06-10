@@ -5,7 +5,7 @@ set -euo pipefail
 # rg > ugrep > ag > git grep > ack > grep -R
 # Default: require the fastest install-offer tool (rg, ugrep, ag) before using slower tiers.
 # Exit 5 when a faster install-offer tool is missing (ask user to install).
-# Exit 4 when no host search tool is available (use agent Grep/SemanticSearch).
+# Exit 4 when no host search tool is available (use agent Grep tool if runtime provides it).
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
@@ -48,9 +48,11 @@ require_fastest_tool() {
   fi
   echo "fast-grep: fastest install-offer search tool is missing; will not use slower tools by default" >&2
   printf '%s\n' "$missing" >&2
-  echo "fast-grep: ask the user to run install_cmd, verify the binary, and re-run" >&2
-  echo "fast-grep: if install is declined, run: fast-grep/scripts/fast-grep-prefs.sh decline <tool>" >&2
-  echo "fast-grep: to change tool directly, run: fast-grep/scripts/fast-grep-prefs.sh use <tool>" >&2
+  echo "fast-grep: ask the user before installing — use install_cmd above (OS-detected; not Homebrew-only)" >&2
+  echo "fast-grep: if install_cmd is empty, run check_skill_prereqs.sh literal-search for OS-specific suggest lines" >&2
+  echo "fast-grep: do not run install yourself unless the user explicitly asks" >&2
+  echo "fast-grep: if install is declined, run: $SCRIPT_DIR/fast-grep-prefs.sh decline <tool>" >&2
+  echo "fast-grep: to change tool directly, run: $SCRIPT_DIR/fast-grep-prefs.sh use <tool>" >&2
   echo "fast-grep: then re-run this search" >&2
   exit 5
 }
@@ -277,5 +279,5 @@ if run_posix_grep; then
 fi
 
 echo "fast-grep: no host search tool found (tried rg, ugrep, ag, git grep, ack, grep)" >&2
-echo "fast-grep: use agent Grep or SemanticSearch (see fast-grep SKILL.md)" >&2
+echo "fast-grep: use agent Grep tool when the runtime provides it (see LITERAL-CODE-SEARCH.md at synced skills root)" >&2
 exit 4

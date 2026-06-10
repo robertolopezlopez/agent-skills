@@ -1,6 +1,6 @@
 ---
 name: repository-technical-analysis
-description: Use this when performing technical analysis in a code repository, including test failure investigation, root-cause analysis, architecture inspection, incident debugging, regression triage, or performance analysis. Covers evidence-first investigation, targeted reproduction, root-cause grouping, and concise recommendations. Uses the fast-grep companion for speed-ordered literal codebase search. Non-trivial analysis writes to `$ARTIFACTS/<meaningful_id>/analysis_<relevant_name>.md` by default; legacy root-level analysis files remain valid.
+description: Use this when performing technical analysis in a code repository, including test failure investigation, root-cause analysis, architecture inspection, incident debugging, regression triage, or performance analysis. Covers evidence-first investigation, targeted reproduction, root-cause grouping, and concise recommendations. Literal codebase search follows synced LITERAL-CODE-SEARCH.md (step 3). Non-trivial analysis writes to `$ARTIFACTS/<meaningful_id>/analysis_<relevant_name>.md` by default; legacy root-level analysis files remain valid.
 ---
 
 # Repository Technical Analysis
@@ -39,7 +39,7 @@ Do not use this skill when:
 ## First Read
 
 - Read local workflow and contributor docs first when they exist: `AGENTS.md`, `README`, `CONTRIBUTING.md`, `Makefile`, and `pyproject.toml`.
-- Literal codebase search: workflow **step 3** via the **`fast-grep`** companion (details live in `fast-grep/SKILL.md` only).
+- Literal codebase search: workflow **step 3** via synced **`LITERAL-CODE-SEARCH.md`** (`agent_config.py --literal-search-policy`).
 - When investigation needs JSON filtering, run **`scripts/check_skill_prereqs.sh investigate`** for optional `jq`.
 - Prefer evidence collection before proposing fixes.
 - If the user provides a local workflow artifact, read it first and reuse its links, assumptions, prior plan, and open questions as investigation anchors.
@@ -52,9 +52,10 @@ Use this loop for technical analysis tasks:
 1. Start from the user's task and gather the repositories, documents, tickets, URLs, or artifacts they provided. Read any local artifact first.
 2. Identify the narrowest reliable reproduction. Expand to broader coverage only when the failure surface is still unclear.
 3. **Repository code search** — when you need literal anchors in the codebase (failure strings, symbols, imports, feature flags, config keys):
-   - Follow **`fast-grep`** end to end: run **`fast-grep/scripts/fast-grep`**. On exit **5**, ask before installing; on decline, **`fast-grep-prefs.sh decline <tool>`**; when the user asks to change search tool, **`fast-grep-prefs.sh use <tool>`** (writes **`fast-grep.env`** directly) — then re-run until search succeeds or exit **4**.
-   - Tighten scope with **`path`** and **`glob`** (for example the failing package, `*.test.ts`, or `src/auth/`) instead of searching the whole monorepo first.
-   - Use **SemanticSearch** only when the target is behavioral or naming is uncertain; confirm candidates with **`fast-grep`** or file reads.
+   - Follow synced **`LITERAL-CODE-SEARCH.md`** (resolve with **`agent_config.py --literal-search-policy`**). Read **`fast-grep.env`** when set; else discover once. Run helpers under **`agent_config.py --literal-search-dir`** (`fast-grep`, `fast-grep-prefs.sh`, …) or direct host **`rg`**/`ag`/…. On exit **5**, show **OS-appropriate** **`install_cmd`** from **`fast-grep-resolve --missing`** or **`check_skill_prereqs.sh literal-search`** — ask before installing (never Homebrew-only); do not install unless the user asks; on decline **`fast-grep-prefs.sh decline <tool>`**; on tool change **`fast-grep-prefs.sh use <tool>`** — until success, exit **4** (**agent Grep tool** when runtime provides it), or clear failure on headless runtimes.
+   - In IDE runtimes, **agent Grep tool** is acceptable for literals when shell is unnecessary.
+   - Tighten scope with **`path`** and **`glob`** instead of searching the whole monorepo first.
+   - Use **SemanticSearch** only for behavioral or uncertain targets; confirm with literal search or file reads.
    - Record the search tool used (`rg`, `ag`, `agent-grep`, …) in the analysis artifact when it materially affects confidence or reproducibility.
 4. Use any relevant local material as research input, including repositories, notes, logs, and prior analysis files.
 5. Fetch online material when needed, including documentation or API references.
@@ -77,7 +78,7 @@ Use this loop for technical analysis tasks:
 ## Validation
 
 - Use repo commands where practical, but prefer direct commands when tighter control is needed.
-- For codebase text search during analysis, validate that **`fast-grep`** (or its documented agent fallback) was used instead of unbounded manual file walks.
+- For codebase text search during analysis, validate that **literal search policy** (**`LITERAL-CODE-SEARCH.md`**) or **agent Grep tool** was used instead of unbounded manual file walks.
 - After approved code changes, run the lint, format, and test commands that are relevant to the fix.
 - Prefer the smallest validation set that proves or disproves the hypothesis before expanding coverage.
 
@@ -103,8 +104,6 @@ When the work is non-trivial, this skill may also write or enrich:
 ## Companion Skills
 
 Use this skill as the generic investigation layer.
-
-- **`fast-grep`** — required for step 3 (workflow owner for search prose)
 
 Common pairings:
 

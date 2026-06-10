@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "repo_profile": "medium",
+  "repo_root": ".",
+  "head_limit": 50,
+  "precision": {
+    "hyperfine_required": true,
+    "hyperfine_min_runs": 10,
+    "hyperfine_warmup": 2,
+    "token_source": "cursor-usage",
+    "offline_tokens": "cross_check_only",
+    "agent_tasks": {
+      "A": ["L1", "L3", "L7"],
+      "B": ["S1", "S2", "S3"],
+      "C": ["L1", "L3", "L7"]
+    }
+  },
+  "literal_tasks": {
+    "L1": {
+      "description": "Unique string (1 hit in fixture dir)",
+      "pattern": "FAST_GREP_BENCH_L1_UNIQUE_SLICE_9f3a2c",
+      "path": "benchmarks/fast-grep/fixtures",
+      "literal": true,
+      "ignore_case": false
+    },
+    "L3": {
+      "description": "Common symbol, whole tree",
+      "pattern": "error",
+      "path": ".",
+      "literal": true,
+      "ignore_case": false
+    },
+    "L7": {
+      "description": "Moderate hit count in package dir",
+      "pattern": "import",
+      "path": "skills/core",
+      "literal": true,
+      "ignore_case": false
+    }
+  },
+  "semantic_tasks": {
+    "S1": {
+      "description": "Behavioral query",
+      "query": "Where is skill sync implemented?",
+      "confirm_with": "grep"
+    },
+    "S2": {
+      "description": "Vague name",
+      "query": "artifact path resolution",
+      "confirm_with": "grep"
+    },
+    "S3": {
+      "description": "Misspelled literal",
+      "query": "fast-search skill install",
+      "confirm_with": "grep"
+    }
+  },
+  "paths": {
+    "fast_grep_script": "scripts/literal-search/fast-grep",
+    "fast_grep_resolve": "scripts/literal-search/fast-grep-resolve"
+  },
+  "agent_outputs": {
+    "A": "results/agent-a-results.csv",
+    "B": "results/agent-b-results.csv",
+    "C": "results/agent-c-results.csv"
+  }
+}

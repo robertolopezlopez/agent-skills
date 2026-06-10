@@ -28,6 +28,7 @@ detect_os() {
   case "$OS_NAME" in
     Darwin) OS_FAMILY=darwin ;;
     Linux) OS_FAMILY=linux ;;
+    FreeBSD) OS_FAMILY=freebsd ;;
     MINGW*|MSYS*|CYGWIN*|Windows_NT) OS_FAMILY=windows ;;
     *)
       if [[ -n "${WINDIR:-}" || -n "${windir:-}" ]]; then
@@ -47,6 +48,9 @@ has_pacman() { command -v pacman >/dev/null 2>&1; }
 has_winget() { command -v winget >/dev/null 2>&1; }
 has_scoop() { command -v scoop >/dev/null 2>&1; }
 has_choco() { command -v choco >/dev/null 2>&1; }
+has_yum() { command -v yum >/dev/null 2>&1; }
+has_zypper() { command -v zypper >/dev/null 2>&1; }
+has_pkg() { command -v pkg >/dev/null 2>&1; }
 
 print_cmd() {
   printf '%s\n' "$1"
@@ -69,7 +73,12 @@ case "$tool_id" in
       linux)
         if has_apt; then print_cmd "sudo apt update && sudo apt install -y ripgrep"; exit 0; fi
         if has_dnf; then print_cmd "sudo dnf install -y ripgrep"; exit 0; fi
+        if has_yum; then print_cmd "sudo yum install -y ripgrep"; exit 0; fi
+        if has_zypper; then print_cmd "sudo zypper install -y ripgrep"; exit 0; fi
         if has_pacman; then print_cmd "sudo pacman -S --noconfirm ripgrep"; exit 0; fi
+        ;;
+      freebsd)
+        has_pkg && print_cmd "pkg install -y ripgrep" && exit 0
         ;;
       windows)
         if has_winget; then print_cmd "winget install --id BurntSushi.ripgrep.MSVC -e"; exit 0; fi
@@ -88,7 +97,12 @@ case "$tool_id" in
       linux)
         if has_apt; then print_cmd "sudo apt update && sudo apt install -y ugrep"; exit 0; fi
         if has_dnf; then print_cmd "sudo dnf install -y ugrep"; exit 0; fi
+        if has_yum; then print_cmd "sudo yum install -y ugrep"; exit 0; fi
+        if has_zypper; then print_cmd "sudo zypper install -y ugrep"; exit 0; fi
         if has_pacman; then print_cmd "sudo pacman -S --noconfirm ugrep"; exit 0; fi
+        ;;
+      freebsd)
+        has_pkg && print_cmd "pkg install -y ugrep" && exit 0
         ;;
       windows)
         if has_winget; then print_cmd "winget install --id Genivia.ugrep -e"; exit 0; fi
@@ -107,7 +121,12 @@ case "$tool_id" in
       linux)
         if has_apt; then print_cmd "sudo apt update && sudo apt install -y silversearcher-ag"; exit 0; fi
         if has_dnf; then print_cmd "sudo dnf install -y the_silver_searcher"; exit 0; fi
+        if has_yum; then print_cmd "sudo yum install -y the_silver_searcher"; exit 0; fi
+        if has_zypper; then print_cmd "sudo zypper install -y the_silver_searcher"; exit 0; fi
         if has_pacman; then print_cmd "sudo pacman -S --noconfirm silver-searcher-git"; exit 0; fi
+        ;;
+      freebsd)
+        has_pkg && print_cmd "pkg install -y silver-searcher" && exit 0
         ;;
       windows)
         if has_scoop; then print_cmd "scoop install ag"; exit 0; fi
@@ -126,7 +145,11 @@ case "$tool_id" in
       linux)
         if has_apt; then print_cmd "sudo apt update && sudo apt install -y ack"; exit 0; fi
         if has_dnf; then print_cmd "sudo dnf install -y ack"; exit 0; fi
+        if has_yum; then print_cmd "sudo yum install -y ack"; exit 0; fi
         if has_pacman; then print_cmd "sudo pacman -S --noconfirm ack"; exit 0; fi
+        ;;
+      freebsd)
+        has_pkg && print_cmd "pkg install -y ack" && exit 0
         ;;
       windows)
         if has_choco; then print_cmd "choco install ack -y"; exit 0; fi

@@ -41,7 +41,7 @@ Accept any of:
 - Read `AGENTS.md`, `README.md`, `Makefile`, and repo-specific contributor docs when present.
 - If a local artifact exists for the task (prefer `$ARTIFACTS/<meaningful_id>/` paths per repo `ARTIFACTS.md`; legacy root-level files remain valid), read it first.
 - Reuse repository-specific contributor skills for local commands and validation.
-- When picking test files, public interfaces, or regression anchors, use **`fast-grep`** for literal symbol/string search.
+- When picking test files, public interfaces, or regression anchors, follow synced **`LITERAL-CODE-SEARCH.md`** for literal symbol/string search.
 - Reuse `repository-technical-analysis` or `diagnose` first when the behavior or failure mode is still unclear.
 
 ## Workflow
