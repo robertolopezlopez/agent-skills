@@ -7,15 +7,14 @@ Custom agent skills tracked in git. They install to **Codex** (`~/.codex/skills`
 ### Core skills
 
 - `skills/core/diagnose/`: focused debugging workflow for concrete bugs, flaky issues, and performance regressions
-- `skills/core/github/`: GitHub transport and normalization workflow for issues and pull requests
-- `skills/core/github-issue-triage/`: maintainer-facing GitHub issue triage overlay built on top of `github`
+- `skills/core/github-issue-triage/`: maintainer-facing GitHub issue triage overlay on **`GITHUB-ACCESS.md`**
 - `skills/core/plan-issues/`: planning decomposition skill for turning scoped changes into dependency-aware vertical slices
 - `skills/core/tdd/`: generic test-first implementation workflow using small vertical slices and red-green-refactor
 - `skills/core/python-fastapi-contributor/`: reusable contributor workflow for Python and FastAPI repositories
 - `skills/core/repository-technical-analysis/`: reusable investigation-first workflow for code repositories
 - `skills/core/gitlab/`: generic GitLab merge request fetch and discussion-inspection workflow
 - `skills/core/gitlab-mr-comment-analysis/`: reusable GitLab merge request comment-analysis workflow for any GitLab repository
-- `skills/core/github-pr-comment-analysis/`: reusable GitHub pull request comment-analysis workflow for any GitHub repository (`github` transport)
+- `skills/core/github-pr-comment-analysis/`: reusable GitHub pull request comment-analysis workflow (**`GITHUB-ACCESS.md`** + `gh` transport)
 - `skills/core/jira/`: generic Jira and Atlassian issue access and update workflow through the Jira REST API
   See `skills/core/jira/README.md` for setup, auth expectations, and `jira-api` usage.
 - `skills/core/confluence/`: generic Confluence Cloud wiki access and updates through the Confluence REST API
@@ -50,7 +49,7 @@ The private-service and **CLI product** (`skills/cli/`) skills are overlays. Use
 Use `jira` for generic Atlassian/Jira access when runtime **`atlassian.env`** sets `ATLASSIAN_API_BASE_URL=https://example.atlassian.net` (resolve with **`scripts/agent_config.py --atlassian-env`**).
 Use `confluence` for Confluence Cloud wiki access with the same runtime defaults file (see `skills/core/confluence/README.md`).
 Likewise, `gitlab-mr-comment-analysis` is an overlay on `gitlab`: use `gitlab` for generic MR fetch and discussion inspection, and `gitlab-mr-comment-analysis` for grouped unresolved-comment analysis and reporting.
-`github-pr-comment-analysis` is the GitHub analogue on top of `github`: use `github` for PR fetch and thread normalization, and `github-pr-comment-analysis` to group unresolved review threads **inside** `review_pr_<number>.md` or `analysis_pr_<number>.md`.
+`github-pr-comment-analysis` is the GitHub analogue: fetch per synced **`GITHUB-ACCESS.md`** (`gh` / `gh api`), then use **`github-pr-comment-analysis`** to group unresolved review threads **inside** `review_pr_<number>.md` or `analysis_pr_<number>.md`.
 Use `codex-multi-agent-template/` when you want fixed lead/developer/reviewer/tester scaffolding. Use `multi-spawn-agent` when you want dynamic worker splits driven by a work definition file.
 
 ## Philosophy
@@ -67,10 +66,10 @@ This repository aims to provide reusable agent workflows (Codex and Cursor) that
 
 - Use `codex-multi-agent-template/` when you want a fixed project-level starter with `lead`, `developer`, `reviewer`, and `tester`.
 - Use `multi-spawn-agent/` when you want dynamic worker counts, explicit file ownership, or non-standard task splits.
-- Use generic skills such as `diagnose`, `github`, `tdd`, `gitlab`, `jira`, `confluence`, and `repository-technical-analysis` for reusable cross-repo workflows.
+- Use generic skills such as `diagnose`, `tdd`, `gitlab`, `jira`, `confluence`, and `repository-technical-analysis` for reusable cross-repo workflows.
+- Use synced **`GITHUB-ACCESS.md`** + **`gh`** for GitHub issue and pull-request fetch, inspection, and normalization (`agent_config.py --github-access-policy`).
 - Use `git` for local repository state, remotes, and repository identity inspection.
-- Use `github` for GitHub issue and pull-request fetch, inspection, and normalization.
-- Use `github-pr-comment-analysis` for grouped unresolved PR review-thread analysis **inside** `review_pr_<number>.md` or `analysis_pr_<number>.md` after PR context has been fetched or normalized via `github`.
+- Use `github-pr-comment-analysis` for grouped unresolved PR review-thread analysis **inside** `review_pr_<number>.md` or `analysis_pr_<number>.md` after PR context has been fetched per **`GITHUB-ACCESS.md`**.
 - Use `github-issue-triage` for maintainer-facing GitHub issue classification, missing-info detection, and next-state recommendation after issue context has been fetched.
 - Use `repository-technical-analysis` or `diagnose` when GitHub issue triage requires technical evidence before a confident next-state recommendation.
 - Use `diagnose` for tight debugging loops with a concrete failing behavior, repro, or regression signal.
@@ -176,7 +175,7 @@ Environment overrides: `CODEX_HOME` (Codex base), `CURSOR_AGENT_SKILLS_HOME` (pa
 Optional **install filters** (skip copying whole manifest groups or named skills—excluded directories are removed from each sync target if they were installed earlier):
 
 - `AGENT_SKILLS_EXCLUDE_RELEASE_GROUPS` — comma-separated `release_group` values from `skills_manifest.yaml`. Each value drops **every** skill with that `release_group`. Current manifest values:
-  - **`core`** — generic cross-repo skills (e.g. `github`, `gitlab`, `jira`, `repository-technical-analysis`, `tdd`, …).
+  - **`core`** — generic cross-repo skills (e.g. **`GITHUB-ACCESS.md`**, `gitlab`, `jira`, `repository-technical-analysis`, `tdd`, …).
   - **`cli`** — CLI product overlays (`private-contributor`, `private-technical-analysis`, `private-parallel-tests`, `private-pr-comment-analysis`).
   - **`private-service`** — private-service overlays (`private-service-*`).
   

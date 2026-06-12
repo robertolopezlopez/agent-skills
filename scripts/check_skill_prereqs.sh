@@ -375,7 +375,7 @@ check_group() {
   local group=$1
   local missing=0
   case "$group" in
-    github)
+    github|github-access)
       check_tool gh gh "GitHub CLI" "https://cli.github.com/" || missing=$((missing + 1))
       ;;
     gitlab|git)

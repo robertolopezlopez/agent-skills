@@ -106,7 +106,7 @@ Common pairings:
 - `multi-spawn-agent` when the breakdown is ready for delegated execution
 - `tdd` when individual slices should be implemented test-first
 - repository-specific contributor skills for local commands and validation
-- transport skills such as `github`, `gitlab`, `jira`, `confluence`, or `circleci` when remote context is needed first
+- transport per **`GITHUB-ACCESS.md`** + `gh`, or skills such as `gitlab`, `jira`, `confluence`, or `circleci` when remote context is needed first
 
 ## Safety Notes
 

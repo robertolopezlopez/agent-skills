@@ -1,5 +1,6 @@
 shared_files:
   - ARTIFACTS.md
+  - GITHUB-ACCESS.md
   - LITERAL-CODE-SEARCH.md
   - scripts/agent-config.sh
   - scripts/agent_config.py
@@ -13,6 +14,9 @@ shared_files:
   - scripts/literal-search/fast-grep-prefs.sh
   - scripts/literal-search/fast-grep-resolve
   - scripts/literal-search/install-cmd.sh
+  - scripts/github/gh-fetch
+  - scripts/github/gh_context.py
+  - scripts/github/bootstrap_github_artifact.py
 
 skills:
   - name: branch-change-reviewer
@@ -41,18 +45,6 @@ skills:
     type: core
     repo_scope: generic
     release_group: core
-  - name: github
-    path: skills/core/github
-    status: stable
-    type: core
-    repo_scope: generic
-    release_group: core
-    companion_skills:
-      - git
-      - github-pr-comment-analysis
-      - repository-technical-analysis
-      - diagnose
-      - tdd
   - name: github-pr-comment-analysis
     path: skills/core/github-pr-comment-analysis
     status: stable
@@ -60,7 +52,7 @@ skills:
     repo_scope: generic
     release_group: core
     companion_skills:
-      - github
+      - git
       - multi-spawn-agent
   - name: gitlab
     path: skills/core/gitlab
@@ -87,7 +79,7 @@ skills:
     repo_scope: generic
     release_group: core
     companion_skills:
-      - github
+      - git
       - repository-technical-analysis
       - diagnose
       - tdd
@@ -164,7 +156,7 @@ skills:
     repo_scope: cli
     release_group: cli
     companion_skills:
-      - github
+      - git
       - github-pr-comment-analysis
       - private-contributor
       - private-technical-analysis
@@ -214,7 +206,6 @@ skills:
       - repository-technical-analysis
       - multi-spawn-agent
       - tdd
-      - github
       - gitlab
       - jira
       - circleci

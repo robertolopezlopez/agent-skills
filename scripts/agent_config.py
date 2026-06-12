@@ -67,6 +67,14 @@ def literal_search_policy(infer_from: Path | None = None) -> Path:
     return skills_root(infer_from=infer_from) / "LITERAL-CODE-SEARCH.md"
 
 
+def github_scripts_dir(infer_from: Path | None = None) -> Path:
+    return skills_root(infer_from=infer_from) / "scripts" / "github"
+
+
+def github_access_policy(infer_from: Path | None = None) -> Path:
+    return skills_root(infer_from=infer_from) / "GITHUB-ACCESS.md"
+
+
 def defaults_hint(basename: str, infer_from: Path | None = None) -> str:
     runtime = detect_runtime(infer_from)
     path = config_home(runtime=runtime, infer_from=infer_from) / basename
@@ -153,6 +161,16 @@ def build_parser() -> argparse.ArgumentParser:
         help="Print the synced LITERAL-CODE-SEARCH.md path.",
     )
     parser.add_argument(
+        "--github-scripts-dir",
+        action="store_true",
+        help="Print the synced GitHub helper scripts directory.",
+    )
+    parser.add_argument(
+        "--github-access-policy",
+        action="store_true",
+        help="Print the synced GITHUB-ACCESS.md path.",
+    )
+    parser.add_argument(
         "--defaults-hint",
         metavar="FILENAME",
         help="Print a human-readable defaults-file hint (for example atlassian.env).",
@@ -184,6 +202,8 @@ def main() -> None:
         args.skills_root,
         args.literal_search_dir,
         args.literal_search_policy,
+        args.github_access_policy,
+        args.github_scripts_dir,
         bool(args.defaults_hint),
         args.api_docs_root,
         bool(args.api_docs_dir),
@@ -192,7 +212,7 @@ def main() -> None:
         parser.error(
             "specify exactly one of --runtime, --config-home, --atlassian-env, "
             "--defaults-hint, --circleci-env, --fast-grep-env, --skills-root, "
-            "--literal-search-dir, --literal-search-policy, --api-docs-root, or --api-docs-dir"
+            "--literal-search-dir, --literal-search-policy, --github-access-policy, --github-scripts-dir, --api-docs-root, or --api-docs-dir"
         )
 
     if args.runtime:
@@ -218,6 +238,12 @@ def main() -> None:
         return
     if args.literal_search_policy:
         print(literal_search_policy(infer_from=infer_from))
+        return
+    if args.github_access_policy:
+        print(github_access_policy(infer_from=infer_from))
+        return
+    if args.github_scripts_dir:
+        print(github_scripts_dir(infer_from=infer_from))
         return
     if args.api_docs_root:
         print(api_docs_root(infer_from=infer_from))

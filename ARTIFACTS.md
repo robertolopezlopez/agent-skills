@@ -237,6 +237,6 @@ Prefer merging durable content from legacy files into the main artifact, then de
 - `jira` bootstraps `task_<issue>.md` under **`$ARTIFACTS/<meaningful_id>/`** (`meaningful_id` defaults to issue key unless overridden)
 - `gitlab` bootstraps `review_mr_<iid>.md` or `analysis_mr_<iid>.md` under **`$ARTIFACTS/<meaningful_id>/`** (`meaningful_id` defaults sensibly — e.g. `mr-<iid>` unless the repo dictates otherwise)
 - `gitlab-mr-comment-analysis` refreshes live MR state and writes grouped unresolved threads **into** the main MR Markdown file (typically **`$ARTIFACTS/…/review_mr_<iid>.md`** or **`$ARTIFACTS/…/analysis_mr_<iid>.md`**) inside `## Grouped unresolved comments`
-- `github` prepares normalized PR context; bootstrap filenames such as `review_pr_<number>.md` follow this schema when written locally, defaulting beneath **`$ARTIFACTS/<meaningful_id>/`** for new artifacts
+- **`GITHUB-ACCESS.md`** + `gh` prepares normalized PR context; **`scripts/github/bootstrap_github_artifact.py`** bootstraps **`review_pr_<number>.md`** / **`analysis_pr_<number>.md`** under **`$ARTIFACTS/pr-<n>/`**
 - `github-pr-comment-analysis` refreshes live PR state and writes grouped unresolved threads **into** the canonical PR Markdown file (typically **`$ARTIFACTS/…/review_pr_<number>.md`** or **`$ARTIFACTS/…/analysis_pr_<number>.md`**) under the same subsection contract
 - repository-specific overlay skills should reuse these artifacts when possible instead of recreating context

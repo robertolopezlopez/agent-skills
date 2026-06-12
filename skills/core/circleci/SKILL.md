@@ -28,7 +28,7 @@ Do not use this skill when:
 - the task is only local Git inspection; use `git`
 - the task is CI on GitHub Actions, GitLab CI, Jenkins, or another provider
 - the user only wants code-level debugging with no CircleCI API access; use `diagnose` or `repository-technical-analysis` after you have local evidence
-- the task is primarily GitHub issue or PR discussion; use `github`
+- the task is primarily GitHub issue or PR discussion; use **`GITHUB-ACCESS.md`** + `gh`
 
 ## Inputs
 

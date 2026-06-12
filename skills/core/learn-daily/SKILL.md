@@ -28,7 +28,7 @@ Use this skill when:
 
 Do not use this skill when:
 
-- the task is purely transport or API access (`github`, `gitlab`, `jira`, …)
+- the task is purely transport or API access (**`GITHUB-ACCESS.md`**, `gitlab`, `jira`, …)
 - the user only wants deep investigation or implementation (use `repository-technical-analysis`, overlays, or `tdd`)
 - the user has explicitly opted out of the external artifact store and legacy in-repo paths
 

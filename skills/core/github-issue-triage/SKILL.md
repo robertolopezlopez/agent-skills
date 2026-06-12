@@ -1,13 +1,13 @@
 ---
 name: github-issue-triage
-description: Triage GitHub issues by interpreting normalized issue context, recommending category and next state, identifying missing information, and preparing follow-on actions. Use when the user wants a maintainer-facing GitHub issue triage workflow after GitHub issue context has been fetched.
+description: Triage GitHub issues by interpreting normalized issue context (GITHUB-ACCESS.md + gh), recommending category and next state, identifying missing information, and preparing follow-on actions. Use when the user wants a maintainer-facing GitHub issue triage workflow after issue context has been fetched.
 ---
 
 # GitHub Issue Triage
 
 Use this skill for maintainer-facing GitHub issue triage.
 
-Use this skill as a workflow overlay on `github`.
+Use this skill as a workflow overlay on **`GITHUB-ACCESS.md`** transport (`gh` / `gh api`).
 
 ## When to Use
 
@@ -24,7 +24,7 @@ Use this skill when the user wants to:
 
 Do not use this skill when:
 
-- the task is only GitHub transport access or issue fetch; use `github`
+- the task is only GitHub transport access or issue fetch; use **`GITHUB-ACCESS.md`** + `gh`
 - the task is focused on pull requests rather than issues
 - the task is primarily broad repository investigation; use `repository-technical-analysis`
 - the task is primarily focused debugging of a concrete failure; use `diagnose`
@@ -35,7 +35,7 @@ Do not use this skill when:
 
 Accept, in order of preference:
 
-- normalized GitHub issue context already resolved by `github`
+- normalized GitHub issue context already fetched per **`GITHUB-ACCESS.md`**
 - a GitHub issue URL
 - a GitHub issue number when repository context is known
 - an existing local issue-analysis artifact, if one exists later in the workflow
@@ -46,19 +46,19 @@ If the user provides a pull request instead of an issue, redirect to a future PR
 
 ## First Read
 
-- Read the repository `AGENTS.md` before running commands.
-- Consume normalized issue context from `github`.
+- Read the repository `AGENTS.md` and synced **`GITHUB-ACCESS.md`** before running commands.
+- Fetch and normalize issue context per **`GITHUB-ACCESS.md`**.
 - If the task may require technical investigation before triage is complete, be ready to pair with `repository-technical-analysis`.
 - If a concrete bug report needs reproduction or narrowing before classification, be ready to pair with `diagnose`.
 - Default to recommendation mode first instead of direct GitHub writes unless the user explicitly asks for updates.
 
 ## Companion Skills
 
-Use this skill as the workflow and decision layer on top of `github`.
+Use this skill as the workflow and decision layer on top of **`GITHUB-ACCESS.md`**.
 
 Common pairings:
 
-- `github` for transport, issue identity, comments, labels, assignees, and normalized issue context
+- **`GITHUB-ACCESS.md`** + `git` for transport, issue identity, comments, labels, assignees, and normalized issue context
 - `repository-technical-analysis` when the issue needs deeper evidence-backed investigation
 - `diagnose` when a bug report must be isolated or reproduced before next-state recommendation
 - `tdd` when the issue is ready to become test-first implementation work
@@ -66,7 +66,7 @@ Common pairings:
 
 ## Workflow
 
-1. Start from normalized issue context resolved by `github`.
+1. Start from normalized issue context fetched per **`GITHUB-ACCESS.md`**.
 2. Read:
    - issue title
    - issue body
@@ -107,7 +107,7 @@ Common pairings:
 
 ## Validation
 
-- Ensure transport context comes from `github`, not duplicated fetch logic here.
+- Ensure transport context comes from **`GITHUB-ACCESS.md`** + `gh`, not duplicated fetch logic here.
 - Keep issue triage separate from PR workflows.
 - Keep technical investigation separate from triage when deeper evidence is still needed.
 - If recommending a ready state, make sure the issue is specific enough to support the recommendation.

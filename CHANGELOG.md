@@ -15,6 +15,9 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 ### Changed
 
+- **GitHub access migration (Phase C)** — removed installable **`skills/core/github/`** skill directory and manifest entry. GitHub transport is **`GITHUB-ACCESS.md`** + synced **`scripts/github/`** helpers only.
+- **GitHub access migration (Phase B)** — synced helpers under **`scripts/github/`**: **`gh-fetch`**, **`gh_context.py`**, **`bootstrap_github_artifact.py`**. Resolve with **`agent_config.py --github-scripts-dir`**. Documented in **`GITHUB-ACCESS.md`**.
+- **GitHub access migration (Phase A)** — routine GitHub issue/PR fetch no longer uses an installable **`github`** skill. Policy lives in synced **`GITHUB-ACCESS.md`** (`agent_config.py --github-access-policy`). Workflow skills refresh via **`gh`** / **`gh api`** per policy. See **`docs/github-access-migration.md`**.
 - **Literal code search migration** — routine literal search no longer uses an installable **`fast-grep`** skill. Policy lives in synced **`LITERAL-CODE-SEARCH.md`** (`agent_config.py --literal-search-policy`); helpers sync under **`agent_config.py --literal-search-dir`**. Optional Cursor rule: **`templates/cursor/rules/literal-code-search.mdc`** via **`bootstrap_literal_search.sh --cursor-rule`**. Codex and other agents use the synced doc + skills (no `.mdc`). **`skills/core/fast-grep/`** removed.
 - **Literal search OS portability** — **`LITERAL-CODE-SEARCH.md`**, Cursor rule, RTA step 3, **`install-cmd.sh`**, and **`check_skill_prereqs.sh literal-search`** enforce OS-detected installs (`brew`/`apt`/`dnf`/`yum`/`zypper`/`pacman`/`winget`/`scoop`/`choco`/`pkg`); **`fast-grep-resolve --missing`** includes **`os=`**; ask-before-install, never Homebrew-only.
 - **Transport preference inverted** across transport skills and **AGENTS.md**: local CLI tools and bundled shell helpers (`gh`, `glab`, `jira-api`, `circleci-request`, …) are preferred before MCP. MCP is the last resort when local tools are missing or insufficient.
@@ -24,10 +27,13 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 ### Added
 
+- **`GITHUB-ACCESS.md`**: synced portable GitHub fetch policy (`shared_files`; resolve with **`agent_config.py --github-access-policy`**)
+- **`scripts/github/`**: **`gh-fetch`**, **`gh_context.py`**, **`bootstrap_github_artifact.py`** (synced; **`agent_config.py --github-scripts-dir`**)
+- **`docs/github-access-migration.md`**: Phase A–C checklist (mirrors literal-search migration)
 - **`LITERAL-CODE-SEARCH.md`**: synced portable literal-search policy (`shared_files`; resolve with **`agent_config.py --literal-search-policy`**)
 - **`scripts/sync_cursor_rules.sh`**: sync **`templates/cursor/rules/*.mdc`** to **`~/.cursor/rules/`** (post-commit uses **`--overwrite`**)
 - **`templates/cursor/rules/literal-code-search.mdc`** and **`scripts/bootstrap_literal_search.sh`**: optional Cursor always-on rule; Codex uses synced doc + skills
-- **`agent_config.py` / `agent-config.sh`**: **`--skills-root`**, **`--literal-search-dir`**, **`--literal-search-policy`**
+- **`agent_config.py` / `agent-config.sh`**: **`--skills-root`**, **`--literal-search-dir`**, **`--literal-search-policy`**, **`--github-access-policy`**, **`--github-scripts-dir`**
 
 - **`templates/agent-artifacts/`** and **`templates/cursor/rules/agent-artifacts-directory.mdc`**: portable store index and Cursor phrase rule for "the artifacts directory"
 - **`scripts/bootstrap_agent_artifacts.sh`**: one-time bootstrap for **`$AGENT_ARTIFACTS_HOME/README.md`**, **`$GLOBAL/NEXT_TIME_CHECKS.md`**, and optional Cursor rule (Codex uses **`AGENTS.md`** + **`ARTIFACTS.md`** for the same contract)

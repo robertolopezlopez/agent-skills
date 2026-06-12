@@ -121,6 +121,25 @@ SemanticSearch — behavioral queries only
 
 In IDE runtimes, prefer the **agent Grep tool** for literals when shell is unnecessary. **`repository-technical-analysis`** step 3 owns investigation search workflow.
 
+## GitHub access
+
+Routine GitHub issue and PR fetch uses synced **`GITHUB-ACCESS.md`** at **`$AGENT_CONFIG_HOME/skills/`** (resolve: **`agent_config.py --github-access-policy`**).
+
+```text
+git skill (repo identity) → gh → gh api → GitHub MCP (last)
+Prereqs: check_skill_prereqs.sh github  |  Auth: check_skill_config.sh github → gh auth login
+```
+
+| Task | Resolver / command |
+|------|------------------|
+| Policy doc | `agent_config.py --github-access-policy` |
+| **Helper scripts** | `agent_config.py --github-scripts-dir` |
+| API doc cache | `agent_config.py --api-docs-dir github-rest` |
+| Prereqs | `check_skill_prereqs.sh github` (alias: `github-access`) |
+| Auth | `check_skill_config.sh github` |
+
+Workflow skills (**`github-pr-comment-analysis`**, **`github-issue-triage`**, repo overlays) consume normalized context from this policy — they do not duplicate **`gh`** fetch logic.
+
 ## Runtime tool and helper configuration
 
 Host CLIs and bundled helpers often need **auth or defaults files** under **`$AGENT_CONFIG_HOME`** (Cursor: **`~/.cursor/`**; Codex: **`~/.codex/`**). After install checks, run **`scripts/check_skill_config.sh <skill>`** (synced shared file).
@@ -139,7 +158,7 @@ When config is **missing or incomplete**:
 |----------------|---------------|
 | `jira`, `confluence` | **`atlassian.env`** — `ATLASSIAN_API_BASE_URL`, `ATLASSIAN_API_TOKEN` (or export / `~/.config/.jira/.credentials`), `git config user.email` |
 | `circleci` | **`CIRCLE_TOKEN`** export and/or **`circleci.env`** |
-| `github` | **`gh auth login`** |
+| GitHub (`GITHUB-ACCESS.md`) | **`gh auth login`** — see **`GITHUB-ACCESS.md`** |
 | `gitlab`, `git --fetch-id` | **`glab auth login`** |
 
 Templates: **`templates/atlassian.env.example`**, **`templates/circleci.env.example`**.
@@ -169,7 +188,7 @@ Skills synced under **`~/.cursor/skills/`** use **`~/.cursor/`** for local defau
 
 **Agents must not read defaults files directly** — invoke bundled helpers (`jira-api`, `confluence-api`, `circleci-request`, …) or bootstrap scripts, which load the runtime-appropriate file via **`scripts/agent-config.sh`**. Do not probe the other runtime's config home unless the user is debugging cross-runtime setup.
 
-Resolve runtime config paths with **`scripts/agent_config.py`** (synced next to **`scripts/resolve_artifact_path.py`**): **`--atlassian-env`**, **`--circleci-env`**, **`--fast-grep-env`**, **`--skills-root`**, **`--literal-search-dir`**, **`--literal-search-policy`**, **`--config-home`**, **`--runtime`**, **`--defaults-hint atlassian.env`**, **`--api-docs-root`**, or **`--api-docs-dir <slug>`**. Shell equivalent: **`scripts/agent-config.sh`** with the same flags.
+Resolve runtime config paths with **`scripts/agent_config.py`** (synced next to **`scripts/resolve_artifact_path.py`**): **`--atlassian-env`**, **`--circleci-env`**, **`--fast-grep-env`**, **`--skills-root`**, **`--literal-search-dir`**, **`--literal-search-policy`**, **`--github-access-policy`**, **`--config-home`**, **`--runtime`**, **`--defaults-hint atlassian.env`**, **`--api-docs-root`**, or **`--api-docs-dir <slug>`**. Shell equivalent: **`scripts/agent-config.sh`** with the same flags.
 
 ## REST API reference cache
 
