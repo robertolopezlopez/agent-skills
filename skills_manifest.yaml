@@ -1,6 +1,7 @@
 shared_files:
   - ARTIFACTS.md
   - GITHUB-ACCESS.md
+  - GIT-ACCESS.md
   - LITERAL-CODE-SEARCH.md
   - scripts/agent-config.sh
   - scripts/agent_config.py
@@ -18,6 +19,8 @@ shared_files:
   - scripts/github/gh_context.py
   - scripts/github/bootstrap_github_artifact.py
   - scripts/github/apply_pr_thread_groups.py
+  - scripts/git/git-repo-identity
+  - scripts/git/resolve_repo_identity.py
 
 skills:
   - name: branch-change-reviewer

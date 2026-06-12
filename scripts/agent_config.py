@@ -67,6 +67,14 @@ def literal_search_policy(infer_from: Path | None = None) -> Path:
     return skills_root(infer_from=infer_from) / "LITERAL-CODE-SEARCH.md"
 
 
+def git_scripts_dir(infer_from: Path | None = None) -> Path:
+    return skills_root(infer_from=infer_from) / "scripts" / "git"
+
+
+def git_access_policy(infer_from: Path | None = None) -> Path:
+    return skills_root(infer_from=infer_from) / "GIT-ACCESS.md"
+
+
 def github_scripts_dir(infer_from: Path | None = None) -> Path:
     return skills_root(infer_from=infer_from) / "scripts" / "github"
 
@@ -161,6 +169,16 @@ def build_parser() -> argparse.ArgumentParser:
         help="Print the synced LITERAL-CODE-SEARCH.md path.",
     )
     parser.add_argument(
+        "--git-scripts-dir",
+        action="store_true",
+        help="Print the synced Git repository identity helper scripts directory.",
+    )
+    parser.add_argument(
+        "--git-access-policy",
+        action="store_true",
+        help="Print the synced GIT-ACCESS.md path.",
+    )
+    parser.add_argument(
         "--github-scripts-dir",
         action="store_true",
         help="Print the synced GitHub helper scripts directory.",
@@ -204,6 +222,8 @@ def main() -> None:
         args.literal_search_policy,
         args.github_access_policy,
         args.github_scripts_dir,
+        args.git_access_policy,
+        args.git_scripts_dir,
         bool(args.defaults_hint),
         args.api_docs_root,
         bool(args.api_docs_dir),
@@ -212,7 +232,8 @@ def main() -> None:
         parser.error(
             "specify exactly one of --runtime, --config-home, --atlassian-env, "
             "--defaults-hint, --circleci-env, --fast-grep-env, --skills-root, "
-            "--literal-search-dir, --literal-search-policy, --github-access-policy, --github-scripts-dir, --api-docs-root, or --api-docs-dir"
+            "--literal-search-dir, --literal-search-policy, --github-access-policy, --github-scripts-dir, "
+            "--git-access-policy, --git-scripts-dir, --api-docs-root, or --api-docs-dir"
         )
 
     if args.runtime:
@@ -244,6 +265,12 @@ def main() -> None:
         return
     if args.github_scripts_dir:
         print(github_scripts_dir(infer_from=infer_from))
+        return
+    if args.git_access_policy:
+        print(git_access_policy(infer_from=infer_from))
+        return
+    if args.git_scripts_dir:
+        print(git_scripts_dir(infer_from=infer_from))
         return
     if args.api_docs_root:
         print(api_docs_root(infer_from=infer_from))

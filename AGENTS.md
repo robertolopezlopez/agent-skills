@@ -161,6 +161,24 @@ When config is **missing or incomplete**:
 | GitHub (`GITHUB-ACCESS.md`) | **`gh auth login`** — see **`GITHUB-ACCESS.md`** |
 | `gitlab`, `git --fetch-id` | **`glab auth login`** |
 
+## Git repository identity
+
+Local remote identity resolution uses synced **`GIT-ACCESS.md`** at **`$AGENT_CONFIG_HOME/skills/`** (resolve: **`agent_config.py --git-access-policy`**).
+
+```text
+git CLI + git-repo-identity helper → glab api (--fetch-id) when GitLab numeric ID needed
+Prereqs: check_skill_prereqs.sh git-access  |  GitLab ID: check_skill_prereqs.sh gitlab
+```
+
+| Task | Resolver / command |
+|------|------------------|
+| Policy doc | `agent_config.py --git-access-policy` |
+| **Helper scripts** | `agent_config.py --git-scripts-dir` |
+| Prereqs (git binary) | `check_skill_prereqs.sh git-access` |
+| GitLab ID fetch | `check_skill_prereqs.sh gitlab` + `check_skill_config.sh gitlab` |
+
+The installable **`git`** skill is deprecated; Phase C removes it. **`gitlab`**, **`circleci`**, and **`GITHUB-ACCESS.md`** consume identity from this policy.
+
 Templates: **`templates/atlassian.env.example`**, **`templates/circleci.env.example`**.
 
 ## Design rules

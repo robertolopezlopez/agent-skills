@@ -8,13 +8,13 @@ Remove the installable **`git`** skill; keep **`GIT-ACCESS.md`** + **`git` CLI**
 
 | Step | Status | Notes |
 |------|--------|-------|
-| 1. Canonical policy in **`GIT-ACCESS.md`** + **`AGENTS.md`** | done | Sync via `shared_files` in Phase B |
-| 2. **`agent_config.py --git-access-policy`** | todo | Phase B; shell: **`agent-config.sh --git-access-policy`** |
+| 1. Canonical policy in **`GIT-ACCESS.md`** + **`AGENTS.md`** | done | Synced via `shared_files` |
+| 2. **`agent_config.py --git-access-policy`** | done | Shell: **`agent-config.sh --git-access-policy`** |
 | 3. Workflow skills point to policy + helper, not skill | done | `gitlab`, `circleci`, `github-*`, … |
 | 4. **`git/SKILL.md`** → deprecation stub | done | Skill still installed until Phase C |
-| 5. Helpers in **`scripts/git/`** | todo | Phase B |
+| 5. Helpers in **`scripts/git/`** | done | **`git-repo-identity`**, **`resolve_repo_identity.py`**; **`--git-scripts-dir`** |
 | 6. Remove **`git`** from downstream **`companion_skills`** | done | Phase A |
-| 7. **`check_skill_prereqs.sh git-access`** alias | todo | Phase B; **`git`** group legacy alias → **`gitlab`** (**`glab`**) |
+| 7. **`check_skill_prereqs.sh git-access`** alias | done | **`git`** group legacy alias → **`gitlab`** (**`glab`**) |
 | 8. Update **`docs/skill-schema.md`**, README, ARTIFACTS | done | Phase A |
 | 9. Delete **`skills/core/git/`** + manifest entry | todo | Phase C |
 
@@ -24,7 +24,7 @@ Remove the installable **`git`** skill; keep **`GIT-ACCESS.md`** + **`git` CLI**
 - [x] No `SKILL.md` tells agents to load the `git` skill for identity (stub points to policy)
 - [x] **`gitlab`** refreshes via **`GIT-ACCESS.md`** + helper only
 - [ ] `validate_skill.py` passes without `git` manifest entry
-- [ ] **`scripts/git/`** helpers shipped
+- [x] **`scripts/git/`** helpers shipped
 
 ## User-facing names (unchanged where noted)
 

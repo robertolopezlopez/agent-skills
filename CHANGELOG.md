@@ -15,6 +15,7 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 ### Changed
 
+- **Git access migration (Phase B)** — synced helpers under **`scripts/git/`**; resolve with **`agent_config.py --git-access-policy`** / **`--git-scripts-dir`**; **`check_skill_prereqs.sh git-access`** for the git binary.
 - **Git access migration (Phase A)** — portable repository identity policy in **`GIT-ACCESS.md`**; downstream skills (**`gitlab`**, **`circleci`**, GitHub workflows) reference the policy instead of the installable **`git`** skill; **`git`** removed from manifest **`companion_skills`**; installable skill stubbed until Phase C. See **`docs/git-access-migration.md`**.
 - **GitHub access migration (Phase C)** — removed installable **`skills/core/github/`** skill directory and manifest entry. GitHub transport is **`GITHUB-ACCESS.md`** + synced **`scripts/github/`** helpers only.
 - **GitHub issue bootstrap** — **`bootstrap_github_artifact.py --fetch --issue <N>`** → **`$ARTIFACTS/issue-<N>/triage_issue_<N>.md`** (or **`analysis_issue_<N>.md`** with **`--type analysis`**). Issue fetch includes conversation comments when owner/repo are known.
@@ -31,7 +32,8 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 ### Added
 
-- **`GIT-ACCESS.md`**: portable Git repository identity policy (synced in Phase B)
+- **`GIT-ACCESS.md`**: synced portable Git repository identity policy (`shared_files`; resolve with **`agent_config.py --git-access-policy`**)
+- **`scripts/git/`**: **`git-repo-identity`**, **`resolve_repo_identity.py`** (synced; **`agent_config.py --git-scripts-dir`**)
 - **`docs/git-access-migration.md`**: Phase A–C checklist (mirrors GitHub/literal-search migrations)
 - **`GITHUB-ACCESS.md`**: synced portable GitHub fetch policy (`shared_files`; resolve with **`agent_config.py --github-access-policy`**)
 - **`scripts/github/`**: **`gh-fetch`**, **`gh_context.py`**, **`bootstrap_github_artifact.py`** (synced; **`agent_config.py --github-scripts-dir`**)
@@ -39,7 +41,7 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 - **`LITERAL-CODE-SEARCH.md`**: synced portable literal-search policy (`shared_files`; resolve with **`agent_config.py --literal-search-policy`**)
 - **`scripts/sync_cursor_rules.sh`**: sync **`templates/cursor/rules/*.mdc`** to **`~/.cursor/rules/`** (post-commit uses **`--overwrite`**)
 - **`templates/cursor/rules/literal-code-search.mdc`** and **`scripts/bootstrap_literal_search.sh`**: optional Cursor always-on rule; Codex uses synced doc + skills
-- **`agent_config.py` / `agent-config.sh`**: **`--skills-root`**, **`--literal-search-dir`**, **`--literal-search-policy`**, **`--github-access-policy`**, **`--github-scripts-dir`**
+- **`agent_config.py` / `agent-config.sh`**: **`--skills-root`**, **`--literal-search-dir`**, **`--literal-search-policy`**, **`--github-access-policy`**, **`--github-scripts-dir`**, **`--git-access-policy`**, **`--git-scripts-dir`**
 
 - **`templates/agent-artifacts/`** and **`templates/cursor/rules/agent-artifacts-directory.mdc`**: portable store index and Cursor phrase rule for "the artifacts directory"
 - **`scripts/bootstrap_agent_artifacts.sh`**: one-time bootstrap for **`$AGENT_ARTIFACTS_HOME/README.md`**, **`$GLOBAL/NEXT_TIME_CHECKS.md`**, and optional Cursor rule (Codex uses **`AGENTS.md`** + **`ARTIFACTS.md`** for the same contract)

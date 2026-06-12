@@ -378,6 +378,9 @@ check_group() {
     github|github-access)
       check_tool gh gh "GitHub CLI" "https://cli.github.com/" || missing=$((missing + 1))
       ;;
+    git-access)
+      check_tool git git "Git" "https://git-scm.com/" || missing=$((missing + 1))
+      ;;
     gitlab|git)
       check_tool glab glab "GitLab CLI" "https://gitlab.com/gitlab-org/cli/" || missing=$((missing + 1))
       ;;
@@ -455,7 +458,7 @@ detect_os
 
 targets=()
 if [[ "${1:-}" == "--all" ]]; then
-  targets=(github gitlab git circleci jira confluence investigate literal-search parallel-tests)
+  targets=(github git-access gitlab git circleci jira confluence investigate literal-search parallel-tests)
 elif [[ $# -eq 0 ]]; then
   usage >&2
   exit 2

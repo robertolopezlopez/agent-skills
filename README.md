@@ -20,7 +20,7 @@ Custom agent skills tracked in git. They install to **Codex** (`~/.codex/skills`
 - `skills/core/confluence/`: generic Confluence Cloud wiki access and updates through the Confluence REST API
   See `skills/core/confluence/README.md` for `atlassian.env` defaults shared with **`jira`**, auth expectations, and helper usage.
 - `skills/core/multi-spawn-agent/`: reusable template for spawning parallel worker agents with disjoint ownership
-- `skills/core/git/`: **deprecated stub** — use **`GIT-ACCESS.md`** (Phase C removes installable skill)
+- `skills/core/git/`: **deprecated stub** — use synced **`GIT-ACCESS.md`** + **`scripts/git/`** helpers (Phase C removes installable skill)
 - `skills/core/git-rebase-conflict-resolver/`: rebase and conflict-resolution workflow
 - `skills/core/branch-change-reviewer/`: branch review workflow against a target branch
 
@@ -68,7 +68,7 @@ This repository aims to provide reusable agent workflows (Codex and Cursor) that
 - Use `multi-spawn-agent/` when you want dynamic worker counts, explicit file ownership, or non-standard task splits.
 - Use generic skills such as `diagnose`, `tdd`, `gitlab`, `jira`, `confluence`, and `repository-technical-analysis` for reusable cross-repo workflows.
 - Use synced **`GITHUB-ACCESS.md`** + **`gh`** for GitHub issue and pull-request fetch, inspection, and normalization (`agent_config.py --github-access-policy`).
-- Use **`GIT-ACCESS.md`** for local repository state, remotes, and repository identity inspection.
+- Use synced **`GIT-ACCESS.md`** for local repository state, remotes, and repository identity inspection (`agent_config.py --git-access-policy`).
 - Use `github-pr-comment-analysis` for grouped unresolved PR review-thread analysis **inside** `review_pr_<number>.md` or `analysis_pr_<number>.md` after PR context has been fetched per **`GITHUB-ACCESS.md`**.
 - Use `github-issue-triage` for maintainer-facing GitHub issue classification, missing-info detection, and next-state recommendation after issue context has been fetched.
 - Use `repository-technical-analysis` or `diagnose` when GitHub issue triage requires technical evidence before a confident next-state recommendation.
