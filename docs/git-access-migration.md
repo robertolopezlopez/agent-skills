@@ -16,14 +16,14 @@ Remove the installable **`git`** skill; keep **`GIT-ACCESS.md`** + **`git` CLI**
 | 6. Remove **`git`** from downstream **`companion_skills`** | done | Phase A |
 | 7. **`check_skill_prereqs.sh git-access`** alias | done | **`git`** group legacy alias → **`gitlab`** (**`glab`**) |
 | 8. Update **`docs/skill-schema.md`**, README, ARTIFACTS | done | Phase A |
-| 9. Delete **`skills/core/git/`** + manifest entry | todo | Phase C |
+| 9. Delete **`skills/core/git/`** + manifest entry | done | Phase C |
 
 ## Safe to delete `skills/core/git/` when
 
 - [x] No manifest `companion_skills` entry references `git`
 - [x] No `SKILL.md` tells agents to load the `git` skill for identity (stub points to policy)
 - [x] **`gitlab`** refreshes via **`GIT-ACCESS.md`** + helper only
-- [ ] `validate_skill.py` passes without `git` manifest entry
+- [x] `validate_skill.py` passes without `git` manifest entry
 - [x] **`scripts/git/`** helpers shipped
 
 ## User-facing names (unchanged where noted)

@@ -177,7 +177,7 @@ Prereqs: check_skill_prereqs.sh git-access  |  GitLab ID: check_skill_prereqs.sh
 | Prereqs (git binary) | `check_skill_prereqs.sh git-access` |
 | GitLab ID fetch | `check_skill_prereqs.sh gitlab` + `check_skill_config.sh gitlab` |
 
-The installable **`git`** skill is deprecated; Phase C removes it. **`gitlab`**, **`circleci`**, and **`GITHUB-ACCESS.md`** consume identity from this policy.
+The installable **`git`** skill was removed in Phase C. **`gitlab`**, **`circleci`**, and **`GITHUB-ACCESS.md`** consume identity from this policy.
 
 Templates: **`templates/atlassian.env.example`**, **`templates/circleci.env.example`**.
 

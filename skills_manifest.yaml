@@ -37,12 +37,6 @@ skills:
     release_group: core
     companion_skills:
       - repository-technical-analysis
-  - name: git
-    path: skills/core/git
-    status: stable
-    type: core
-    repo_scope: generic
-    release_group: core
   - name: git-rebase-conflict-resolver
     path: skills/core/git-rebase-conflict-resolver
     status: stable

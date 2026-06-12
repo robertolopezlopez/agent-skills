@@ -1,4 +1,0 @@
-interface:
-  display_name: "Git"
-  short_description: "Inspect local Git repository context and remotes."
-  default_prompt: "Inspect the current Git repository and resolve remote-derived metadata such as host, project path, and project ID when possible."

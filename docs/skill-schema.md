@@ -122,7 +122,7 @@ GitHub issue and PR fetch is portable policy in synced **`GITHUB-ACCESS.md`** at
 
 ### Git repository identity (`GIT-ACCESS.md`)
 
-Local remote identity resolution is portable policy in synced **`GIT-ACCESS.md`** at **`$AGENT_CONFIG_HOME/skills/`** (resolve: **`agent_config.py --git-access-policy`**). Helpers sync to **`agent_config.py --git-scripts-dir`**. Prereqs: **`check_skill_prereqs.sh git-access`** (git binary); GitLab numeric ID: **`check_skill_prereqs.sh gitlab`**. The installable **`git`** skill is deprecated (Phase C removes it).
+Local remote identity resolution is portable policy in synced **`GIT-ACCESS.md`** at **`$AGENT_CONFIG_HOME/skills/`** (resolve: **`agent_config.py --git-access-policy`**). Helpers sync to **`agent_config.py --git-scripts-dir`**. Prereqs: **`check_skill_prereqs.sh git-access`** (git binary); GitLab numeric ID: **`check_skill_prereqs.sh gitlab`**. The installable **`git`** skill was removed in Phase C.
 
 | Skill type | Wire git identity? | How |
 |------------|-------------------|-----|

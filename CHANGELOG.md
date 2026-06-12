@@ -15,6 +15,7 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 ### Changed
 
+- **Git access migration (Phase C)** — removed installable **`skills/core/git/`** skill directory and manifest entry. Repository identity is **`GIT-ACCESS.md`** + synced **`scripts/git/`** helpers only.
 - **Git access migration (Phase B)** — synced helpers under **`scripts/git/`**; resolve with **`agent_config.py --git-access-policy`** / **`--git-scripts-dir`**; **`check_skill_prereqs.sh git-access`** for the git binary.
 - **Git access migration (Phase A)** — portable repository identity policy in **`GIT-ACCESS.md`**; downstream skills (**`gitlab`**, **`circleci`**, GitHub workflows) reference the policy instead of the installable **`git`** skill; **`git`** removed from manifest **`companion_skills`**; installable skill stubbed until Phase C. See **`docs/git-access-migration.md`**.
 - **GitHub access migration (Phase C)** — removed installable **`skills/core/github/`** skill directory and manifest entry. GitHub transport is **`GITHUB-ACCESS.md`** + synced **`scripts/github/`** helpers only.
