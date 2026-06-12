@@ -17,6 +17,7 @@ shared_files:
   - scripts/github/gh-fetch
   - scripts/github/gh_context.py
   - scripts/github/bootstrap_github_artifact.py
+  - scripts/github/apply_pr_thread_groups.py
 
 skills:
   - name: branch-change-reviewer

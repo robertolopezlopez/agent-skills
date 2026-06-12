@@ -133,7 +133,7 @@ Common pairings:
 1. Start at repository root.
 2. Resolve `pr_number` and `meaningful_id` (default `pr-<PR>`); choose `$ARTIFACTS/<meaningful_id>/review_pr_<PR>.md` vs `$ARTIFACTS/<meaningful_id>/analysis_pr_<PR>.md` per **Single main artifact**, or reuse a legacy root-level file when already present.
 3. Read the artifact; keep upstream bootstrap sections coherent.
-4. Refresh PR review/conversation state via **`gh-fetch pr <PR> --full`** per **`GITHUB-ACCESS.md`**.
+4. Refresh PR review/conversation state via **`gh-fetch pr <PR> --full`** per **`GITHUB-ACCESS.md`**. Optional mechanical first pass: **`apply_pr_thread_groups.py --fetch --artifact <path>`** then enrich **`### issue_*`** blocks.
 5. Filter to actionable unresolved items unless asked otherwise.
 6. Group related threads/comments sharing one issue.
 7. If legacy split files exist (`work_plan_pr_<PR>.md`, `analysis_pr_<PR>_issue_*.md`, `pr_<PR>_comment_report.md`), merge durable notes into `### issue_*`, then remove legacy files after successful merge.

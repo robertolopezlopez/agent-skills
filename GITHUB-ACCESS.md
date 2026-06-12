@@ -140,6 +140,7 @@ Resolve **`$AGENT_CONFIG_HOME/skills/scripts/github/`** with **`agent_config.py 
 | **`gh-fetch`** | Fetch normalized issue/PR JSON via **`gh`** (`gh_context.py` wrapper) |
 | **`gh_context.py`** | Core fetch + normalization (`issue` / `pr`, optional `--url`, `--owner`, `--repo`, **`--full`**) |
 | **`bootstrap_github_artifact.py`** | Bootstrap **`review_pr_<n>.md`** or **`analysis_pr_<n>.md`** under **`$ARTIFACTS/pr-<n>/`** |
+| **`apply_pr_thread_groups.py`** | Mechanical first pass: upsert **`## Grouped unresolved comments`** from **`--full`** JSON |
 
 ### Fetch normalized JSON
 
@@ -170,6 +171,16 @@ Resolve **`$AGENT_CONFIG_HOME/skills/scripts/github/`** with **`agent_config.py 
 - Slim normalized **`reviews`** and **`review_comments`** (overview always includes these when owner/repo are known)
 
 Use **`--full`** before **`github-pr-comment-analysis`** grouping. Bootstrap and overview-only tasks can omit it.
+
+Mechanical first pass (optional):
+
+```bash
+python3 "$GSDIR/bootstrap_github_artifact.py" --fetch --pr 2308 --owner django-cms --repo django-cms
+ART="$ARTIFACTS/pr-2308/review_pr_2308.md"   # resolve via resolve_artifact_path.py
+python3 "$GSDIR/apply_pr_thread_groups.py" --fetch --pr 2308 --owner django-cms --repo django-cms --artifact "$ART"
+```
+
+Then enrich **`### issue_*`** blocks in the artifact (technical analysis, verdict, proposed changes) per **`github-pr-comment-analysis`**.
 
 Set `GSDIR="$(python3 ~/.cursor/skills/scripts/agent_config.py --github-scripts-dir)"` once per shell.
 
