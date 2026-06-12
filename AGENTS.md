@@ -126,7 +126,7 @@ In IDE runtimes, prefer the **agent Grep tool** for literals when shell is unnec
 Routine GitHub issue and PR fetch uses synced **`GITHUB-ACCESS.md`** at **`$AGENT_CONFIG_HOME/skills/`** (resolve: **`agent_config.py --github-access-policy`**).
 
 ```text
-git skill (repo identity) → gh → gh api → GitHub MCP (last)
+GIT-ACCESS.md (repo identity) → gh → gh api → GitHub MCP (last)
 Prereqs: check_skill_prereqs.sh github  |  Auth: check_skill_config.sh github → gh auth login
 ```
 

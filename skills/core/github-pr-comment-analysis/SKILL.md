@@ -42,7 +42,7 @@ Use this skill when the user wants to:
 Do not use this skill when:
 
 - the task is only PR transport access or identity resolution; use **`GITHUB-ACCESS.md`** + `gh`
-- the task is only local Git repository inspection; use `git`
+- the task is only local Git repository inspection; use synced **`GIT-ACCESS.md`**
 - the task is primarily repository-specific technical analysis or code changes without grouped PR comment analysis
 - the user has not authorized subagents and parallel delegation is the only reason to invoke this skill
 
@@ -124,7 +124,7 @@ When scope narrows (`fix 2 and 5`, `issue_03`, …):
 
 Common pairings:
 
-- **`GITHUB-ACCESS.md`** + `git` for transport and normalized threads
+- **`GITHUB-ACCESS.md`** + **`GIT-ACCESS.md`** (identity when needed) for transport and normalized threads
 - repository-specific analysis skills for deeper conclusions or patches
 - `multi-spawn-agent` only when explicitly authorized
 

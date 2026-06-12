@@ -53,7 +53,6 @@ skills:
     repo_scope: generic
     release_group: core
     companion_skills:
-      - git
       - multi-spawn-agent
   - name: gitlab
     path: skills/core/gitlab
@@ -62,7 +61,6 @@ skills:
     repo_scope: generic
     release_group: core
     companion_skills:
-      - git
       - gitlab-mr-comment-analysis
   - name: gitlab-mr-comment-analysis
     path: skills/core/gitlab-mr-comment-analysis
@@ -80,7 +78,6 @@ skills:
     repo_scope: generic
     release_group: core
     companion_skills:
-      - git
       - repository-technical-analysis
       - diagnose
       - tdd
@@ -157,7 +154,6 @@ skills:
     repo_scope: cli
     release_group: cli
     companion_skills:
-      - git
       - github-pr-comment-analysis
       - private-contributor
       - private-technical-analysis
@@ -182,7 +178,6 @@ skills:
     repo_scope: generic
     release_group: core
     companion_skills:
-      - git
       - repository-technical-analysis
       - diagnose
   - name: learn-daily

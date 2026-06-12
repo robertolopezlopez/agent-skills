@@ -1,6 +1,6 @@
 ---
 name: gitlab
-description: Fetch and inspect GitLab merge requests and their discussions. Use when given an MR IID or URL and asked to fetch merge request details, read comments or discussion threads, inspect structured discussion data, extract the MR IID from a URL, auto-detect the repository project path or numeric project ID via the `git` skill, or prepare normalized GitLab MR context for a companion skill. Prefer `glab` and `glab api`, then GitLab MCP when local tools are insufficient.
+description: Fetch and inspect GitLab merge requests and their discussions. Use when given an MR IID or URL and asked to fetch merge request details, read comments or discussion threads, inspect structured discussion data, extract the MR IID from a URL, auto-detect the repository project path or numeric project ID via synced GIT-ACCESS.md and resolve_repo_identity.py, or prepare normalized GitLab MR context for a companion skill. Prefer `glab` and `glab api`, then GitLab MCP when local tools are insufficient.
 ---
 
 # GitLab Merge Request Access
@@ -22,7 +22,7 @@ Use this skill when the user wants to:
 
 Do not use this skill when:
 
-- the task is general local Git repository inspection only; use `git`
+- the task is general local Git repository inspection only; use synced **`GIT-ACCESS.md`**
 - the task is primarily comment grouping or review planning; use `gitlab-mr-comment-analysis` after this skill
 - the task is primarily repository-specific technical analysis or code changes; use the appropriate overlay after this skill
 - the repository is not hosted on GitLab
@@ -30,7 +30,7 @@ Do not use this skill when:
 ## First Read
 
 - Read the repository `AGENTS.md` and `ARTIFACTS.md` (artifact directory conventions) before running commands.
-- Use the `git` skill first when a `glab api` call needs the repository project path or numeric project ID.
+- Read synced **`GIT-ACCESS.md`** (`agent_config.py --git-access-policy`) when a `glab api` call needs the repository project path or numeric project ID.
 - Prefer `glab mr view` for MR overview and comments.
 - Prefer `glab api` when structured discussion data is needed.
 - Use GitLab MCP only when local `glab` access is missing or insufficient.
@@ -48,7 +48,7 @@ Accept, in order of preference:
 If the user did not provide an MR IID or MR URL, try to verify or discover the target MR from available context before asking the user:
 
 - use `glab` when the current checkout, branch context, or repository metadata is enough to identify the MR
-- use the `git` skill to resolve repository identity when GitLab API context is needed first
+- use synced **`GIT-ACCESS.md`** + **`git-repo-identity`** to resolve repository identity when GitLab API context is needed first
 - use GitLab MCP only when local `glab` discovery fails or is insufficient
 
 Ask the user for an MR IID or MR URL only after those verification or discovery paths fail.
@@ -86,7 +86,7 @@ Use this skill as the transport and normalization layer.
 
 Common pairings:
 
-- `git` for repository identity or GitLab project resolution before `glab api`
+- synced **`GIT-ACCESS.md`** + **`git-repo-identity`** for repository identity or GitLab project resolution before `glab api`
 - `gitlab-mr-comment-analysis` for unresolved comment grouping and reporting
 - repository-specific overlay skills for deeper technical analysis or proposed changes
 
@@ -96,12 +96,12 @@ Common pairings:
 2. If MR context is already known from prior `gitlab` usage, reuse it.
 3. If no MR IID or MR URL was provided, try to verify or discover the target MR from the current repository context:
    - use `glab` when local branch, checkout, or repository context can identify the MR
-   - use the `git` skill first when repository identity must be resolved before a GitLab lookup
+   - use synced **`GIT-ACCESS.md`** first when repository identity must be resolved before a GitLab lookup
    - use GitLab MCP only when local `glab` discovery fails or is insufficient
 4. If the input is an MR URL, parse host, project path, and MR IID from the link first.
 5. Extract the MR IID once and reuse it consistently as `mr_iid`.
-6. If the task needs `glab api` with a project identifier, use the `git` skill to resolve repository identity first:
-   - ask the `git` skill for the repository host, project path, encoded project path, and numeric GitLab project ID when available
+6. If the task needs `glab api` with a project identifier, resolve repository identity per **`GIT-ACCESS.md`** first:
+   - run **`git-repo-identity --json`** (or **`--fetch-id`**) for host, project path, encoded project path, and numeric GitLab project ID when available
 7. When the task started from an MR URL, prefer the parsed host and encoded project path from the URL in `glab api` calls when there is no reliable local repository context.
 8. If no MR can be verified or discovered from local context, ask the user for an MR IID or MR URL.
 9. Read the MR overview and comments with `glab mr view <MR> --comments`.
@@ -136,7 +136,7 @@ Common pairings:
 
 Preferred order:
 
-1. `git` (via the `git` skill) when repository or project identity is needed
+1. **`GIT-ACCESS.md`** + **`git-repo-identity`** when repository or project identity is needed
 2. `glab mr view` for overview and comments
 3. `glab api` for structured discussions, notes, and MR JSON
 4. GitLab MCP when local tools are missing or insufficient
@@ -173,7 +173,7 @@ Structured discussion fetch when needed:
 glab api /projects/:id/merge_requests/<MR>/discussions
 ```
 
-Resolve project identity first through the `git` skill.
+Resolve project identity first through synced **`GIT-ACCESS.md`**.
 
 When starting from an MR HTTP link and no local repository context is needed, use the parsed URL values directly:
 
@@ -222,7 +222,7 @@ python3 gitlab/scripts/bootstrap_gitlab_artifact.py --json /tmp/mr_<MR>.json --m
 
 Decision rule:
 
-- if the `git` skill returns `project_id`, use it in `/projects/<project_id>/...`
+- if identity resolution returns `project_id`, use it in `/projects/<project_id>/...`
 - otherwise use `encoded_project_path` in `/projects/<encoded_project_path>/...`
 
 If the repo is not hosted on GitLab, stop and report that the remote host is not a GitLab instance instead of calling `glab api` or GitLab MCP.
@@ -231,7 +231,7 @@ If the repo is not hosted on GitLab, stop and report that the remote host is not
 
 - Prefer local `glab mr view`, then `glab api`, then GitLab MCP only when local tools are insufficient.
 - Extract the MR IID once and reuse it consistently.
-- Prefer the `git` skill for repository/project identity instead of manually inferring it from `git remote -v`.
+- Prefer synced **`GIT-ACCESS.md`** + **`git-repo-identity`** for repository/project identity instead of manually inferring it from `git remote -v`.
 - Use the numeric project ID when available; otherwise use the resolved project path consistently.
 - Do not assume resolved comments are actionable unless the user asks for them.
 - Companion skills should consume this skill's normalized MR context instead of redoing fetch, identity-resolution, link-handling, or classification logic.

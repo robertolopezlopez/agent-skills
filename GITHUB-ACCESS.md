@@ -7,7 +7,7 @@ Workflow skills (`github-pr-comment-analysis`, `github-issue-triage`, …) consu
 ## Transport order
 
 ```text
-1. git skill — repository identity / verify github.com host (when needed)
+1. **`GIT-ACCESS.md`** — repository identity / verify host (when needed)
 2. gh — issue/PR overview, comments, labels
 3. gh api — structured reviews, review comments, fields gh view omits
 4. GitHub MCP — last resort when local tools missing or insufficient
@@ -92,7 +92,7 @@ Return the same contract whether data came from **`gh`**, **`gh api`**, or GitHu
 1. Start in the target repository root when local context is available.
 2. Reuse normalized context from an earlier fetch in the same session when still valid.
 3. Parse URLs into owner, repo, type, and number.
-4. When repository identity is unknown, use the **`git`** skill on remotes; stop if not hosted on GitHub.
+4. When repository identity is unknown, use synced **`GIT-ACCESS.md`** + **`git-repo-identity`** on remotes; stop if not hosted on GitHub.
 5. Resolve issue vs PR ambiguity before fetching.
 6. Run **`gh`** for common reads; escalate to **`gh api`** for structured review data.
 7. Use GitHub MCP only when local tools fail after prereq/config checks.

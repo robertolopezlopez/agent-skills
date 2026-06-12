@@ -15,6 +15,7 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 ### Changed
 
+- **Git access migration (Phase A)** — portable repository identity policy in **`GIT-ACCESS.md`**; downstream skills (**`gitlab`**, **`circleci`**, GitHub workflows) reference the policy instead of the installable **`git`** skill; **`git`** removed from manifest **`companion_skills`**; installable skill stubbed until Phase C. See **`docs/git-access-migration.md`**.
 - **GitHub access migration (Phase C)** — removed installable **`skills/core/github/`** skill directory and manifest entry. GitHub transport is **`GITHUB-ACCESS.md`** + synced **`scripts/github/`** helpers only.
 - **GitHub issue bootstrap** — **`bootstrap_github_artifact.py --fetch --issue <N>`** → **`$ARTIFACTS/issue-<N>/triage_issue_<N>.md`** (or **`analysis_issue_<N>.md`** with **`--type analysis`**). Issue fetch includes conversation comments when owner/repo are known.
 - **`gh_context.py --full`** — PR fetch adds normalized **`review_threads`** (GraphQL, includes **`is_resolved`**), **`conversation_comments`**, thread summary counts, and slim **`reviews`** / **`review_comments`** for **`github-pr-comment-analysis`**.
@@ -30,6 +31,8 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 ### Added
 
+- **`GIT-ACCESS.md`**: portable Git repository identity policy (synced in Phase B)
+- **`docs/git-access-migration.md`**: Phase A–C checklist (mirrors GitHub/literal-search migrations)
 - **`GITHUB-ACCESS.md`**: synced portable GitHub fetch policy (`shared_files`; resolve with **`agent_config.py --github-access-policy`**)
 - **`scripts/github/`**: **`gh-fetch`**, **`gh_context.py`**, **`bootstrap_github_artifact.py`** (synced; **`agent_config.py --github-scripts-dir`**)
 - **`docs/github-access-migration.md`**: Phase A–C checklist (mirrors literal-search migration)

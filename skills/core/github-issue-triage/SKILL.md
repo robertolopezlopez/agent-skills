@@ -58,7 +58,7 @@ Use this skill as the workflow and decision layer on top of **`GITHUB-ACCESS.md`
 
 Common pairings:
 
-- **`GITHUB-ACCESS.md`** + `git` for transport, issue identity, comments, labels, assignees, and normalized issue context
+- **`GIT-ACCESS.md`** + **`git-repo-identity`** for repository identity before GitHub fetch when needed
 - `repository-technical-analysis` when the issue needs deeper evidence-backed investigation
 - `diagnose` when a bug report must be isolated or reproduced before next-state recommendation
 - `tdd` when the issue is ready to become test-first implementation work

@@ -25,7 +25,7 @@ Use this skill when the user wants to:
 
 Do not use this skill when:
 
-- the task is only local Git inspection; use `git`
+- the task is only local Git inspection; use synced **`GIT-ACCESS.md`**
 - the task is CI on GitHub Actions, GitLab CI, Jenkins, or another provider
 - the user only wants code-level debugging with no CircleCI API access; use `diagnose` or `repository-technical-analysis` after you have local evidence
 - the task is primarily GitHub issue or PR discussion; use **`GITHUB-ACCESS.md`** + `gh`
@@ -41,7 +41,7 @@ Accept, depending on the request:
 - a CircleCI web URL from which to extract ids (path segments or query parameters)
 - optional **`CIRCLECI_API_BASE_URL`** for dedicated server or non-default API roots (defaults to CircleCI Cloud `https://circleci.com/api/v2`)
 
-If the project slug is missing but the repo is a GitHub project on CircleCI, derive candidates from Git remotes after using the `git` skill, for example:
+If the project slug is missing but the repo is a GitHub project on CircleCI, derive candidates from Git remotes after synced **`GIT-ACCESS.md`** + **`git-repo-identity`**, for example:
 
 - remote `git@github.com:myorg/myrepo.git` or `https://github.com/myorg/myrepo` maps to project slug `gh/myorg/myrepo`
 
@@ -50,7 +50,7 @@ Confirm ambiguous slugs with the user when multiple remotes or organizations cou
 ## First Read
 
 - Read the repository `AGENTS.md` before running commands when working from a checkout.
-- Use the `git` skill when local remote resolution is needed to infer `gh/<org>/<repo>`.
+- Use synced **`GIT-ACCESS.md`** + **`git-repo-identity`** when local remote resolution is needed to infer `gh/<org>/<repo>`.
 - Prefer the `circleci` CLI when it can satisfy the request (for example local job execution or follow).
 - Prefer `scripts/circleci-request` relative to this skill directory for API v2 calls.
 - Use CircleCI MCP only when local tools are missing or insufficient.
@@ -79,7 +79,7 @@ Confirm ambiguous slugs with the user when multiple remotes or organizations cou
 
 Preferred order:
 
-1. `git` (via the `git` skill) when project slug inference from remotes is needed
+1. synced **`GIT-ACCESS.md`** + **`git-repo-identity`** when project slug inference from remotes is needed
 2. `circleci` CLI when it can satisfy the request
 3. `scripts/circleci-request` for arbitrary [API v2](https://circleci.com/docs/api/v2/) requests the helper can reach with `Circle-Token` authentication
 4. CircleCI MCP when local tools are missing or insufficient
@@ -174,7 +174,7 @@ Use this skill as the CircleCI transport layer.
 
 Common pairings:
 
-- `git` to infer `gh/<org>/<repo>` from remotes
+- synced **`GIT-ACCESS.md`** + **`git-repo-identity`** to infer `gh/<org>/<repo>` from remotes
 - `repository-technical-analysis` or `diagnose` when CI failures lead into codebase investigation
 
 ## Safety Notes

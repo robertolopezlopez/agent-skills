@@ -41,7 +41,7 @@ Use this skill when the user wants to:
 Do not use this skill when:
 
 - the task is only MR transport access or identity resolution; use `gitlab`
-- the task is only local Git repository inspection; use `git`
+- the task is only local Git repository inspection; use synced **`GIT-ACCESS.md`**
 - the task is primarily repository-specific technical analysis or code changes without grouped MR comment analysis
 - the user has not authorized subagents and parallel delegation is the only reason to invoke this skill
 

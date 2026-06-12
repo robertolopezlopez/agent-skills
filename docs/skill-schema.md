@@ -110,15 +110,27 @@ Examples:
 
 ### GitHub access (`GITHUB-ACCESS.md`)
 
-GitHub issue and PR fetch is portable policy in synced **`GITHUB-ACCESS.md`** at **`$AGENT_CONFIG_HOME/skills/`** (resolve: **`agent_config.py --github-access-policy`**). Transport: **`git`** (identity) → **`gh`** → **`gh api`** → GitHub MCP (last). Prereqs: **`check_skill_prereqs.sh github`** (alias **`github-access`**); auth: **`check_skill_config.sh github`**. The installable **`github`** skill was removed in Phase C; transport is policy + helpers only.
+GitHub issue and PR fetch is portable policy in synced **`GITHUB-ACCESS.md`** at **`$AGENT_CONFIG_HOME/skills/`** (resolve: **`agent_config.py --github-access-policy`**). Transport: **`GIT-ACCESS.md`** (identity when needed) → **`gh`** → **`gh api`** → GitHub MCP (last). Prereqs: **`check_skill_prereqs.sh github`** (alias **`github-access`**); auth: **`check_skill_config.sh github`**. The installable **`github`** skill was removed in Phase C; transport is policy + helpers only.
 
 | Skill type | Wire GitHub transport? | How |
 |------------|------------------------|-----|
-| **Transport** (`jira`, `confluence`, `gitlab`, `git`, `circleci`) | No | Use **`GITHUB-ACCESS.md`** for GitHub fetch; do not duplicate **`gh`** logic. |
+| **Transport** (`jira`, `confluence`, `gitlab`, `circleci`) | No | Use **`GITHUB-ACCESS.md`** for GitHub fetch; identity via **`GIT-ACCESS.md`**; do not duplicate **`gh`** logic. |
 | **GitHub workflow** (`github-pr-comment-analysis`, `github-issue-triage`, `private-pr-comment-analysis`) | Yes — consumer | Read **`GITHUB-ACCESS.md`**; refresh via **`gh`**. |
 | **Investigation / contributor / planning** | Pointer only | One line to **`GITHUB-ACCESS.md`** when task starts from a GitHub URL or issue. |
 
 **Manifest rule:** do **not** add **`github`** under `companion_skills` for new or updated skills. Policy lives in synced **`GITHUB-ACCESS.md`**; helpers in **`agent_config.py --github-scripts-dir`**.
+
+### Git repository identity (`GIT-ACCESS.md`)
+
+Local remote identity resolution is portable policy in synced **`GIT-ACCESS.md`** at **`$AGENT_CONFIG_HOME/skills/`** (resolve: **`agent_config.py --git-access-policy`**). Helpers sync to **`agent_config.py --git-scripts-dir`**. Prereqs: **`check_skill_prereqs.sh git-access`** (git binary); GitLab numeric ID: **`check_skill_prereqs.sh gitlab`**. The installable **`git`** skill is deprecated (Phase C removes it).
+
+| Skill type | Wire git identity? | How |
+|------------|-------------------|-----|
+| **Transport** (`jira`, `confluence`, `gitlab`, `circleci`) | Consumer when needed | Read **`GIT-ACCESS.md`**; run **`git-repo-identity`**. |
+| **GitHub workflow** | Pointer only | Host check via **`GIT-ACCESS.md`**; fetch via **`GITHUB-ACCESS.md`**. |
+| **Investigation / contributor** | No | Raw **`git`** CLI for branch/diff only. |
+
+**Manifest rule:** do **not** add **`git`** under `companion_skills` for new or updated skills. Policy lives in synced **`GIT-ACCESS.md`**; helpers in **`agent_config.py --git-scripts-dir`**.
 
 ### Literal code search (`LITERAL-CODE-SEARCH.md`)
 
@@ -126,7 +138,7 @@ Literal search for the **current directory tree** is portable policy in synced *
 
 | Skill type | Wire literal search? | How |
 |------------|----------------------|-----|
-| **Transport** (`jira`, `confluence`, `gitlab`, `git`, `circleci`) | No | Remote fetch only; GitHub via **`GITHUB-ACCESS.md`**; code search via investigation companions. |
+| **Transport** (`jira`, `confluence`, `gitlab`, `circleci`) | No | Remote fetch only; GitHub via **`GITHUB-ACCESS.md`**; identity via **`GIT-ACCESS.md`**; code search via investigation companions. |
 | **Investigation hub** (`repository-technical-analysis`) | Yes — owner | Workflow step 3 holds the full procedure. No manifest `companion_skills` entry for search. |
 | **Investigation overlay** (`private-technical-analysis`, `private-service-technical-analysis`, …) | Inherit | Load `repository-technical-analysis`; one line in **First Read** pointing to RTA step 3 / **`LITERAL-CODE-SEARCH.md`**. Do not duplicate the full search workflow. |
 | **Debugging** (`diagnose`) | Inherit + pointer | **First Read** one-liner to **`LITERAL-CODE-SEARCH.md`**; manifest pairs **`repository-technical-analysis`**. |
