@@ -49,7 +49,7 @@ Do not use this skill when:
 ## First Read
 
 - Read the repository `AGENTS.md` and synced **`GITHUB-ACCESS.md`** (`agent_config.py --github-access-policy`) before running commands.
-- Fetch and normalize PR context per **`GITHUB-ACCESS.md`**.
+- Fetch and normalize PR context per **`GITHUB-ACCESS.md`**. For grouped comment analysis, use **`gh-fetch pr <PR> --full`** (or **`gh_context.py pr <PR> --full`**) so **`review_threads`**, **`conversation_comments`**, and unresolved counts are present.
 - Treat **`GITHUB-ACCESS.md`** as the transport boundary whether data came from local `gh` / `gh api` or GitHub MCP.
 - Open or create the **single main artifact** at `$ARTIFACTS/<meaningful_id>/review_pr_<PR>.md` by preference (otherwise `$ARTIFACTS/<meaningful_id>/analysis_pr_<PR>.md`, or an existing legacy root-level file). If missing, bootstrap minimal PR framing with **`scripts/github/bootstrap_github_artifact.py --fetch --pr <PR>`** (or **`--json`**) per **`GITHUB-ACCESS.md`**, then continue.
 - Do not duplicate PR parsing, repository identity resolution, or GitHub transport logic here.
@@ -66,7 +66,7 @@ Accept, in order of preference:
 - or a PR URL
 - optional grouped-issue selection (numbered index or stable labels such as `issue_02`)
 
-If starting from a local artifact, read it first, extract canonical `pr_number` and PR link, then refresh live PR state via **`gh`** / **`gh api`** per **`GITHUB-ACCESS.md`** before grouping.
+If starting from a local artifact, read it first, extract canonical `pr_number` and PR link, then refresh live PR state via **`gh-fetch pr <PR> --full`** (preferred) or **`gh` / `gh api`** per **`GITHUB-ACCESS.md`** before grouping.
 
 Resolve ambiguity between issue vs PR per **`GITHUB-ACCESS.md`** before fetching.
 
@@ -133,7 +133,7 @@ Common pairings:
 1. Start at repository root.
 2. Resolve `pr_number` and `meaningful_id` (default `pr-<PR>`); choose `$ARTIFACTS/<meaningful_id>/review_pr_<PR>.md` vs `$ARTIFACTS/<meaningful_id>/analysis_pr_<PR>.md` per **Single main artifact**, or reuse a legacy root-level file when already present.
 3. Read the artifact; keep upstream bootstrap sections coherent.
-4. Refresh PR review/conversation state via **`gh`** / **`gh api`** per **`GITHUB-ACCESS.md`**.
+4. Refresh PR review/conversation state via **`gh-fetch pr <PR> --full`** per **`GITHUB-ACCESS.md`**.
 5. Filter to actionable unresolved items unless asked otherwise.
 6. Group related threads/comments sharing one issue.
 7. If legacy split files exist (`work_plan_pr_<PR>.md`, `analysis_pr_<PR>_issue_*.md`, `pr_<PR>_comment_report.md`), merge durable notes into `### issue_*`, then remove legacy files after successful merge.

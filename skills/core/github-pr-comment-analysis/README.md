@@ -6,7 +6,7 @@ See `SKILL.md`.
 
 ## Transport
 
-Fetch and normalize PR context per synced **`GITHUB-ACCESS.md`** (`agent_config.py --github-access-policy`) using **`gh`** / **`gh api`**.
+Fetch and normalize PR context per synced **`GITHUB-ACCESS.md`** using **`gh-fetch pr <PR> --full`** (review threads + conversation comments).
 
 ## Optional artifact input
 
