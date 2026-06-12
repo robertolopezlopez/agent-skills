@@ -192,6 +192,8 @@ Resolution order for **new writes**:
 - Jira issue bootstrap: `task_<issue>.md`
 - GitLab MR review bootstrap: `review_mr_<iid>.md`
 - GitLab MR investigation bootstrap: `analysis_mr_<iid>.md`
+- GitHub issue triage bootstrap: `triage_issue_<number>.md`
+- GitHub issue investigation bootstrap: `analysis_issue_<number>.md`
 - GitHub PR review bootstrap: `review_pr_<number>.md`
 - GitHub PR investigation bootstrap: `analysis_pr_<number>.md`
 - Repository / branch investigations: existing patterns such as `analysis_<relevant_name>.md` or `review_<sanitized-branch>.md` — place them under **`$ARTIFACTS/<meaningful_id>/`** unless the artifact already exists elsewhere
@@ -206,6 +208,7 @@ Full examples (external store; home and repo-key vary by machine):
 - `$GLOBAL/NEXT_TIME_CHECKS.md`
 - `$ARTIFACTS/github.com-snyk-cli/CLI-123/task_CLI-123.md`
 - `$ARTIFACTS/mr-1447/review_mr_1447.md`
+- `$ARTIFACTS/issue-16/triage_issue_16.md`
 - `$ARTIFACTS/pr-336/review_pr_336.md`
 - `$ARTIFACTS/feature-auth-guard/review_feature-auth-guard.md` (branch-based branch review layouts)
 - `$ARTIFACTS/NEXT_TIME_CHECKS.md`
@@ -237,6 +240,6 @@ Prefer merging durable content from legacy files into the main artifact, then de
 - `jira` bootstraps `task_<issue>.md` under **`$ARTIFACTS/<meaningful_id>/`** (`meaningful_id` defaults to issue key unless overridden)
 - `gitlab` bootstraps `review_mr_<iid>.md` or `analysis_mr_<iid>.md` under **`$ARTIFACTS/<meaningful_id>/`** (`meaningful_id` defaults sensibly — e.g. `mr-<iid>` unless the repo dictates otherwise)
 - `gitlab-mr-comment-analysis` refreshes live MR state and writes grouped unresolved threads **into** the main MR Markdown file (typically **`$ARTIFACTS/…/review_mr_<iid>.md`** or **`$ARTIFACTS/…/analysis_mr_<iid>.md`**) inside `## Grouped unresolved comments`
-- **`GITHUB-ACCESS.md`** + `gh` prepares normalized PR context; **`scripts/github/bootstrap_github_artifact.py`** bootstraps **`review_pr_<number>.md`** / **`analysis_pr_<number>.md`** under **`$ARTIFACTS/pr-<n>/`**
+- **`GITHUB-ACCESS.md`** + `gh` prepares normalized issue/PR context; **`scripts/github/bootstrap_github_artifact.py`** bootstraps **`triage_issue_<number>.md`** / **`analysis_issue_<number>.md`** under **`$ARTIFACTS/issue-<n>/`** or **`review_pr_<number>.md`** / **`analysis_pr_<number>.md`** under **`$ARTIFACTS/pr-<n>/`**
 - `github-pr-comment-analysis` refreshes live PR state and writes grouped unresolved threads **into** the canonical PR Markdown file (typically **`$ARTIFACTS/…/review_pr_<number>.md`** or **`$ARTIFACTS/…/analysis_pr_<number>.md`**) under the same subsection contract
 - repository-specific overlay skills should reuse these artifacts when possible instead of recreating context

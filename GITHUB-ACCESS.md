@@ -78,6 +78,7 @@ Downstream workflow skills expect these fields (names stable across transports):
 | `created_at` / `updated_at` | ISO timestamps when available |
 | `body` | Description / PR body |
 | `comments` | Issue or conversation comments when requested |
+| `conversation_comments` / `comment_count` | Issue timeline comments (included when owner/repo are known) |
 | `reviews` / `review_comments` | PR review data when requested |
 | `review_threads` | PR inline review threads with `is_resolved` when `--full` |
 | `conversation_comments` | PR timeline comments (non-inline) when `--full` |
@@ -139,7 +140,7 @@ Resolve **`$AGENT_CONFIG_HOME/skills/scripts/github/`** with **`agent_config.py 
 |--------|---------|
 | **`gh-fetch`** | Fetch normalized issue/PR JSON via **`gh`** (`gh_context.py` wrapper) |
 | **`gh_context.py`** | Core fetch + normalization (`issue` / `pr`, optional `--url`, `--owner`, `--repo`, **`--full`**) |
-| **`bootstrap_github_artifact.py`** | Bootstrap **`review_pr_<n>.md`** or **`analysis_pr_<n>.md`** under **`$ARTIFACTS/pr-<n>/`** |
+| **`bootstrap_github_artifact.py`** | Bootstrap **`triage_issue_<n>.md`** / **`analysis_issue_<n>.md`** or **`review_pr_<n>.md`** / **`analysis_pr_<n>.md`** under **`$ARTIFACTS/`** |
 | **`apply_pr_thread_groups.py`** | Mechanical first pass: upsert **`## Grouped unresolved comments`** from **`--full`** JSON |
 
 ### Fetch normalized JSON
@@ -196,6 +197,20 @@ python3 "$GSDIR/bootstrap_github_artifact.py" --json /tmp/pr_336.json --pr 336
 
 # Investigation-heavy layout
 python3 "$GSDIR/bootstrap_github_artifact.py" --fetch --pr 336 --type analysis
+```
+
+### Bootstrap issue artifact
+
+```bash
+# Live fetch + bootstrap (default $ARTIFACTS/issue-<N>/triage_issue_<N>.md)
+python3 "$GSDIR/bootstrap_github_artifact.py" --fetch --issue 16 --owner org --repo repo
+
+# From saved JSON
+"$GSDIR/gh-fetch" issue 16 --owner org --repo repo -o /tmp/issue_16.json
+python3 "$GSDIR/bootstrap_github_artifact.py" --json /tmp/issue_16.json --issue 16
+
+# Investigation-heavy layout
+python3 "$GSDIR/bootstrap_github_artifact.py" --fetch --issue 16 --owner org --repo repo --type analysis
 ```
 
 Omit **`--output`** to use the external artifact store (**`resolve_artifact_path.py`**). Preserves **`Follow-up Findings`** and **`Improvement Candidates`** when re-bootstrapping an existing artifact.

@@ -16,6 +16,7 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 ### Changed
 
 - **GitHub access migration (Phase C)** — removed installable **`skills/core/github/`** skill directory and manifest entry. GitHub transport is **`GITHUB-ACCESS.md`** + synced **`scripts/github/`** helpers only.
+- **GitHub issue bootstrap** — **`bootstrap_github_artifact.py --fetch --issue <N>`** → **`$ARTIFACTS/issue-<N>/triage_issue_<N>.md`** (or **`analysis_issue_<N>.md`** with **`--type analysis`**). Issue fetch includes conversation comments when owner/repo are known.
 - **`gh_context.py --full`** — PR fetch adds normalized **`review_threads`** (GraphQL, includes **`is_resolved`**), **`conversation_comments`**, thread summary counts, and slim **`reviews`** / **`review_comments`** for **`github-pr-comment-analysis`**.
 - **`apply_pr_thread_groups.py`** — mechanical upsert of **`## Grouped unresolved comments`** from **`--full`** JSON into **`review_pr_<n>.md`** / **`analysis_pr_<n>.md`**.
 - **GitHub access migration (Phase B)** — synced helpers under **`scripts/github/`**: **`gh-fetch`**, **`gh_context.py`**, **`bootstrap_github_artifact.py`**. Resolve with **`agent_config.py --github-scripts-dir`**. Documented in **`GITHUB-ACCESS.md`**.

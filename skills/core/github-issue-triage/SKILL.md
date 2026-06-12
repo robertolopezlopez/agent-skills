@@ -47,7 +47,7 @@ If the user provides a pull request instead of an issue, redirect to a future PR
 ## First Read
 
 - Read the repository `AGENTS.md` and synced **`GITHUB-ACCESS.md`** before running commands.
-- Fetch and normalize issue context per **`GITHUB-ACCESS.md`**.
+- Fetch and normalize issue context per **`GITHUB-ACCESS.md`**. When a durable workspace is needed, bootstrap **`$ARTIFACTS/issue-<N>/triage_issue_<N>.md`** with **`bootstrap_github_artifact.py --fetch --issue <N>`** (or **`--json`**).
 - If the task may require technical investigation before triage is complete, be ready to pair with `repository-technical-analysis`.
 - If a concrete bug report needs reproduction or narrowing before classification, be ready to pair with `diagnose`.
 - Default to recommendation mode first instead of direct GitHub writes unless the user explicitly asks for updates.

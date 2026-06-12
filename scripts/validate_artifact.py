@@ -33,6 +33,8 @@ NAME_PATTERNS = [
     re.compile(r'^work_plan_pr_\d+\.md$'),
     re.compile(r'^analysis_pr_\d+_issue_\d+\.md$'),
     re.compile(r'^pr_\d+_comment_report\.md$'),
+    re.compile(r'^triage_issue_\d+\.md$'),
+    re.compile(r'^analysis_issue_\d+\.md$'),
 ]
 
 

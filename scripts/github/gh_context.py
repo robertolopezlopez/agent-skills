@@ -345,7 +345,6 @@ def fetch_issue(
     *,
     full: bool = False,
 ) -> dict[str, Any]:
-    del full
     repo_flag = repo_slug(owner, repo) if owner and repo else None
     fields = "number,title,body,state,url,author,labels,assignees,createdAt,updatedAt"
     data = gh_cmd("issue", "view", str(number), "--json", fields, repo=repo_flag)
@@ -356,7 +355,28 @@ def fetch_issue(
         if not inferred:
             raise SystemExit("owner/repo required when not in a git checkout with origin")
         owner, repo = inferred
-    return normalize_issue(data, owner, repo)
+    normalized = normalize_issue(data, owner, repo)
+    return attach_issue_comment_data(normalized, owner, repo, number, full=full)
+
+
+def attach_issue_comment_data(
+    normalized: dict[str, Any],
+    owner: str,
+    repo: str,
+    number: int,
+    *,
+    full: bool,
+) -> dict[str, Any]:
+    normalized["fetch_depth"] = "full" if full else "overview"
+    try:
+        comments = gh_api_list(f"repos/{owner}/{repo}/issues/{number}/comments")
+        normalized["conversation_comments"] = [
+            slim_conversation_comment(item) for item in comments if isinstance(item, dict)
+        ]
+    except SystemExit:
+        normalized["conversation_comments"] = []
+    normalized["comment_count"] = len(normalized.get("conversation_comments") or [])
+    return normalized
 
 
 def attach_pr_review_data(
@@ -441,8 +461,8 @@ def build_parser() -> argparse.ArgumentParser:
         "--full",
         action="store_true",
         help=(
-            "For pull requests: include review threads (GraphQL), conversation comments, "
-            "and thread summary counts for github-pr-comment-analysis."
+            "Pull requests: include review threads (GraphQL), conversation comments, and thread counts. "
+            "Issues: mark fetch_depth full (conversation comments are always included when owner/repo are known)."
         ),
     )
     parser.add_argument("--output", "-o", help="Write JSON to this path instead of stdout.")
