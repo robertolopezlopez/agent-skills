@@ -24,6 +24,7 @@ DETAIL_SECTIONS = {'## Jira Details', '## GitLab Details', '## GitHub Details'}
 NAME_PATTERNS = [
     re.compile(r'^task_[a-z0-9][a-z0-9-]*\.md$'),
     re.compile(r'^review_mr_\d+\.md$'),
+    re.compile(r'^analysis_[a-z0-9][a-z0-9_-]*\.md$'),
     re.compile(r'^analysis_mr_\d+\.md$'),
     re.compile(r'^work_plan_mr_\d+\.md$'),
     re.compile(r'^analysis_mr_\d+_issue_\d+\.md$'),
