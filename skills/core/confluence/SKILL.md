@@ -21,7 +21,7 @@ Use this skill when the user wants to:
 
 Do not use this skill when:
 
-- the task is Jira issue access only (use `jira`)
+- the task is Jira issue access only (use **`JIRA-ACCESS.md`** + `acli`)
 - the task is GitLab MR access or Git repository context
 - the task is only local documentation editing with no live Confluence access
 

@@ -83,6 +83,14 @@ def github_access_policy(infer_from: Path | None = None) -> Path:
     return skills_root(infer_from=infer_from) / "GITHUB-ACCESS.md"
 
 
+def jira_scripts_dir(infer_from: Path | None = None) -> Path:
+    return skills_root(infer_from=infer_from) / "scripts" / "jira"
+
+
+def jira_access_policy(infer_from: Path | None = None) -> Path:
+    return skills_root(infer_from=infer_from) / "JIRA-ACCESS.md"
+
+
 def defaults_hint(basename: str, infer_from: Path | None = None) -> str:
     runtime = detect_runtime(infer_from)
     path = config_home(runtime=runtime, infer_from=infer_from) / basename
@@ -189,6 +197,16 @@ def build_parser() -> argparse.ArgumentParser:
         help="Print the synced GITHUB-ACCESS.md path.",
     )
     parser.add_argument(
+        "--jira-scripts-dir",
+        action="store_true",
+        help="Print the synced Jira helper scripts directory.",
+    )
+    parser.add_argument(
+        "--jira-access-policy",
+        action="store_true",
+        help="Print the synced JIRA-ACCESS.md path.",
+    )
+    parser.add_argument(
         "--defaults-hint",
         metavar="FILENAME",
         help="Print a human-readable defaults-file hint (for example atlassian.env).",
@@ -222,6 +240,8 @@ def main() -> None:
         args.literal_search_policy,
         args.github_access_policy,
         args.github_scripts_dir,
+        args.jira_access_policy,
+        args.jira_scripts_dir,
         args.git_access_policy,
         args.git_scripts_dir,
         bool(args.defaults_hint),
@@ -233,6 +253,7 @@ def main() -> None:
             "specify exactly one of --runtime, --config-home, --atlassian-env, "
             "--defaults-hint, --circleci-env, --fast-grep-env, --skills-root, "
             "--literal-search-dir, --literal-search-policy, --github-access-policy, --github-scripts-dir, "
+            "--jira-access-policy, --jira-scripts-dir, "
             "--git-access-policy, --git-scripts-dir, --api-docs-root, or --api-docs-dir"
         )
 
@@ -265,6 +286,12 @@ def main() -> None:
         return
     if args.github_scripts_dir:
         print(github_scripts_dir(infer_from=infer_from))
+        return
+    if args.jira_access_policy:
+        print(jira_access_policy(infer_from=infer_from))
+        return
+    if args.jira_scripts_dir:
+        print(jira_scripts_dir(infer_from=infer_from))
         return
     if args.git_access_policy:
         print(git_access_policy(infer_from=infer_from))

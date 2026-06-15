@@ -237,7 +237,7 @@ Prefer merging durable content from legacy files into the main artifact, then de
 ## Skill Responsibilities
 
 - `learn-daily` reads **`$GLOBAL/NEXT_TIME_CHECKS.md`** and **`$ARTIFACTS/NEXT_TIME_CHECKS.md`**, writes cross-repo reference material under **`$GLOBAL/<meaningful_id>/`**, and ticket folders under **`$ARTIFACTS/<meaningful_id>/`**
-- `jira` bootstraps `task_<issue>.md` under **`$ARTIFACTS/<meaningful_id>/`** (`meaningful_id` defaults to issue key unless overridden)
+- **`JIRA-ACCESS.md`** bootstraps `task_<issue>.md` under **`$ARTIFACTS/<meaningful_id>/`** (`meaningful_id` defaults to issue key unless overridden)
 - `gitlab` bootstraps `review_mr_<iid>.md` or `analysis_mr_<iid>.md` under **`$ARTIFACTS/<meaningful_id>/`** (`meaningful_id` defaults sensibly — e.g. `mr-<iid>` unless the repo dictates otherwise)
 - `gitlab-mr-comment-analysis` refreshes live MR state and writes grouped unresolved threads **into** the main MR Markdown file (typically **`$ARTIFACTS/…/review_mr_<iid>.md`** or **`$ARTIFACTS/…/analysis_mr_<iid>.md`**) inside `## Grouped unresolved comments`
 - **`GITHUB-ACCESS.md`** + `gh` prepares normalized issue/PR context; **`scripts/github/bootstrap_github_artifact.py`** bootstraps **`triage_issue_<number>.md`** / **`analysis_issue_<number>.md`** under **`$ARTIFACTS/issue-<n>/`** or **`review_pr_<number>.md`** / **`analysis_pr_<number>.md`** under **`$ARTIFACTS/pr-<n>/`**

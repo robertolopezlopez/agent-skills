@@ -15,6 +15,8 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 ### Changed
 
+- **Jira access migration (Phase A)** — portable Jira Cloud policy in **`JIRA-ACCESS.md`**; primary transport **`acli jira workitem …`**; installable **`jira`** skill stubbed until Phase C; **`jira`** removed from **`plan-issues`** **`companion_skills`**; **`check_skill_prereqs.sh jira`** checks **`acli`**; **`check_skill_config.sh jira`** checks **`acli jira auth status`**. See **`docs/jira-access-migration.md`**.
+- **Git access migration (Phase D)** — shared **`scripts/parse_remote_url.py`** for remote URL parsing; consumed by **`resolve_repo_identity.py`**, **`gh_context.py`**, and **`resolve_artifact_path.py`**. Self-test via **`parse_remote_url.py --self-test`**.
 - **Git access migration (Phase C)** — removed installable **`skills/core/git/`** skill directory and manifest entry. Repository identity is **`GIT-ACCESS.md`** + synced **`scripts/git/`** helpers only.
 - **Git access migration (Phase B)** — synced helpers under **`scripts/git/`**; resolve with **`agent_config.py --git-access-policy`** / **`--git-scripts-dir`**; **`check_skill_prereqs.sh git-access`** for the git binary.
 - **Git access migration (Phase A)** — portable repository identity policy in **`GIT-ACCESS.md`**; downstream skills (**`gitlab`**, **`circleci`**, GitHub workflows) reference the policy instead of the installable **`git`** skill; **`git`** removed from manifest **`companion_skills`**; installable skill stubbed until Phase C. See **`docs/git-access-migration.md`**.
@@ -33,8 +35,10 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 ### Added
 
-- **`GIT-ACCESS.md`**: synced portable Git repository identity policy (`shared_files`; resolve with **`agent_config.py --git-access-policy`**)
+- **`JIRA-ACCESS.md`**: synced portable Jira Cloud access policy (`shared_files`; resolve with **`agent_config.py --jira-access-policy`**)
+- **`docs/jira-access-migration.md`**: Jira transport migration checklist
 - **`scripts/git/`**: **`git-repo-identity`**, **`resolve_repo_identity.py`** (synced; **`agent_config.py --git-scripts-dir`**)
+- **`scripts/parse_remote_url.py`**: shared Git remote URL parser (synced; **`--self-test`**)
 - **`docs/git-access-migration.md`**: Phase A–C checklist (mirrors GitHub/literal-search migrations)
 - **`GITHUB-ACCESS.md`**: synced portable GitHub fetch policy (`shared_files`; resolve with **`agent_config.py --github-access-policy`**)
 - **`scripts/github/`**: **`gh-fetch`**, **`gh_context.py`**, **`bootstrap_github_artifact.py`** (synced; **`agent_config.py --github-scripts-dir`**)

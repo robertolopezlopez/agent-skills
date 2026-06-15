@@ -387,7 +387,11 @@ check_group() {
     circleci)
       check_tool circleci circleci "CircleCI CLI" "https://circleci.com/docs/local-cli/" || missing=$((missing + 1))
       ;;
-    jira|confluence)
+    jira|jira-access)
+      check_tool acli acli "Atlassian CLI (acli)" "https://developer.atlassian.com/cloud/acli/" || missing=$((missing + 1))
+      check_tool jq jq "JSON filter (optional)" "https://jqlang.org/" || true
+      ;;
+    confluence)
       check_tool jq jq "JSON filter (optional)" "https://jqlang.org/" || true
       ;;
     investigate|repository-technical-analysis|diagnose)

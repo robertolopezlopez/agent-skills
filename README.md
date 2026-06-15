@@ -15,10 +15,9 @@ Custom agent skills tracked in git. They install to **Codex** (`~/.codex/skills`
 - `skills/core/gitlab/`: generic GitLab merge request fetch and discussion-inspection workflow
 - `skills/core/gitlab-mr-comment-analysis/`: reusable GitLab merge request comment-analysis workflow for any GitLab repository
 - `skills/core/github-pr-comment-analysis/`: reusable GitHub pull request comment-analysis workflow (**`GITHUB-ACCESS.md`** + `gh` transport)
-- `skills/core/jira/`: generic Jira and Atlassian issue access and update workflow through the Jira REST API
-  See `skills/core/jira/README.md` for setup, auth expectations, and `jira-api` usage.
+- `skills/core/jira/`: **deprecated stub** — use synced **`JIRA-ACCESS.md`** + **`acli`** (see `docs/jira-access-migration.md`)
 - `skills/core/confluence/`: generic Confluence Cloud wiki access and updates through the Confluence REST API
-  See `skills/core/confluence/README.md` for `atlassian.env` defaults shared with **`jira`**, auth expectations, and helper usage.
+  See `skills/core/confluence/README.md` for `atlassian.env` defaults shared with Jira transport, auth expectations, and helper usage.
 - `skills/core/multi-spawn-agent/`: reusable template for spawning parallel worker agents with disjoint ownership
 - `skills/core/git-rebase-conflict-resolver/`: rebase and conflict-resolution workflow
 - `skills/core/branch-change-reviewer/`: branch review workflow against a target branch
@@ -45,7 +44,7 @@ Overlays for the **CLI product** source repository (agent- and IDE-agnostic: wor
 - `git-hooks/post-commit`: copies committed skills into the configured install roots (default: `~/.codex/skills` and `~/.cursor/skills`) and refreshes Cursor rules under `~/.cursor/rules/`
 
 The private-service and **CLI product** (`skills/cli/`) skills are overlays. Use them with the matching generic skills when working in those repositories.
-Use `jira` for generic Atlassian/Jira access when runtime **`atlassian.env`** sets `ATLASSIAN_API_BASE_URL=https://example.atlassian.net` (resolve with **`scripts/agent_config.py --atlassian-env`**).
+Use **`JIRA-ACCESS.md`** + **`acli`** for Jira Cloud issue access (resolve policy with **`scripts/agent_config.py --jira-access-policy`**).
 Use `confluence` for Confluence Cloud wiki access with the same runtime defaults file (see `skills/core/confluence/README.md`).
 Likewise, `gitlab-mr-comment-analysis` is an overlay on `gitlab`: use `gitlab` for generic MR fetch and discussion inspection, and `gitlab-mr-comment-analysis` for grouped unresolved-comment analysis and reporting.
 `github-pr-comment-analysis` is the GitHub analogue: fetch per synced **`GITHUB-ACCESS.md`** (`gh` / `gh api`), then use **`github-pr-comment-analysis`** to group unresolved review threads **inside** `review_pr_<number>.md` or `analysis_pr_<number>.md`.
@@ -65,7 +64,7 @@ This repository aims to provide reusable agent workflows (Codex and Cursor) that
 
 - Use `codex-multi-agent-template/` when you want a fixed project-level starter with `lead`, `developer`, `reviewer`, and `tester`.
 - Use `multi-spawn-agent/` when you want dynamic worker counts, explicit file ownership, or non-standard task splits.
-- Use generic skills such as `diagnose`, `tdd`, `gitlab`, `jira`, `confluence`, and `repository-technical-analysis` for reusable cross-repo workflows.
+- Use generic skills such as `diagnose`, `tdd`, `gitlab`, **`JIRA-ACCESS.md`**, `confluence`, and `repository-technical-analysis` for reusable cross-repo workflows.
 - Use synced **`GITHUB-ACCESS.md`** + **`gh`** for GitHub issue and pull-request fetch, inspection, and normalization (`agent_config.py --github-access-policy`).
 - Use synced **`GIT-ACCESS.md`** for local repository state, remotes, and repository identity inspection (`agent_config.py --git-access-policy`).
 - Use `github-pr-comment-analysis` for grouped unresolved PR review-thread analysis **inside** `review_pr_<number>.md` or `analysis_pr_<number>.md` after PR context has been fetched per **`GITHUB-ACCESS.md`**.
@@ -174,7 +173,7 @@ Environment overrides: `CODEX_HOME` (Codex base), `CURSOR_AGENT_SKILLS_HOME` (pa
 Optional **install filters** (skip copying whole manifest groups or named skills—excluded directories are removed from each sync target if they were installed earlier):
 
 - `AGENT_SKILLS_EXCLUDE_RELEASE_GROUPS` — comma-separated `release_group` values from `skills_manifest.yaml`. Each value drops **every** skill with that `release_group`. Current manifest values:
-  - **`core`** — generic cross-repo skills (e.g. **`GITHUB-ACCESS.md`**, `gitlab`, `jira`, `repository-technical-analysis`, `tdd`, …).
+  - **`core`** — generic cross-repo skills (e.g. **`GITHUB-ACCESS.md`**, **`JIRA-ACCESS.md`**, `gitlab`, `repository-technical-analysis`, `tdd`, …).
   - **`cli`** — CLI product overlays (`private-contributor`, `private-technical-analysis`, `private-parallel-tests`, `private-pr-comment-analysis`).
   - **`private-service`** — private-service overlays (`private-service-*`).
   

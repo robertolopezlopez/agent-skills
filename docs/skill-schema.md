@@ -86,7 +86,7 @@ Responsible for:
 
 Examples:
 - `gitlab`
-- `jira`
+- **`JIRA-ACCESS.md`** (Jira; installable **`jira`** skill stubbed until Phase C)
 - `confluence`
 
 ### Workflow skill
@@ -114,11 +114,22 @@ GitHub issue and PR fetch is portable policy in synced **`GITHUB-ACCESS.md`** at
 
 | Skill type | Wire GitHub transport? | How |
 |------------|------------------------|-----|
-| **Transport** (`jira`, `confluence`, `gitlab`, `circleci`) | No | Use **`GITHUB-ACCESS.md`** for GitHub fetch; identity via **`GIT-ACCESS.md`**; do not duplicate **`gh`** logic. |
+| **Transport** (`jira`, `confluence`, `gitlab`, `circleci`) | No | Use **`GITHUB-ACCESS.md`** for GitHub fetch; **`JIRA-ACCESS.md`** for Jira; identity via **`GIT-ACCESS.md`**; do not duplicate **`gh`** / **`acli`** logic. |
 | **GitHub workflow** (`github-pr-comment-analysis`, `github-issue-triage`, `private-pr-comment-analysis`) | Yes — consumer | Read **`GITHUB-ACCESS.md`**; refresh via **`gh`**. |
 | **Investigation / contributor / planning** | Pointer only | One line to **`GITHUB-ACCESS.md`** when task starts from a GitHub URL or issue. |
 
 **Manifest rule:** do **not** add **`github`** under `companion_skills` for new or updated skills. Policy lives in synced **`GITHUB-ACCESS.md`**; helpers in **`agent_config.py --github-scripts-dir`**.
+
+### Jira access (`JIRA-ACCESS.md`)
+
+Jira Cloud issue fetch and update is portable policy in synced **`JIRA-ACCESS.md`** at **`$AGENT_CONFIG_HOME/skills/`** (resolve: **`agent_config.py --jira-access-policy`**). Transport: **`acli jira workitem …`** → **`jira-request`** → **`jira-api`** → Jira MCP (last). Prereqs: **`check_skill_prereqs.sh jira`** (alias **`jira-access`**); auth: **`check_skill_config.sh jira`** → **`acli jira auth status`**. The installable **`jira`** skill is stubbed until Phase C; transport is policy + **`acli`** (+ Phase B helpers).
+
+| Skill type | Wire Jira transport? | How |
+|------------|---------------------|-----|
+| **Transport** (`confluence`, `gitlab`, `circleci`) | No | Use **`JIRA-ACCESS.md`** for Jira fetch; do not duplicate **`acli`** logic. |
+| **Planning / investigation** | Pointer only | One line to **`JIRA-ACCESS.md`** when task starts from a Jira URL or issue key. |
+
+**Manifest rule:** do **not** add **`jira`** under `companion_skills` for new or updated skills. Policy lives in synced **`JIRA-ACCESS.md`**; helpers in **`agent_config.py --jira-scripts-dir`** (Phase B).
 
 ### Git repository identity (`GIT-ACCESS.md`)
 

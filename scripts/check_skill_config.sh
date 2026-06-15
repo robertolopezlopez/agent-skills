@@ -202,6 +202,43 @@ check_glab_auth() {
   return 1
 }
 
+check_acli_jira_auth() {
+  if ! command -v acli >/dev/null 2>&1; then
+    printf 'SKIP acli jira auth (acli not installed — run check_skill_prereqs.sh jira)\n'
+    return 0
+  fi
+  if acli jira auth status >/dev/null 2>&1; then
+    printf 'ok   acli jira auth logged in\n'
+    return 0
+  fi
+  printf 'NEEDS acli jira auth\n'
+  printf '       setup: acli jira auth login --web\n'
+  printf '       alt:   echo <token> | acli jira auth login --site SITE.atlassian.net --email YOU@company.com --token\n'
+  printf '       docs:  https://developer.atlassian.com/cloud/acli/\n'
+  return 1
+}
+
+check_jira_config() {
+  local issues=0
+  check_acli_jira_auth || issues=$((issues + 1))
+
+  local env_file
+  env_file=$(atlassian_env_path)
+  if [[ -r "$env_file" ]]; then
+    printf 'ok   jira defaults file exists: %s\n' "$env_file"
+  else
+    printf 'OPTIONAL jira defaults file missing: %s (needed for jira-request fallback)\n' "$env_file"
+  fi
+
+  if [[ -n "${ATLASSIAN_API_BASE_URL:-}" ]] || env_var_set_in_file "$env_file" ATLASSIAN_API_BASE_URL; then
+    printf 'ok   ATLASSIAN_API_BASE_URL configured\n'
+  else
+    printf 'OPTIONAL ATLASSIAN_API_BASE_URL missing (jira-request fallback)\n'
+  fi
+
+  return "$issues"
+}
+
 check_group() {
   local group=$1
   local issues=0
@@ -215,7 +252,10 @@ check_group() {
     gitlab|git)
       check_glab_auth || issues=$((issues + 1))
       ;;
-    jira|confluence)
+    jira)
+      check_jira_config || issues=$((issues + $?))
+      ;;
+    confluence)
       check_atlassian_config "$group" || issues=$((issues + $?))
       ;;
     circleci)

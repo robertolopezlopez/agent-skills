@@ -174,6 +174,20 @@ agent_config_github_access_policy() {
   printf '%s/skills/GITHUB-ACCESS.md\n' "$AGENT_CONFIG_HOME"
 }
 
+agent_config_jira_scripts_dir() {
+  if [ -z "$AGENT_CONFIG_HOME" ]; then
+    agent_config_init
+  fi
+  printf '%s/skills/scripts/jira\n' "$AGENT_CONFIG_HOME"
+}
+
+agent_config_jira_access_policy() {
+  if [ -z "$AGENT_CONFIG_HOME" ]; then
+    agent_config_init
+  fi
+  printf '%s/skills/JIRA-ACCESS.md\n' "$AGENT_CONFIG_HOME"
+}
+
 agent_config_api_docs_dir() {
   slug=$1
   if [ -z "$slug" ]; then
@@ -245,6 +259,16 @@ if [ "${0##*/}" = "agent-config.sh" ] && [ -n "${1:-}" ]; then
       agent_config_github_access_policy
       exit 0
       ;;
+    --jira-scripts-dir)
+      agent_config_init "${2:-}"
+      agent_config_jira_scripts_dir
+      exit 0
+      ;;
+    --jira-access-policy)
+      agent_config_init "${2:-}"
+      agent_config_jira_access_policy
+      exit 0
+      ;;
     --runtime)
       agent_config_init "${2:-}"
       printf '%s\n' "$AGENT_CONFIG_RUNTIME"
@@ -274,7 +298,7 @@ if [ "${0##*/}" = "agent-config.sh" ] && [ -n "${1:-}" ]; then
       exit 0
       ;;
     *)
-      echo "usage: agent-config.sh --config-home | --atlassian-env | --circleci-env | --fast-grep-env | --skills-root | --literal-search-dir | --literal-search-policy | --github-access-policy | --github-scripts-dir | --git-access-policy | --git-scripts-dir | --runtime | --defaults-hint FILENAME | --api-docs-root | --api-docs-dir SLUG" >&2
+      echo "usage: agent-config.sh --config-home | --atlassian-env | --circleci-env | --fast-grep-env | --skills-root | --literal-search-dir | --literal-search-policy | --github-access-policy | --github-scripts-dir | --jira-access-policy | --jira-scripts-dir | --git-access-policy | --git-scripts-dir | --runtime | --defaults-hint FILENAME | --api-docs-root | --api-docs-dir SLUG" >&2
       exit 2
       ;;
   esac

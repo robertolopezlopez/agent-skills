@@ -2,6 +2,7 @@ shared_files:
   - ARTIFACTS.md
   - GITHUB-ACCESS.md
   - GIT-ACCESS.md
+  - JIRA-ACCESS.md
   - LITERAL-CODE-SEARCH.md
   - scripts/agent-config.sh
   - scripts/agent_config.py
@@ -10,6 +11,7 @@ shared_files:
   - scripts/check_skill_config.sh
   - scripts/migrate_legacy_artifacts.py
   - scripts/resolve_artifact_path.py
+  - scripts/parse_remote_url.py
   - scripts/validate_artifact.py
   - scripts/literal-search/fast-grep
   - scripts/literal-search/fast-grep-prefs.sh
@@ -200,7 +202,6 @@ skills:
       - multi-spawn-agent
       - tdd
       - gitlab
-      - jira
       - circleci
   - name: python-fastapi-contributor
     path: skills/core/python-fastapi-contributor
