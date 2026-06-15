@@ -31,3 +31,34 @@ Remove the installable **`git`** skill; keep **`GIT-ACCESS.md`** + **`git` CLI**
 - Git binary prereqs: **`check_skill_prereqs.sh git-access`**
 - GitLab ID fetch prereqs: **`check_skill_prereqs.sh gitlab`** (legacy: **`check_skill_prereqs.sh git`** → **`glab`**)
 - Auth: **`glab auth login`** for **`--fetch-id`**
+
+## Phase D (optional polish)
+
+| Step | Status | Notes |
+|------|--------|-------|
+| 10. Shared **`scripts/parse_remote_url.py`** | done | Used by **`resolve_repo_identity.py`**, **`gh_context.py`**, **`resolve_artifact_path.py`** |
+| 11. Self-test / smoke | done | **`parse_remote_url.py --self-test`**; **`git-repo-identity --json`** on checkout remotes |
+
+### Smoke commands
+
+```bash
+python3 scripts/parse_remote_url.py --self-test
+
+GSDIR="$(python3 scripts/agent_config.py --git-scripts-dir)"
+"$GSDIR/git-repo-identity" --json
+
+# CircleCI slug candidate from identity (GitHub OAuth projects):
+# gh/<org>/<repo> from project_path tail
+python3 -c "
+from parse_remote_url import parse_remote_url, tail_path_segments
+import subprocess, sys
+sys.path.insert(0, 'scripts')
+url = subprocess.check_output(['git', 'remote', 'get-url', 'origin'], text=True).strip()
+_, path = parse_remote_url(url)
+tail = tail_path_segments(path, 2)
+print('gh/' + '/'.join(tail) if tail else 'no slug')
+"
+
+# GitLab numeric ID (needs glab auth + GitLab remote):
+# "$GSDIR/git-repo-identity" --fetch-id --json
+```

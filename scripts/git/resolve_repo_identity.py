@@ -4,16 +4,18 @@ from __future__ import annotations
 
 import argparse
 import json
-import re
 import subprocess
 import sys
 from dataclasses import asdict, dataclass
-from urllib.parse import quote, urlparse
+from pathlib import Path
+from urllib.parse import quote
 
+SCRIPT_DIR = Path(__file__).resolve().parent
+SCRIPTS_ROOT = SCRIPT_DIR.parent
+if str(SCRIPTS_ROOT) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS_ROOT))
 
-SSH_RE = re.compile(
-    r"^(?:(?P<user>[^@]+)@)?(?P<host>[^:\/]+):(?P<path>.+?)(?:\.git)?$"
-)
+from parse_remote_url import RemoteUrlParseError, parse_remote_url
 
 
 @dataclass
@@ -48,27 +50,6 @@ def get_remote_url(remote: str) -> str:
     return url
 
 
-def normalize_path(path: str) -> str:
-    if path.endswith(".git"):
-        path = path[:-4]
-    return path.strip("/")
-
-
-def parse_remote_url(remote_url: str) -> tuple[str, str]:
-    remote_url = remote_url.strip()
-
-    if "://" in remote_url:
-        parsed = urlparse(remote_url)
-        if parsed.hostname and parsed.path:
-            return parsed.hostname, normalize_path(parsed.path.lstrip("/"))
-
-    ssh_match = SSH_RE.match(remote_url)
-    if ssh_match:
-        return ssh_match.group("host"), normalize_path(ssh_match.group("path"))
-
-    raise SystemExit(f"Unsupported remote URL format: {remote_url}")
-
-
 def fetch_gitlab_project_id(host: str, encoded_project_path: str) -> int:
     try:
         output = run(
@@ -96,7 +77,10 @@ def fetch_gitlab_project_id(host: str, encoded_project_path: str) -> int:
 
 
 def resolve_identity(remote: str | None, remote_url: str, fetch_id: bool) -> ProjectIdentity:
-    host, project_path = parse_remote_url(remote_url)
+    try:
+        host, project_path = parse_remote_url(remote_url)
+    except RemoteUrlParseError as exc:
+        raise SystemExit(str(exc)) from exc
     encoded_project_path = quote(project_path, safe="")
     project_id = fetch_gitlab_project_id(host, encoded_project_path) if fetch_id else None
     return ProjectIdentity(

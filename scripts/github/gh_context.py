@@ -11,6 +11,13 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
+SCRIPT_DIR = Path(__file__).resolve().parent
+SCRIPTS_ROOT = SCRIPT_DIR.parent
+if str(SCRIPTS_ROOT) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS_ROOT))
+
+from parse_remote_url import RemoteUrlParseError, parse_remote_url, tail_path_segments
+
 
 ISSUE_URL_RE = re.compile(
     r"^https?://[^/]+/(?P<owner>[^/]+)/(?P<repo>[^/]+)/issues/(?P<number>\d+)/?$",
@@ -318,23 +325,13 @@ def infer_repo_from_remote() -> tuple[str, str] | None:
     )
     if result.returncode != 0:
         return None
-    url = result.stdout.strip()
-    if url.endswith(".git"):
-        url = url[:-4]
-    owner = ""
-    repo = ""
-    if "://" in url:
-        parsed = urlparse(url)
-        parts = [part for part in parsed.path.strip("/").split("/") if part]
-        if len(parts) >= 2:
-            owner, repo = parts[-2], parts[-1]
-    elif ":" in url:
-        path = url.split(":", 1)[1].strip("/")
-        parts = [part for part in path.split("/") if part]
-        if len(parts) >= 2:
-            owner, repo = parts[-2], parts[-1]
-    if owner and repo:
-        return owner, repo
+    try:
+        _, project_path = parse_remote_url(result.stdout.strip())
+    except RemoteUrlParseError:
+        return None
+    tail = tail_path_segments(project_path, 2)
+    if tail:
+        return tail[0], tail[1]
     return None
 
 

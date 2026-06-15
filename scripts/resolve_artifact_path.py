@@ -18,7 +18,12 @@ import re
 import subprocess
 import sys
 from pathlib import Path
-from urllib.parse import urlparse
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+from parse_remote_url import RemoteUrlParseError, parse_remote_url, tail_path_segments
 
 
 GLOBAL_SEGMENT = "_global"
@@ -43,30 +48,16 @@ def sanitize_component(text: str) -> str:
 
 
 def repo_key_from_remote(url: str) -> str | None:
-    cleaned = url.strip().rstrip("/")
-    if cleaned.endswith(".git"):
-        cleaned = cleaned[:-4]
-
-    host = ""
-    parts: list[str] = []
-    if "://" in cleaned:
-        parsed = urlparse(cleaned)
-        host = parsed.hostname or ""
-        parts = [part for part in parsed.path.strip("/").split("/") if part]
-    elif ":" in cleaned:
-        host_part, path_part = cleaned.split(":", 1)
-        host = host_part.split("@", 1)[-1] if "@" in host_part else host_part
-        parts = [part for part in path_part.strip("/").split("/") if part]
-    else:
+    try:
+        host, project_path = parse_remote_url(url)
+    except RemoteUrlParseError:
         return None
-
-    if len(parts) < 2:
+    tail = tail_path_segments(project_path, 2)
+    if not tail:
         return None
-
+    org, repo = tail
     host_slug = sanitize_component(host)
-    org = sanitize_component(parts[-2])
-    repo = sanitize_component(parts[-1])
-    return f"{host_slug}-{org}-{repo}"
+    return f"{host_slug}-{sanitize_component(org)}-{sanitize_component(repo)}"
 
 
 def find_git_root(start: Path) -> Path | None:
