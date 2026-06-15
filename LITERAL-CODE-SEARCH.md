@@ -94,9 +94,13 @@ Do **not** re-run `--chain` / `--missing` when `PREFERRED_SEARCH_TOOL` is set an
 "$LSDIR/fast-grep" --literal 'PATTERN' [PATH]
 ```
 
-### In IDE agents (Cursor and similar)
+### In IDE agents (Cursor, Codex, and similar)
 
-Prefer **agent Grep tool** for literals when shell is unnecessary. Use host CLI + **`fast-grep.env`** for shell, CI, headless Codex, or when install gates matter.
+When the runtime provides **Shell** and an **agent Grep tool**, the order above still applies — do not skip host search because an in-IDE Grep tool is available.
+
+1. Read **`fast-grep.env`** (resolve with **`agent_config.py --fast-grep-env`**) before the first literal search in a session.
+2. When **`PREFERRED_SEARCH_TOOL`** is set and the binary is on **`PATH`**, run **`fast-grep --literal`** or the preferred host CLI through **Shell**.
+3. Use the **agent Grep tool** only on **`fast-grep`** exit **4**, when Shell is unavailable, or when the user explicitly asks for agent Grep.
 
 ### Exit codes (`fast-grep` runner)
 

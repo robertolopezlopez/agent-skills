@@ -119,7 +119,7 @@ SemanticSearch — behavioral queries only
 
 **OS portability:** literal search follows **Missing CLI tools — ask before fallback** above. Run **`check_skill_prereqs.sh literal-search`** or **`fast-grep-resolve --missing`** (`os=` + **`install_cmd`**). Never assume Homebrew; ask before installing; do not install unless the user explicitly requests it.
 
-In IDE runtimes, prefer the **agent Grep tool** for literals when shell is unnecessary. **`repository-technical-analysis`** step 3 owns investigation search workflow.
+In **Cursor**, the optional **`literal-code-search.mdc`** rule requires **Shell** + **`~/.cursor/fast-grep.env`** before the agent Grep tool. **`repository-technical-analysis`** step 3 owns investigation search workflow.
 
 ## GitHub access
 

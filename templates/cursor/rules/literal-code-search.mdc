@@ -1,5 +1,5 @@
 ---
-description: Literal codebase search — OS-portable rg/ag chain, fast-grep.env, agent Grep last; ask before install
+description: Literal codebase search — read ~/.cursor/fast-grep.env, shell rg/ag before agent Grep; ask before install
 alwaysApply: true
 ---
 
@@ -7,13 +7,25 @@ alwaysApply: true
 
 When searching the **current repository** for literals (symbols, strings, imports, config keys, error text):
 
+## Cursor runtime (required)
+
+**Use Shell before the agent Grep tool.** Traces like `Grepped "…" in …` mean the agent Grep tool ran — avoid that for routine literals when host search is available.
+
+Before the first literal search in a session:
+
+1. Read **`~/.cursor/fast-grep.env`** via **`fast-grep-prefs.sh show`** (resolve path with **`agent_config.py --fast-grep-env`** when needed).
+2. When **`PREFERRED_SEARCH_TOOL`** is set (e.g. `ripgrep` → **`rg`**) and the binary is on **`PATH`**, search through **Shell** with **`fast-grep --literal 'PATTERN' [PATH]`** or the preferred host CLI directly — **do not** use the agent Grep tool.
+3. When **`fast-grep.env`** is empty, run **`fast-grep-resolve --missing`** once, then ask-before-install or **`fast-grep-prefs.sh use <tool>`** before searching.
+4. Use the **agent Grep tool** only when **`fast-grep`** exits **4** (no host CLI), Shell is unavailable, or the user explicitly asks for agent Grep.
+
 ## Order
 
 ```text
-1. Read fast-grep.env (when set) → preferred host CLI (rg, ag, …)
-2. First time only: discover → ask before install (OS-appropriate command) → fast-grep-prefs.sh use/decline
-3. Host chain: rg → ugrep → ag → git grep → ack → POSIX grep
-4. Last literal resort: agent Grep tool (when this runtime provides it)
+1. Read ~/.cursor/fast-grep.env → PREFERRED_SEARCH_TOOL
+2. Shell: fast-grep --literal OR preferred host CLI (rg, ag, …)
+3. First time only: discover → ask before install → fast-grep-prefs.sh use/decline
+4. Host chain: rg → ugrep → ag → git grep → ack → POSIX grep
+5. Last literal resort: agent Grep tool (exit 4 / no shell / user override only)
 ```
 
 **SemanticSearch** — behavioral / vague queries only; confirm hits with literals or file reads.
@@ -23,7 +35,7 @@ When searching the **current repository** for literals (symbols, strings, import
 - Run **`check_skill_prereqs.sh literal-search`** or read **`install_cmd`** from **`fast-grep-resolve --missing`** (`os=` line included).
 - **Never assume Homebrew** — use the command for the user's OS: `brew`, `apt`, `dnf`, `yum`, `pacman`, `zypper`, `winget`, `scoop`, `choco`, `pkg`, or vendor docs.
 - **Ask before installing** — do **not** run package installs unless the user explicitly asks.
-- On decline: **`fast-grep-prefs.sh decline <tool>`**; fall back to next tier or agent Grep tool.
+- On decline: **`fast-grep-prefs.sh decline <tool>`**; fall back to next host tier, then agent Grep tool.
 - Helpers need **bash** + **python3** (or **python** on Windows). **`git grep`** / **`grep`** work as slower universal fallbacks.
 
 ## Paths (resolve; do not assume repo-relative scripts/)
@@ -36,6 +48,7 @@ for c in "$HOME/.cursor/skills/scripts/agent_config.py" "$HOME/.codex/skills/scr
 done
 LSDIR="$($PY "$ACFG" --literal-search-dir)"
 PREREQS="$(dirname "$ACFG")/check_skill_prereqs.sh"
+FGENV="$($PY "$ACFG" --fast-grep-env)"
 ```
 
 | Runtime | Policy | Config |
