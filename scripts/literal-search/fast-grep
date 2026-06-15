@@ -121,6 +121,13 @@ if [[ ! -e "$SEARCH_PATH" ]]; then
   exit 3
 fi
 
+# Host search tools use exit 1 for "no matches"; that is success for fast-grep.
+search_succeeded() {
+  "$@"
+  local ec=$?
+  [[ $ec -eq 0 || $ec -eq 1 ]]
+}
+
 preferred_tool_id() {
   [[ -x "$SCRIPT_DIR/fast-grep-prefs.sh" ]] || return 0
   "$SCRIPT_DIR/fast-grep-prefs.sh" preferred 2>/dev/null | tr -d '\n'
@@ -159,7 +166,7 @@ run_ag() {
     for g in "${GLOBS[@]}"; do cmd+=(--glob "$g"); done
   fi
   cmd+=("$PATTERN" "$SEARCH_PATH")
-  "${cmd[@]}"
+  search_succeeded "${cmd[@]}"
 }
 
 run_ack() {
@@ -175,7 +182,7 @@ run_ack() {
     for g in "${GLOBS[@]}"; do cmd+=(--match "$g"); done
   fi
   cmd+=("$PATTERN" "$SEARCH_PATH")
-  "${cmd[@]}"
+  search_succeeded "${cmd[@]}"
 }
 
 run_rg() {
@@ -189,7 +196,7 @@ run_rg() {
     for g in "${GLOBS[@]}"; do cmd+=(--glob "$g"); done
   fi
   cmd+=("$PATTERN" "$SEARCH_PATH")
-  "${cmd[@]}"
+  search_succeeded "${cmd[@]}"
 }
 
 run_ugrep() {
@@ -203,7 +210,7 @@ run_ugrep() {
     for g in "${GLOBS[@]}"; do cmd+=(-g "$g"); done
   fi
   cmd+=("$PATTERN" "$SEARCH_PATH")
-  "${cmd[@]}"
+  search_succeeded "${cmd[@]}"
 }
 
 run_git_grep() {
@@ -215,7 +222,7 @@ run_git_grep() {
   [[ "$IGNORE_CASE" -eq 1 ]] && cmd+=(-i)
   [[ "$LITERAL" -eq 1 ]] && cmd+=(-F)
   cmd+=("$PATTERN" -- "$SEARCH_PATH")
-  "${cmd[@]}"
+  search_succeeded "${cmd[@]}"
 }
 
 run_posix_grep() {
@@ -230,7 +237,7 @@ run_posix_grep() {
     for g in "${GLOBS[@]}"; do cmd+=(--include="$g"); done
   fi
   cmd+=("$PATTERN" "$SEARCH_PATH")
-  "${cmd[@]}"
+  search_succeeded "${cmd[@]}"
 }
 
 run_by_tool_id() {

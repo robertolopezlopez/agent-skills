@@ -53,7 +53,6 @@ Use this loop for technical analysis tasks:
 2. Identify the narrowest reliable reproduction. Expand to broader coverage only when the failure surface is still unclear.
 3. **Repository code search** — when you need literal anchors in the codebase (failure strings, symbols, imports, feature flags, config keys):
    - Follow synced **`LITERAL-CODE-SEARCH.md`** (resolve with **`agent_config.py --literal-search-policy`**). Read **`fast-grep.env`** when set; else discover once. Run helpers under **`agent_config.py --literal-search-dir`** (`fast-grep`, `fast-grep-prefs.sh`, …) or direct host **`rg`**/`ag`/…. On exit **5**, show **OS-appropriate** **`install_cmd`** from **`fast-grep-resolve --missing`** or **`check_skill_prereqs.sh literal-search`** — ask before installing (never Homebrew-only); do not install unless the user asks; on decline **`fast-grep-prefs.sh decline <tool>`**; on tool change **`fast-grep-prefs.sh use <tool>`** — until success, exit **4** (**agent Grep tool** when runtime provides it), or clear failure on headless runtimes.
-   - In IDE runtimes, **agent Grep tool** is acceptable for literals when shell is unnecessary.
    - Tighten scope with **`path`** and **`glob`** instead of searching the whole monorepo first.
    - Use **SemanticSearch** only for behavioral or uncertain targets; confirm with literal search or file reads.
    - Record the search tool used (`rg`, `ag`, `agent-grep`, …) in the analysis artifact when it materially affects confidence or reproducibility.
@@ -108,7 +107,7 @@ Use this skill as the generic investigation layer.
 Common pairings:
 
 - repository-specific overlay skills for local commands, configs, and validation
-- transport skills such as `jira`, `confluence`, or `gitlab` when the investigation starts from remote issue, wiki, or MR context
+- transport policies such as **`JIRA-ACCESS.md`**, **`GITHUB-ACCESS.md`**, `confluence`, or `gitlab` when the investigation starts from remote issue, wiki, or MR context
 - `diagnose` when a concrete bug repro is already known and the work shifts from scoping to instrumentation
 
 ## Artifact-Aware Behavior

@@ -1,5 +1,5 @@
 ---
-description: Literal codebase search — read ~/.cursor/fast-grep.env, shell rg/ag before agent Grep; ask before install
+description: FORBIDDEN agent Grep for literals — Shell fast-grep/rg per ~/.cursor/fast-grep.env
 alwaysApply: true
 ---
 
@@ -7,16 +7,30 @@ alwaysApply: true
 
 When searching the **current repository** for literals (symbols, strings, imports, config keys, error text):
 
-## Cursor runtime (required)
+## Hard rule
 
-**Use Shell before the agent Grep tool.** Traces like `Grepped "…" in …` mean the agent Grep tool ran — avoid that for routine literals when host search is available.
+**Do not call the Cursor Grep tool** (UI trace: `Grepped "pattern" in path`) for repository literal search.
 
-Before the first literal search in a session:
+**Required:** **Shell** — run **`fast-grep --literal 'PATTERN' [PATH]`** or the preferred host CLI from **`~/.cursor/fast-grep.env`**.
 
-1. Read **`~/.cursor/fast-grep.env`** via **`fast-grep-prefs.sh show`** (resolve path with **`agent_config.py --fast-grep-env`** when needed).
-2. When **`PREFERRED_SEARCH_TOOL`** is set (e.g. `ripgrep` → **`rg`**) and the binary is on **`PATH`**, search through **Shell** with **`fast-grep --literal 'PATTERN' [PATH]`** or the preferred host CLI directly — **do not** use the agent Grep tool.
-3. When **`fast-grep.env`** is empty, run **`fast-grep-resolve --missing`** once, then ask-before-install or **`fast-grep-prefs.sh use <tool>`** before searching.
-4. Use the **agent Grep tool** only when **`fast-grep`** exits **4** (no host CLI), Shell is unavailable, or the user explicitly asks for agent Grep.
+Agent Grep is allowed only when **`fast-grep`** exits **4** after a real missing-tool failure, Shell is unavailable, or the user explicitly asks for agent Grep.
+
+## Before every literal search
+
+```bash
+PY=python3; command -v python3 >/dev/null 2>&1 || PY=python
+ACFG=""
+for c in "$HOME/.cursor/skills/scripts/agent_config.py" "$HOME/.codex/skills/scripts/agent_config.py"; do
+  [[ -f "$c" ]] && ACFG=$c && break
+done
+LSDIR="$($PY "$ACFG" --literal-search-dir)"
+"$LSDIR/fast-grep-prefs.sh" show
+"$LSDIR/fast-grep" --literal 'PATTERN' [PATH]
+```
+
+When **`preferred=ripgrep`** and **`rg`** is on **`PATH`**, you may run **`rg`** directly instead of **`fast-grep`** — still through **Shell**, never the Grep tool.
+
+Empty output with exit **0** means no matches — that is normal; do not fall back to agent Grep.
 
 ## Order
 
@@ -38,18 +52,7 @@ Before the first literal search in a session:
 - On decline: **`fast-grep-prefs.sh decline <tool>`**; fall back to next host tier, then agent Grep tool.
 - Helpers need **bash** + **python3** (or **python** on Windows). **`git grep`** / **`grep`** work as slower universal fallbacks.
 
-## Paths (resolve; do not assume repo-relative scripts/)
-
-```bash
-PY=python3; command -v python3 >/dev/null 2>&1 || PY=python
-ACFG=""
-for c in "$HOME/.cursor/skills/scripts/agent_config.py" "$HOME/.codex/skills/scripts/agent_config.py"; do
-  [[ -f "$c" ]] && ACFG=$c && break
-done
-LSDIR="$($PY "$ACFG" --literal-search-dir)"
-PREREQS="$(dirname "$ACFG")/check_skill_prereqs.sh"
-FGENV="$($PY "$ACFG" --fast-grep-env)"
-```
+## Paths
 
 | Runtime | Policy | Config |
 |---------|--------|--------|
@@ -58,15 +61,12 @@ FGENV="$($PY "$ACFG" --fast-grep-env)"
 
 Override with **`AGENT_CONFIG_HOME`** / **`AGENT_SKILLS_RUNTIME`**.
 
-## Commands
+## Exit codes (`fast-grep`)
 
-```bash
-"$LSDIR/fast-grep-prefs.sh" show
-"$LSDIR/fast-grep" --literal 'PATTERN' [PATH]
-"$PREREQS" literal-search
-```
-
-- Exit **5** — show OS-matched `install_cmd`; ask user; never install silently
-- Exit **4** — use **agent Grep tool** if available
+| Code | Action |
+|------|--------|
+| **0** | Success (matches or empty — do not use agent Grep) |
+| **5** | Show OS-matched `install_cmd`; ask user; never install silently |
+| **4** | No host CLI on PATH — agent Grep tool if available |
 
 Full workflow: **`LITERAL-CODE-SEARCH.md`** at synced skills root. **`repository-technical-analysis`** step 3 owns investigation search.

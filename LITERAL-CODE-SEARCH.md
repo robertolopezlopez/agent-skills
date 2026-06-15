@@ -100,7 +100,8 @@ When the runtime provides **Shell** and an **agent Grep tool**, the order above 
 
 1. Read **`fast-grep.env`** (resolve with **`agent_config.py --fast-grep-env`**) before the first literal search in a session.
 2. When **`PREFERRED_SEARCH_TOOL`** is set and the binary is on **`PATH`**, run **`fast-grep --literal`** or the preferred host CLI through **Shell**.
-3. Use the **agent Grep tool** only on **`fast-grep`** exit **4**, when Shell is unavailable, or when the user explicitly asks for agent Grep.
+3. **Empty search output with exit 0** means no matches — do not treat that as tool failure and do not fall back to the agent Grep tool.
+4. Use the **agent Grep tool** only on **`fast-grep`** exit **4** (no host CLI on PATH), when Shell is unavailable, or when the user explicitly asks for agent Grep.
 
 ### Exit codes (`fast-grep` runner)
 
