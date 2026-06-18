@@ -158,7 +158,7 @@ Prereqs: check_skill_prereqs.sh jira  |  Auth: check_skill_config.sh jira → ac
 | Prereqs | `check_skill_prereqs.sh jira` (alias: `jira-access`) |
 | Auth | `check_skill_config.sh jira` |
 
-The installable **`jira`** skill is stubbed until Phase C. Workflow skills (**`plan-issues`**, overlays) consume normalized context from this policy — they do not duplicate **`acli`** fetch logic.
+The installable **`jira`** skill was removed in Phase C. Workflow skills (**`plan-issues`**, overlays) consume normalized context from this policy — they do not duplicate **`acli`** fetch logic.
 
 Bundled **`jira-api`** / **`jira-request`** use Basic auth (`email:ATLASSIAN_API_TOKEN`). The email must match the token owner; prefer **`acli`** when `git config user.email` differs from the Atlassian account.
 

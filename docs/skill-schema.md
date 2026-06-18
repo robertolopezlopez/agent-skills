@@ -86,7 +86,7 @@ Responsible for:
 
 Examples:
 - `gitlab`
-- **`JIRA-ACCESS.md`** (Jira; installable **`jira`** skill stubbed until Phase C)
+- **`JIRA-ACCESS.md`** (Jira; installable **`jira`** skill removed in Phase C)
 - `confluence`
 
 ### Workflow skill
@@ -122,7 +122,7 @@ GitHub issue and PR fetch is portable policy in synced **`GITHUB-ACCESS.md`** at
 
 ### Jira access (`JIRA-ACCESS.md`)
 
-Jira Cloud issue fetch and update is portable policy in synced **`JIRA-ACCESS.md`** at **`$AGENT_CONFIG_HOME/skills/`** (resolve: **`agent_config.py --jira-access-policy`**). Transport: **`acli jira workitem …`** → **`jira-request`** → **`jira-api`** → Jira MCP (last). Prereqs: **`check_skill_prereqs.sh jira`** (alias **`jira-access`**); auth: **`check_skill_config.sh jira`** → **`acli jira auth status`**. The installable **`jira`** skill is stubbed until Phase C; transport is policy + **`acli`** (+ Phase B helpers).
+Jira Cloud issue fetch and update is portable policy in synced **`JIRA-ACCESS.md`** at **`$AGENT_CONFIG_HOME/skills/`** (resolve: **`agent_config.py --jira-access-policy`**). Transport: **`acli jira workitem …`** → **`jira-request`** → **`jira-api`** → Jira MCP (last). Prereqs: **`check_skill_prereqs.sh jira`** (alias **`jira-access`**); auth: **`check_skill_config.sh jira`** → **`acli jira auth status`**. The installable **`jira`** skill was removed in Phase C; transport is policy + **`acli`** + synced helpers only.
 
 | Skill type | Wire Jira transport? | How |
 |------------|---------------------|-----|

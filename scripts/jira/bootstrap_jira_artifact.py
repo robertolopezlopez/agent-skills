@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+"""Create local Jira task artifacts from normalized issue JSON."""
 from __future__ import annotations
 
 import argparse
@@ -7,6 +8,8 @@ import json
 import os
 import re
 import subprocess
+import sys
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -70,25 +73,24 @@ def filesystem_safe_meaningful_id(issue: str) -> str:
     return safe or slugify(issue)
 
 
+def runtime_scripts_dir(infer_from: Path) -> Path:
+    parts = infer_from.resolve().parts
+    for idx, part in enumerate(parts):
+        if part in {".cursor", ".codex"} and idx + 1 < len(parts) and parts[idx + 1] == "skills":
+            return Path.home() / part / "skills" / "scripts"
+    if (Path.home() / ".cursor" / "skills").is_dir():
+        return Path.home() / ".cursor" / "skills" / "scripts"
+    if (Path.home() / ".codex" / "skills").is_dir():
+        return Path.home() / ".codex" / "skills" / "scripts"
+    return Path.home() / ".cursor" / "skills" / "scripts"
+
+
 def load_agent_config():
     infer = Path(__file__)
     candidates = [
-        infer.resolve().parents[4] / "scripts" / "agent_config.py",
+        infer.resolve().parents[1] / "agent_config.py",
+        runtime_scripts_dir(infer) / "agent_config.py",
     ]
-    parts = infer.resolve().parts
-    runtime = ""
-    for idx, part in enumerate(parts):
-        if part in {".cursor", ".codex"} and idx + 1 < len(parts) and parts[idx + 1] == "skills":
-            runtime = part.lstrip(".")
-            break
-    if not runtime:
-        if (Path.home() / ".cursor" / "skills").is_dir():
-            runtime = "cursor"
-        elif (Path.home() / ".codex" / "skills").is_dir():
-            runtime = "codex"
-        else:
-            runtime = "cursor"
-    candidates.append(Path.home() / f".{runtime}" / "skills" / "scripts" / "agent_config.py")
     for path in candidates:
         if not path.is_file():
             continue
@@ -102,8 +104,39 @@ def load_agent_config():
 
 
 def resolve_resolver_script() -> Path | None:
-    ac = load_agent_config()
-    return ac.resolve_installed_script("resolve_artifact_path.py", Path(__file__))
+    infer = Path(__file__)
+    candidates = [
+        infer.resolve().parents[1] / "resolve_artifact_path.py",
+        runtime_scripts_dir(infer) / "resolve_artifact_path.py",
+    ]
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate
+    return None
+
+
+def resolve_validator() -> Path | None:
+    infer = Path(__file__)
+    candidates = [
+        infer.resolve().parents[1] / "validate_artifact.py",
+        runtime_scripts_dir(infer) / "validate_artifact.py",
+    ]
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate
+    return None
+
+
+def resolve_jira_context_script() -> Path | None:
+    infer = Path(__file__)
+    candidates = [
+        infer.resolve().parent / "jira_context.py",
+        runtime_scripts_dir(infer) / "jira" / "jira_context.py",
+    ]
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate
+    return None
 
 
 def find_repo_root() -> Path:
@@ -170,10 +203,6 @@ def default_output_path(issue: str) -> Path:
 
 
 def read_api_base(cli_base: str | None) -> tuple[str | None, Path | None, str]:
-    """Return (api_base_or_none, env_file_when_used, source_kind).
-
-    source_kind is one of: cli, env, file, none.
-    """
     ac = load_agent_config()
     if cli_base:
         return cli_base.strip(), None, "cli"
@@ -205,8 +234,42 @@ def browse_base_from_api_base(api_base: str | None) -> str:
     return api_base.split("/rest/api/3/issue", 1)[0].rstrip("/") or "https://example.atlassian.net"
 
 
-def format_description(fields: dict) -> str:
-    description = re.sub(r"\n+", "\n", adf_text(fields.get("description") or "")).strip()
+def extract_issue_and_fields(obj: dict[str, Any], fallback_issue: str) -> tuple[str, dict[str, Any], str]:
+    issue = str(obj.get("issue_key") or obj.get("key") or fallback_issue).upper()
+    fields = obj.get("fields") if isinstance(obj.get("fields"), dict) else {}
+    browse_url = str(obj.get("url") or "")
+    if not browse_url:
+        api_base, _, _ = read_api_base(None)
+        browse_url = f"{browse_base_from_api_base(api_base)}/browse/{issue}"
+    return issue, fields, browse_url
+
+
+def fetch_issue_json(issue_key: str) -> dict[str, Any]:
+    fetcher = resolve_jira_context_script()
+    if fetcher is None:
+        raise SystemExit("jira_context.py not found; sync scripts/jira/ from agent-skills")
+    with tempfile.NamedTemporaryFile(mode="w+", suffix=".json", delete=False) as tmp:
+        tmp_path = Path(tmp.name)
+    try:
+        subprocess.run(
+            ["python3", str(fetcher), issue_key, "--output", str(tmp_path)],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        return json.loads(tmp_path.read_text())
+    except subprocess.CalledProcessError as exc:
+        message = (exc.stderr or exc.stdout or "jira-fetch failed").strip()
+        raise SystemExit(message) from exc
+    finally:
+        tmp_path.unlink(missing_ok=True)
+
+
+def format_description(fields: dict[str, Any], normalized_description: str = "") -> str:
+    if normalized_description:
+        description = normalized_description
+    else:
+        description = re.sub(r"\n+", "\n", adf_text(fields.get("description") or "")).strip()
     if not description:
         return "No description text available."
     if len(description) > 1200:
@@ -218,7 +281,9 @@ def adf_plain_text(node: object) -> str:
     return re.sub(r"\n+", "\n", adf_text(node)).strip()
 
 
-def comment_entries(fields: dict[str, Any]) -> list[dict[str, str]]:
+def comment_entries(fields: dict[str, Any], normalized_comments: list[dict[str, str]] | None = None) -> list[dict[str, str]]:
+    if normalized_comments:
+        return normalized_comments
     comments = (fields.get("comment") or {}).get("comments", [])
     entries: list[dict[str, str]] = []
     for comment in comments:
@@ -230,8 +295,8 @@ def comment_entries(fields: dict[str, Any]) -> list[dict[str, str]]:
     return entries
 
 
-def summarize_comments(fields: dict[str, Any]) -> str:
-    comments = comment_entries(fields)
+def summarize_comments(fields: dict[str, Any], normalized_comments: list[dict[str, str]] | None = None) -> str:
+    comments = comment_entries(fields, normalized_comments)
     if not comments:
         return "- No comments."
     lines = [f"- Comment count: {len(comments)}"]
@@ -245,9 +310,9 @@ def summarize_comments(fields: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def extract_related_references(issue: str, fields: dict[str, Any]) -> list[str]:
+def extract_related_references(issue: str, fields: dict[str, Any], normalized_comments: list[dict[str, str]] | None = None) -> list[str]:
     text_parts = [format_description(fields)]
-    text_parts.extend(item["body"] for item in comment_entries(fields))
+    text_parts.extend(item["body"] for item in comment_entries(fields, normalized_comments))
     text_blob = "\n".join(part for part in text_parts if part and part != "No description text available.")
 
     refs: list[str] = []
@@ -259,7 +324,7 @@ def extract_related_references(issue: str, fields: dict[str, Any]) -> list[str]:
             refs.append(f"- Related issue hint: {key}")
 
     for url in re.findall(r"https?://\S+", text_blob):
-        clean_url = url.rstrip(').,]')
+        clean_url = url.rstrip(").,]")
         if clean_url not in seen:
             seen.add(clean_url)
             refs.append(f"- Related link: {clean_url}")
@@ -272,19 +337,24 @@ def extract_related_references(issue: str, fields: dict[str, Any]) -> list[str]:
     return refs
 
 
-def resolve_validator() -> Path | None:
-    ac = load_agent_config()
-    return ac.resolve_installed_script("validate_artifact.py", Path(__file__))
-
-
 def validate_artifact(output: Path) -> None:
     validator = resolve_validator()
     if validator is None:
-        raise SystemExit('artifact written but validator not found: expected scripts/validate_artifact.py')
-    subprocess.run(['python3', str(validator), str(output)], check=True)
+        raise SystemExit("artifact written but validator not found: expected scripts/validate_artifact.py")
+    subprocess.run(["python3", str(validator), str(output)], check=True)
 
 
-def build_content(issue: str, fields: dict, browse_url: str, defaults_path: str, preserved_sections: dict[str, str]) -> str:
+def build_content(
+    issue: str,
+    fields: dict[str, Any],
+    browse_url: str,
+    defaults_path: str,
+    preserved_sections: dict[str, str],
+    *,
+    transport: str = "",
+    normalized_description: str = "",
+    normalized_comments: list[dict[str, str]] | None = None,
+) -> str:
     summary = fields.get("summary", "")
     status = (fields.get("status") or {}).get("name", "")
     issue_type = (fields.get("issuetype") or {}).get("name", "")
@@ -294,13 +364,14 @@ def build_content(issue: str, fields: dict, browse_url: str, defaults_path: str,
     created = fields.get("created", "")
     updated = fields.get("updated", "")
     labels = ", ".join(fields.get("labels") or []) or "none"
-    comment_count = len((fields.get("comment") or {}).get("comments", []))
-    description = format_description(fields)
-    comment_summary = summarize_comments(fields)
-    related_references = extract_related_references(issue, fields)
+    comment_count = len(comment_entries(fields, normalized_comments))
+    description = format_description(fields, normalized_description)
+    comment_summary = summarize_comments(fields, normalized_comments)
+    related_references = extract_related_references(issue, fields, normalized_comments)
     related_references_block = "\n".join(related_references) or "- None found."
     follow_up_findings = preserved_sections.get("## Follow-up Findings", "- ")
     improvement_candidates = preserved_sections.get("## Improvement Candidates", "- ")
+    transport_line = f"- Transport: {transport}\n" if transport else ""
     return f"""# Task
 
 ## Summary
@@ -316,7 +387,7 @@ jira
 - {browse_url}
 
 ## Selected Skills
-- jira
+- JIRA-ACCESS.md
 
 ## Defaults Files
 - {defaults_path}
@@ -350,7 +421,7 @@ jira
 - Updated: {updated}
 - Labels: {labels}
 - Comment Count: {comment_count}
-
+{transport_line}
 ## Description
 {description}
 
@@ -376,17 +447,34 @@ jira
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--issue", required=True, help="Jira issue key, e.g. DAT-1234")
-    parser.add_argument("--json", required=True, help="Path to fetched Jira issue JSON")
+    parser.add_argument("--json", help="Path to fetched Jira issue JSON (REST or normalized)")
+    parser.add_argument(
+        "--fetch",
+        action="store_true",
+        help="Fetch live issue JSON via jira-fetch/jira_context.py before bootstrapping.",
+    )
     parser.add_argument("--output", help="Output Markdown path")
     parser.add_argument("--api-base", help="Optional Jira API base or site URL")
     parser.add_argument("--overwrite", action="store_true")
     args = parser.parse_args()
 
-    obj = json.loads(Path(args.json).read_text())
-    issue = obj.get("key") or args.issue
-    fields = obj.get("fields", {})
+    if args.fetch and args.json:
+        raise SystemExit("--fetch and --json are mutually exclusive")
+
+    if args.fetch:
+        obj = fetch_issue_json(args.issue)
+    elif args.json:
+        obj = json.loads(Path(args.json).read_text())
+    else:
+        raise SystemExit("provide --json or --fetch")
+
+    issue, fields, browse_url = extract_issue_and_fields(obj, args.issue)
+    normalized_description = str(obj.get("description") or "")
+    normalized_comments = obj.get("comments") if isinstance(obj.get("comments"), list) else None
+    transport = str(obj.get("transport") or "")
     api_base, api_defaults_file, source_kind = read_api_base(args.api_base)
-    browse_url = f"{browse_base_from_api_base(api_base)}/browse/{issue}"
+    if not browse_url:
+        browse_url = f"{browse_base_from_api_base(api_base)}/browse/{issue}"
     defaults_path = describe_defaults_path(source_kind, api_defaults_file)
     output = Path(args.output) if args.output else default_output_path(issue)
     existing = resolve_existing_output_path(
@@ -400,10 +488,25 @@ def main() -> None:
         raise SystemExit(f"refusing to overwrite existing file: {output}")
 
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(build_content(issue, fields, browse_url, defaults_path, preserved_sections))
+    output.write_text(
+        build_content(
+            issue,
+            fields,
+            browse_url,
+            defaults_path,
+            preserved_sections,
+            transport=transport,
+            normalized_description=normalized_description,
+            normalized_comments=normalized_comments,
+        )
+    )
     validate_artifact(output)
     print(output)
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except subprocess.CalledProcessError as exc:
+        stderr = (exc.stderr or exc.stdout or b"").decode() if isinstance(exc.stderr, bytes) else (exc.stderr or exc.stdout or "")
+        raise SystemExit(stderr.strip() or f"subprocess failed with exit code {exc.returncode}") from exc

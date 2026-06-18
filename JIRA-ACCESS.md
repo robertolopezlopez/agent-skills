@@ -52,7 +52,33 @@ Site URL for helpers: resolve **`ATLASSIAN_API_BASE_URL`** from runtime **`atlas
 | Prereqs | `check_skill_prereqs.sh jira` |
 | Auth / config | `check_skill_config.sh jira` |
 
-Until Phase B lands, bootstrap helpers remain under the installable **`jira`** skill directory (`skills/core/jira/scripts/` when working from the agent-skills repo).
+## Synced helpers
+
+| Script | Role |
+|--------|------|
+| **`jira-fetch`** | Shell wrapper → **`jira_context.py`** |
+| **`jira_context.py`** | Normalize issue JSON (`acli` first, **`jira-api`** fallback) |
+| **`jira-api`** | Read fallback (curl + Basic auth) |
+| **`jira-request`** | REST v3 + agile escape hatch |
+| **`bootstrap_jira_artifact.py`** | Bootstrap **`task_<issue>.md`**; supports **`--fetch`** |
+
+Resolve directory: **`agent_config.py --jira-scripts-dir`**.
+
+Fetch issue JSON:
+
+```bash
+JSDIR="$(python3 scripts/agent_config.py --jira-scripts-dir)"
+"$JSDIR/jira-fetch" PROJ-123
+"$JSDIR/jira-fetch" PROJ-123 --output /tmp/proj-123.json
+"$JSDIR/jira-fetch" --url 'https://example.atlassian.net/browse/PROJ-123'
+```
+
+Bootstrap artifact:
+
+```bash
+"$JSDIR/bootstrap_jira_artifact.py" --fetch --issue PROJ-123
+"$JSDIR/bootstrap_jira_artifact.py" --fetch --issue PROJ-123 --overwrite
+```
 
 ## Inputs
 
@@ -83,7 +109,7 @@ Downstream workflow skills expect stable field names whether data came from **`a
 | `labels` | When relevant |
 | `transport` | `acli`, `jira-request`, or `jira-api` |
 
-Phase B adds **`jira-fetch`** / **`jira_context.py`** to emit this contract as JSON (mirrors **`gh-fetch`**).
+Phase B **`jira-fetch`** / **`jira_context.py`** emit this contract as JSON (mirrors **`gh-fetch`**). See **Synced helpers** below.
 
 ## Workflow
 
@@ -143,10 +169,10 @@ acli jira board list-sprints --board <boardId> --json
 
 ## REST escape hatch (`jira-request`)
 
-Resolve helper from installable **`jira`** skill scripts (Phase B: **`scripts/jira/jira-request`**):
+Resolve helper from **`agent_config.py --jira-scripts-dir`**:
 
 ```bash
-JSDIR=skills/core/jira/scripts   # repo path; use --jira-scripts-dir after Phase B
+JSDIR="$(python3 scripts/agent_config.py --jira-scripts-dir)"
 "$JSDIR/jira-request" GET /rest/api/3/issue/PROJ-123
 "$JSDIR/jira-request" POST /rest/api/3/issue/PROJ-123/transitions /tmp/transition.json
 "$JSDIR/jira-request" POST /rest/agile/1.0/sprint/SPRINT_ID/issue /tmp/sprint-body.json
@@ -159,11 +185,13 @@ Requires valid **`email:ATLASSIAN_API_TOKEN`** pair (see **Auth note** above).
 Default layout: **`$ARTIFACTS/<issue-key>/task_<issue>.md`** (see **`ARTIFACTS.md`**).
 
 ```bash
-# Today: fetch JSON with acli, save, bootstrap
-acli jira workitem view PROJ-123 --json --fields summary,status,description,comment > /tmp/proj-123.json
-python3 skills/core/jira/scripts/bootstrap_jira_artifact.py --issue PROJ-123 --json /tmp/proj-123.json
+# Preferred: fetch + bootstrap in one step
+JSDIR="$(python3 scripts/agent_config.py --jira-scripts-dir)"
+"$JSDIR/bootstrap_jira_artifact.py" --fetch --issue PROJ-123
 
-# Phase B: bootstrap_jira_artifact.py --fetch --issue PROJ-123
+# Manual: fetch JSON then bootstrap
+"$JSDIR/jira-fetch" PROJ-123 --output /tmp/proj-123.json
+"$JSDIR/bootstrap_jira_artifact.py" --issue PROJ-123 --json /tmp/proj-123.json
 ```
 
 Preserves **`Follow-up Findings`** and **`Improvement Candidates`** when re-bootstrapping an existing artifact.

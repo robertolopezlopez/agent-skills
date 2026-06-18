@@ -15,7 +15,7 @@ Custom agent skills tracked in git. They install to **Codex** (`~/.codex/skills`
 - `skills/core/gitlab/`: generic GitLab merge request fetch and discussion-inspection workflow
 - `skills/core/gitlab-mr-comment-analysis/`: reusable GitLab merge request comment-analysis workflow for any GitLab repository
 - `skills/core/github-pr-comment-analysis/`: reusable GitHub pull request comment-analysis workflow (**`GITHUB-ACCESS.md`** + `gh` transport)
-- `skills/core/jira/`: **deprecated stub** — use synced **`JIRA-ACCESS.md`** + **`acli`** (see `docs/jira-access-migration.md`)
+- **`JIRA-ACCESS.md`** + **`acli`** for Jira Cloud issue access (resolve policy with **`scripts/agent_config.py --jira-access-policy`**; helpers: **`--jira-scripts-dir`**)
 - `skills/core/confluence/`: generic Confluence Cloud wiki access and updates through the Confluence REST API
   See `skills/core/confluence/README.md` for `atlassian.env` defaults shared with Jira transport, auth expectations, and helper usage.
 - `skills/core/multi-spawn-agent/`: reusable template for spawning parallel worker agents with disjoint ownership
@@ -252,7 +252,7 @@ Cursor also ships built-in skills under `~/.cursor/skills-cursor/`; this reposit
 
 ## Skill Docs
 
-- `skills/core/jira/README.md`: generic Jira setup, auth expectations, base URL behavior, and `jira-api` examples
+- **`JIRA-ACCESS.md`**: Jira Cloud transport, **`acli`**, synced **`scripts/jira/`** helpers, auth, and bootstrap (see `docs/jira-access-migration.md`)
 - `skills/core/confluence/README.md`: Confluence Cloud setup via **`atlassian.env`**, auth expectations, and REST helpers
 - `ARTIFACTS.md`: shared schema, naming, and section order for local workflow artifacts
 
@@ -260,9 +260,9 @@ Cursor also ships built-in skills under `~/.cursor/skills-cursor/`; this reposit
 
 Use home-local env files for non-secret skill defaults when a skill documents that behavior.
 
-See the relevant skill `README.md` for the supported variables and precedence rules:
+See the relevant skill `README.md` or policy doc for the supported variables and precedence rules:
 
-- `skills/core/jira/README.md`
+- **`JIRA-ACCESS.md`** + `templates/atlassian.env.example` (Jira)
 - `skills/core/confluence/README.md`
 - `skills/private-service/contributor/README.md`
 - `skills/private-service/technical-analysis/README.md`

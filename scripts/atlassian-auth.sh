@@ -48,15 +48,33 @@ atlassian_load_config_helper() {
 
 atlassian_git_email() {
   if ! email=$(git config user.email 2>/dev/null); then
-    atlassian_auth_fail "git config user.email is not set"
+    atlassian_auth_fail "git config user.email is not set (or set ATLASSIAN_AUTH_EMAIL in atlassian.env)"
   fi
 
   if [ -z "$email" ]; then
-    atlassian_auth_fail "git config user.email is not set"
+    atlassian_auth_fail "git config user.email is not set (or set ATLASSIAN_AUTH_EMAIL in atlassian.env)"
   fi
 
   ATLASSIAN_AUTH_EMAIL=$email
   export ATLASSIAN_AUTH_EMAIL
+}
+
+atlassian_auth_email() {
+  email=${ATLASSIAN_AUTH_EMAIL:-}
+
+  if [ -z "$email" ] && atlassian_load_config_helper; then
+    if email_from_env=$(agent_config_read_var ATLASSIAN_AUTH_EMAIL atlassian.env); then
+      email=$email_from_env
+    fi
+  fi
+
+  if [ -n "$email" ]; then
+    ATLASSIAN_AUTH_EMAIL=$email
+    export ATLASSIAN_AUTH_EMAIL
+    return 0
+  fi
+
+  atlassian_git_email
 }
 
 atlassian_api_token() {
@@ -92,7 +110,7 @@ atlassian_api_token() {
 }
 
 atlassian_require_auth() {
-  atlassian_git_email
+  atlassian_auth_email
   atlassian_api_token
   ATLASSIAN_AUTH_USERPASS=$ATLASSIAN_AUTH_EMAIL:$ATLASSIAN_AUTH_TOKEN
   export ATLASSIAN_AUTH_USERPASS

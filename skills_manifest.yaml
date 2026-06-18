@@ -23,6 +23,11 @@ shared_files:
   - scripts/github/apply_pr_thread_groups.py
   - scripts/git/git-repo-identity
   - scripts/git/resolve_repo_identity.py
+  - scripts/jira/jira-fetch
+  - scripts/jira/jira_context.py
+  - scripts/jira/jira-api
+  - scripts/jira/jira-request
+  - scripts/jira/bootstrap_jira_artifact.py
 
 skills:
   - name: branch-change-reviewer
@@ -158,12 +163,6 @@ skills:
       - private-technical-analysis
       - repository-technical-analysis
       - multi-spawn-agent
-  - name: jira
-    path: skills/core/jira
-    status: stable
-    type: core
-    repo_scope: generic
-    release_group: core
   - name: confluence
     path: skills/core/confluence
     status: stable
