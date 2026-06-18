@@ -62,6 +62,11 @@ Use this loop for technical analysis tasks:
 7. When rerunning or extending an existing analysis artifact (`$ARTIFACTS/…/analysis_<relevant_name>.md` by preference, or a legacy root-level file when already in use), preserve durable learned sections such as `Follow-up Findings`, `Improvement Candidates`, `Root Cause Lessons`, `Known Patterns`, `Dead Ends Tried`, `Fastest Reliable Repro`, or `Next-Time Checks` when they still match current evidence, explicitly mark stale heuristics, and promote repeated confirmed observations into reusable checks.
 8. Write the analysis incrementally to `$ARTIFACTS/<meaningful_id>/analysis_<relevant_name>.md` when the investigation is non-trivial and no explicit or legacy path is already in use.
 9. Iterate until the findings are confirmed, reduced to a small set of defensible hypotheses, or blocked by a clearly stated dependency.
+10. **When the task includes approved code changes** — after validation passes, **shrink the diff** as the final step before finishing:
+   - Inspect `git diff` (staged and unstaged) against the investigation scope; drop drive-by edits, debug logging, commented-out code, and redundant comments.
+   - Prefer deleting or inlining over adding: remove duplicate logic, one-off helpers, and abstractions that do not clarify the fix.
+   - Keep required tests, error paths, compatibility shims, and user-visible behavior intact; re-run the same validation if the shrink materially edits production code.
+   - When a repo overlay applies, stay within overlay scope rules (for example no cross-package refactors unless the investigation required them).
 
 ## Investigation Rules
 
@@ -80,6 +85,7 @@ Use this loop for technical analysis tasks:
 - For codebase text search during analysis, validate that **literal search policy** (**`LITERAL-CODE-SEARCH.md`**) or **agent Grep tool** was used instead of unbounded manual file walks.
 - After approved code changes, run the lint, format, and test commands that are relevant to the fix.
 - Prefer the smallest validation set that proves or disproves the hypothesis before expanding coverage.
+- When code changes are part of the task, complete workflow **step 10** (shrink the diff) after validation passes and before handoff.
 
 ## Outputs / Artifacts
 
