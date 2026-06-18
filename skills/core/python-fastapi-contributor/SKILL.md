@@ -42,6 +42,11 @@ Use this loop for routine implementation, debugging, or stabilization work:
 3. When debugging broad failures, group them by root cause before changing code.
 4. If the task is framed as investigation, failure analysis, or change planning, propose the intended fix and ask for approval before editing code.
 5. Iterate until the change is implemented, the failure set is reduced to a clear blocker, or the repo state shows the next concrete step.
+6. **Shrink the diff** — as the final step before finishing (after validation passes), review the full change set and reduce it as much as possible without changing behavior:
+   - Inspect `git diff` (staged and unstaged) against the task scope; drop drive-by edits, debug logging, commented-out code, and redundant comments.
+   - Prefer deleting or inlining over adding: remove duplicate logic, one-off helpers, and abstractions that do not clarify the fix.
+   - Keep required tests, error paths, compatibility shims, and user-visible behavior intact; re-run the same validation if the shrink materially edits production code.
+   - When an overlay skill applies, stay within repo-local scope rules (for example no cross-package refactors unless the task requires them).
 
 ## Validation
 
@@ -50,6 +55,7 @@ Use this loop for routine implementation, debugging, or stabilization work:
 - Use direct tool commands when tighter control is needed or the repo targets are too broad.
 - Do not treat full-suite execution as part of the default commit flow unless the task calls for it.
 - When a validation step fails to provide useful signal, record it once in `Validation Lessons` or `Fastest Reliable Test Targets` so future reruns can start with a better command.
+- After validation passes, complete workflow **step 6** (shrink the diff) before handing off or opening a pull/merge request.
 
 ## Pull Request Summaries
 
