@@ -3,7 +3,8 @@ name: learn-daily
 description: >-
   Streamline repeatable daily agent habits (learn daily): session start (repo guidance + consolidated
   next-time checks), disciplined artifact placement under $ARTIFACTS/<meaningful_id>/ (repo-scoped)
-  or $GLOBAL/<meaningful_id>/ (cross-repo knowledge), and session end capture into
+  or $GLOBAL/<meaningful_id>/ (cross-repo knowledge), general technical-analysis reference under
+  $KNOWLEDGE/, and session end capture into
   $GLOBAL/NEXT_TIME_CHECKS.md and/or $ARTIFACTS/NEXT_TIME_CHECKS.md. Use when starting or closing focused work in a codebase, when the user asks for a daily
   routine, or to avoid re-learning the same friction every session.
 ---
@@ -41,7 +42,8 @@ Accept:
 
 Resolve paths per **`ARTIFACTS.md`**:
 
-- **`$GLOBAL/`** — **`$AGENT_ARTIFACTS_HOME/_global/`** (cross-repo knowledge)
+- **`$GLOBAL/`** — **`$AGENT_ARTIFACTS_HOME/_global/`** (cross-repo org knowledge)
+- **`$KNOWLEDGE/`** — **`$AGENT_ARTIFACTS_HOME/knowledge/`** (general technical-analysis reference; store root)
 - **`$ARTIFACTS/`** — **`$AGENT_ARTIFACTS_HOME/<repo-key>/`** (active repository)
 
 Use **`scripts/resolve_artifact_path.py`** when you need absolute paths (`--global-artifacts-root`, `--global-next-time-checks`, `--scope global`, or repo-scoped flags).
@@ -52,6 +54,7 @@ Use **`scripts/resolve_artifact_path.py`** when you need absolute paths (`--glob
 | --- | --- |
 | **`$GLOBAL/<topic>/`** | Org structure, team ownership, company tooling, facts true in any checkout |
 | **`$GLOBAL/NEXT_TIME_CHECKS.md`** | Recurring lessons that apply across repositories |
+| **`$KNOWLEDGE/`** | General technical-analysis reference from `repository-technical-analysis` or overlays |
 | **`$ARTIFACTS/<meaningful_id>/`** | Ticket, PR, MR, branch review, or repo-specific investigation |
 | **`$ARTIFACTS/NEXT_TIME_CHECKS.md`** | Recurring lessons **only** for the active repository |
 

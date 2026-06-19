@@ -9,7 +9,7 @@ This skill can start from a local workflow artifact such as:
 - `task_<issue>.md`
 - `review_mr_<MR>.md`
 - `analysis_mr_<MR>.md`
-- `analysis_<relevant_name>.md`
+- `analysis_<relevant_name>.md` — `$ARTIFACTS/<meaningful_id>/` for ticket/session work, or `$KNOWLEDGE/` for general reference
 
 When rerunning analysis for the same problem, read the existing analysis artifact first and preserve local learned sections such as:
 

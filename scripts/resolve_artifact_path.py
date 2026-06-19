@@ -5,6 +5,7 @@ Default layout::
 
     $AGENT_ARTIFACTS_HOME/_global/NEXT_TIME_CHECKS.md
     $AGENT_ARTIFACTS_HOME/_global/<meaningful_id>/<basename>.md
+    $AGENT_ARTIFACTS_HOME/knowledge/<basename>.md
     $AGENT_ARTIFACTS_HOME/<repo-key>/NEXT_TIME_CHECKS.md
     $AGENT_ARTIFACTS_HOME/<repo-key>/<meaningful_id>/<basename>.md
 
@@ -27,6 +28,7 @@ from parse_remote_url import RemoteUrlParseError, parse_remote_url, tail_path_se
 
 
 GLOBAL_SEGMENT = "_global"
+KNOWLEDGE_SEGMENT = "knowledge"
 
 
 def artifacts_home() -> Path:
@@ -91,6 +93,10 @@ def global_artifacts_root() -> Path:
     return artifacts_home() / GLOBAL_SEGMENT
 
 
+def knowledge_artifacts_root() -> Path:
+    return artifacts_home() / KNOWLEDGE_SEGMENT
+
+
 def repo_artifacts_root(repo_root: Path) -> Path:
     return artifacts_home() / repo_key(repo_root)
 
@@ -103,6 +109,10 @@ def global_artifact_path(meaningful_id: str, basename: str) -> Path:
     return global_artifacts_root() / meaningful_id / basename
 
 
+def knowledge_artifact_path(basename: str) -> Path:
+    return knowledge_artifacts_root() / basename
+
+
 def next_time_checks_path(repo_root: Path) -> Path:
     return repo_artifacts_root(repo_root) / "NEXT_TIME_CHECKS.md"
 
@@ -113,6 +123,17 @@ def global_next_time_checks_path() -> Path:
 
 def legacy_artifact_path(repo_root: Path, meaningful_id: str, basename: str) -> Path:
     return repo_root / "_artifacts_" / meaningful_id / basename
+
+
+def find_existing_knowledge_artifact(repo_root: Path, basename: str) -> Path | None:
+    candidates = [
+        knowledge_artifact_path(basename),
+        repo_artifacts_root(repo_root) / KNOWLEDGE_SEGMENT / basename,
+    ]
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate
+    return None
 
 
 def find_existing_artifact(repo_root: Path, meaningful_id: str, basename: str) -> Path | None:
@@ -166,8 +187,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="Print the cross-repo artifact store root ($GLOBAL/).",
     )
     parser.add_argument(
+        "--knowledge-artifacts-root",
+        action="store_true",
+        help="Print the general-knowledge artifact store root ($KNOWLEDGE/).",
+    )
+    parser.add_argument(
         "--scope",
-        choices=("repo", "global"),
+        choices=("repo", "global", "knowledge"),
         default="repo",
         help="Artifact scope when resolving --meaningful-id/--basename (default: repo).",
     )
@@ -203,6 +229,9 @@ def main() -> None:
     if args.global_artifacts_root:
         print(global_artifacts_root())
         return
+    if args.knowledge_artifacts_root:
+        print(knowledge_artifacts_root())
+        return
     if args.repo_artifacts_root:
         print(repo_artifacts_root(repo_root))
         return
@@ -213,8 +242,20 @@ def main() -> None:
         print(next_time_checks_path(repo_root))
         return
 
-    if not args.meaningful_id or not args.basename:
-        parser.error("--meaningful-id and --basename are required unless using a root-only flag")
+    if not args.basename:
+        parser.error("--basename is required unless using a root-only flag")
+    if args.scope != "knowledge" and not args.meaningful_id:
+        parser.error("--meaningful-id is required unless --scope knowledge or using a root-only flag")
+
+    if args.scope == "knowledge":
+        if args.find_existing:
+            existing = find_existing_knowledge_artifact(repo_root, args.basename)
+            if existing is None:
+                raise SystemExit(1)
+            print(existing)
+            return
+        print(knowledge_artifact_path(args.basename))
+        return
 
     if args.scope == "global":
         if args.find_existing:

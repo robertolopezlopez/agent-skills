@@ -253,7 +253,7 @@ Do not commit cached API docs into this repository; keep them in the runtime con
 
 ## Artifacts directory phrase
 
-When the user says **"the artifacts directory"** (or similar), resolve **`$ARTIFACTS/<meaningful_id>/`** via **`scripts/resolve_artifact_path.py`** — not in-repo **`_artifacts_/`** unless they explicitly ask. Cross-repo material belongs under **`$GLOBAL/`**. Read existing files in the target folder before creating duplicates.
+When the user says **"the artifacts directory"** (or similar), resolve **`$ARTIFACTS/<meaningful_id>/`** via **`scripts/resolve_artifact_path.py`** — not in-repo **`_artifacts_/`** unless they explicitly ask. General technical-analysis reference belongs under **`$KNOWLEDGE/`** (store root). Cross-repo org material belongs under **`$GLOBAL/`**. Read existing files in the target folder before creating duplicates.
 
 - **Cursor (optional):** install **`templates/cursor/rules/agent-artifacts-directory.mdc`** with **`./scripts/bootstrap_agent_artifacts.sh --cursor-rule`**
 - **Codex:** this section plus **`ARTIFACTS.md`** carry the same contract (Codex has no `.mdc` rules format)
@@ -265,12 +265,13 @@ Portable lessons split by scope (see **`ARTIFACTS.md`**):
 
 - **`$GLOBAL/NEXT_TIME_CHECKS.md`** — cross-repository next-time checks
 - **`$GLOBAL/<topic>/`** — cross-repository reference cards (org maps, team ownership, company tooling)
+- **`$KNOWLEDGE/`** — general technical-analysis reference (store root; not under `<repo-key>/`)
 - **`$ARTIFACTS/NEXT_TIME_CHECKS.md`** — lessons specific to the active repository
 - **`$ARTIFACTS/<meaningful_id>/`** — ticket-scoped work for the active repository
 
 Legacy in-repo **`_artifacts_/`** paths remain valid for read/extend only.
 
-Resolve paths with **`scripts/resolve_artifact_path.py`** (synced to **`~/.cursor/skills/scripts/`** and **`~/.codex/skills/scripts/`**). Use **`--global-artifacts-root`**, **`--global-next-time-checks`**, or **`--scope global`** for cross-repo paths. Override the store root with **`AGENT_ARTIFACTS_HOME`** when needed.
+Resolve paths with **`scripts/resolve_artifact_path.py`** (synced to **`~/.cursor/skills/scripts/`** and **`~/.codex/skills/scripts/`**). Use **`--global-artifacts-root`**, **`--knowledge-artifacts-root`**, **`--global-next-time-checks`**, **`--scope global`**, or **`--scope knowledge`** for cross-repo and general-knowledge paths. Override the store root with **`AGENT_ARTIFACTS_HOME`** when needed.
 
 ## Delegation rule
 

@@ -9,11 +9,13 @@ When the user says **"the artifacts directory"** (or similar: "artifact path", "
 
 1. Use the **relevant subdirectory** under **`$AGENT_ARTIFACTS_HOME`**, not in-repo **`_artifacts_/`** unless they explicitly ask for that.
 2. Default home: exported **`AGENT_ARTIFACTS_HOME`**, else **`~/.cursor/agent-artifacts`** when **`~/.cursor`** exists, else **`~/.codex/agent-artifacts`**.
-3. Cross-repo knowledge belongs under **`$AGENT_ARTIFACTS_HOME/_global/`** (`$GLOBAL/`).
+3. General technical-analysis reference belongs under **`$AGENT_ARTIFACTS_HOME/knowledge/`** (`$KNOWLEDGE/`) — store root, **not** under **`<repo-key>/`**.
+4. Cross-repo org knowledge belongs under **`$AGENT_ARTIFACTS_HOME/_global/`** (`$GLOBAL/`).
 
 ## Path shape
 
 ```text
+$AGENT_ARTIFACTS_HOME/knowledge/
 $AGENT_ARTIFACTS_HOME/<repo-key>/<meaningful_id>/
 $AGENT_ARTIFACTS_HOME/_global/<topic>/
 ```
@@ -27,7 +29,8 @@ $AGENT_ARTIFACTS_HOME/_global/<topic>/
 |---------|------|
 | CLI-1474 on snyk/cli | `$AGENT_ARTIFACTS_HOME/github.com-snyk-cli/CLI-1474/` |
 | MR 1447 on snyk/cli | `$AGENT_ARTIFACTS_HOME/github.com-snyk-cli/mr-1447/` |
-| Cross-repo notes | `$AGENT_ARTIFACTS_HOME/_global/` |
+| General knowledge (technical-analysis) | `$AGENT_ARTIFACTS_HOME/knowledge/` |
+| Cross-repo org notes | `$AGENT_ARTIFACTS_HOME/_global/` |
 
 ## Resolution
 
@@ -36,6 +39,8 @@ When the repo or id is unclear, run (Cursor skills root shown; Codex uses `~/.co
 ```bash
 python3 ~/.cursor/skills/scripts/resolve_artifact_path.py --repo-artifacts-root
 python3 ~/.cursor/skills/scripts/resolve_artifact_path.py --meaningful-id <ID> --basename <file>.md
+python3 ~/.cursor/skills/scripts/resolve_artifact_path.py --knowledge-artifacts-root
+python3 ~/.cursor/skills/scripts/resolve_artifact_path.py --scope knowledge --basename <file>.md
 python3 ~/.cursor/skills/scripts/resolve_artifact_path.py --global-artifacts-root
 python3 ~/.cursor/skills/scripts/resolve_artifact_path.py --scope global \
   --meaningful-id <topic> --basename <file>.md

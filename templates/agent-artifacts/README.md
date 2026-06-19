@@ -17,10 +17,12 @@ Set **`AGENT_ARTIFACTS_HOME`** in your shell profile when you want **one shared 
 ```text
 agent-artifacts/
 ├── README.md                         # this file
-├── _global/                          # cross-repo knowledge ($GLOBAL/)
+├── _global/                          # cross-repo org knowledge ($GLOBAL/)
 │   ├── NEXT_TIME_CHECKS.md
 │   └── <topic>/                      # e.g. snyk-repo-ownership/
 │       └── *.md
+├── knowledge/                        # general technical-analysis reference ($KNOWLEDGE/)
+│   └── analysis_<topic>.md
 └── <repo-key>/                       # e.g. github.com-snyk-cli ($ARTIFACTS/)
     ├── NEXT_TIME_CHECKS.md           # repo-specific session notes
     └── <meaningful_id>/              # e.g. CLI-1474, pr-336, mr-1447
@@ -34,6 +36,7 @@ agent-artifacts/
 Shorthand in skills:
 
 - **`$GLOBAL/`** → **`$AGENT_ARTIFACTS_HOME/_global/`**
+- **`$KNOWLEDGE/`** → **`$AGENT_ARTIFACTS_HOME/knowledge/`** (store root — **not** under **`<repo-key>/`**)
 - **`$ARTIFACTS/`** → **`$AGENT_ARTIFACTS_HOME/<repo-key>/`** for the active repository
 
 ## User phrase
@@ -41,22 +44,27 @@ Shorthand in skills:
 When the user says **"the artifacts directory"** (or similar: "artifact path", "save to artifacts", "write the analysis md"):
 
 1. Resolve the relevant folder under **`$ARTIFACTS/<meaningful_id>/`** for the active ticket, PR, MR, or branch — **not** in-repo **`_artifacts_/`** unless they explicitly ask for that.
-2. Use **`$GLOBAL/`** for cross-repo reference material.
+2. Use **`$KNOWLEDGE/`** for general technical-analysis reference — store root, not under **`<repo-key>/`**.
+3. Use **`$GLOBAL/`** for cross-repo org reference material.
 
 ## Path resolution
 
 From a git checkout (replace the skills root with your runtime install):
 
 ```bash
-# Cursor
+# Cursor — repo-scoped
 python3 ~/.cursor/skills/scripts/resolve_artifact_path.py --repo-artifacts-root
 python3 ~/.cursor/skills/scripts/resolve_artifact_path.py --meaningful-id CLI-1474 --basename analysis_topic.md
+
+# General knowledge (store root)
+python3 ~/.cursor/skills/scripts/resolve_artifact_path.py --knowledge-artifacts-root
+python3 ~/.cursor/skills/scripts/resolve_artifact_path.py --scope knowledge --basename analysis_ufm_gaf.md
 
 # Codex
 python3 ~/.codex/skills/scripts/resolve_artifact_path.py --repo-artifacts-root
 python3 ~/.codex/skills/scripts/resolve_artifact_path.py --meaningful-id mr-1447 --basename review_mr_1447.md
 
-# Cross-repo
+# Cross-repo org reference
 python3 ~/.cursor/skills/scripts/resolve_artifact_path.py --global-artifacts-root
 python3 ~/.cursor/skills/scripts/resolve_artifact_path.py --scope global \
   --meaningful-id snyk-repo-ownership --basename repo-snyk-docker-registry-v2-client.md

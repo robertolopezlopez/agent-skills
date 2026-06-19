@@ -11,16 +11,18 @@ This repository uses a shared Markdown schema for locally bootstrapped workflow 
 
 ## Artifact store location
 
-The external store has **two scopes**:
+The external store has **three scopes**:
 
 1. **`$GLOBAL/`** — cross-repository knowledge (org maps, team ownership, company-wide tooling). Same on every machine regardless of which checkout is active.
-2. **`$ARTIFACTS/`** — repository-scoped work (tickets, MR/PR analysis, repo-specific CI quirks).
+2. **`$KNOWLEDGE/`** — general technical-analysis reference (architecture, subsystem docs). Store-root folder shared across repositories — **not** under **`<repo-key>/`**.
+3. **`$ARTIFACTS/`** — repository-scoped work (tickets, MR/PR analysis, repo-specific CI quirks).
 
 **Default layout:**
 
 ```text
 $AGENT_ARTIFACTS_HOME/_global/NEXT_TIME_CHECKS.md
 $AGENT_ARTIFACTS_HOME/_global/<meaningful_id>/<basename>.md
+$AGENT_ARTIFACTS_HOME/knowledge/<basename>.md
 $AGENT_ARTIFACTS_HOME/<repo-key>/NEXT_TIME_CHECKS.md
 $AGENT_ARTIFACTS_HOME/<repo-key>/<meaningful_id>/<basename>.md
 ```
@@ -28,27 +30,33 @@ $AGENT_ARTIFACTS_HOME/<repo-key>/<meaningful_id>/<basename>.md
 Shorthand used in skills:
 
 - **`$GLOBAL/`** means **`$AGENT_ARTIFACTS_HOME/_global/`**
+- **`$KNOWLEDGE/`** means **`$AGENT_ARTIFACTS_HOME/knowledge/`**
 - **`$ARTIFACTS/`** means **`$AGENT_ARTIFACTS_HOME/<repo-key>/`** for the active repository
 
 ### Scope decision (writes)
 
 | Content | Scope | Example |
 | --- | --- | --- |
-| Ticket / PR / MR session work | `$ARTIFACTS/` | `mr-1447/review_mr_1447.md` |
+| Ticket / PR / MR session work | `$ARTIFACTS/<meaningful_id>/` | `mr-1447/review_mr_1447.md` |
+| General knowledge from technical-analysis (architecture, subsystem reference) | `$KNOWLEDGE/` | `knowledge/analysis_ufm_gaf.md` |
 | Repo-specific CI, layout, validation quirks | `$ARTIFACTS/NEXT_TIME_CHECKS.md` | “run `make test` before push in this repo” |
 | Org structure, team ownership, internal URLs | `$GLOBAL/<topic>/` | Snyk repo → team mapping |
 | Lessons that apply in **any** checkout | `$GLOBAL/NEXT_TIME_CHECKS.md` | “refresh expired `ATLASSIAN_API_TOKEN`” |
 
-When unsure: if the fact would still be true after `cd` into a different repository, use **`$GLOBAL/`**.
+When unsure:
+
+- if the fact is org-wide tooling or ownership, use **`$GLOBAL/`**
+- if **`repository-technical-analysis`** (or a repo overlay) produced durable reference material not tied to a ticket, PR, MR, or branch fix, use **`$KNOWLEDGE/`** — never **`$ARTIFACTS/<repo-key>/knowledge/`**
 
 ### User phrase: "the artifacts directory"
 
 When the user says **"the artifacts directory"** (or similar: "artifact path", "save to artifacts", "write the analysis md"):
 
 1. Resolve **`$ARTIFACTS/<meaningful_id>/`** for the active ticket, PR, MR, or branch — not in-repo **`_artifacts_/`** unless they explicitly ask for that.
-2. Use **`$GLOBAL/<topic>/`** for cross-repo reference material.
-3. When the repo or **`meaningful_id`** is unclear, resolve paths with **`scripts/resolve_artifact_path.py`** (installed under each skills root after sync).
-4. Read existing files in the target folder before creating duplicates; extend in place when an analysis or review artifact already exists.
+2. Use **`$KNOWLEDGE/`** for general technical-analysis reference — store root, not under **`<repo-key>/`**.
+3. Use **`$GLOBAL/<topic>/`** for cross-repo reference material.
+4. When the repo or **`meaningful_id`** is unclear, resolve paths with **`scripts/resolve_artifact_path.py`** (installed under each skills root after sync).
+5. Read existing files in the target folder before creating duplicates; extend in place when an analysis or review artifact already exists.
 
 **Cursor:** optional always-on rule from **`templates/cursor/rules/agent-artifacts-directory.mdc`**, installed with **`scripts/bootstrap_agent_artifacts.sh --cursor-rule`**.
 
@@ -73,8 +81,10 @@ Helper (installed next to other shared scripts under each skills root). Examples
 
 ```bash
 python3 ~/.cursor/skills/scripts/resolve_artifact_path.py --global-artifacts-root
+python3 ~/.cursor/skills/scripts/resolve_artifact_path.py --knowledge-artifacts-root
 python3 ~/.cursor/skills/scripts/resolve_artifact_path.py --global-next-time-checks
 python3 ~/.cursor/skills/scripts/resolve_artifact_path.py --scope global --meaningful-id snyk-repo-ownership --basename repo-snyk-docker-registry-v2-client.md
+python3 ~/.cursor/skills/scripts/resolve_artifact_path.py --scope knowledge --basename analysis_ufm_gaf.md
 python3 ~/.cursor/skills/scripts/resolve_artifact_path.py --repo-artifacts-root
 python3 ~/.cursor/skills/scripts/resolve_artifact_path.py --next-time-checks
 python3 ~/.cursor/skills/scripts/resolve_artifact_path.py --meaningful-id mr-1447 --basename review_mr_1447.md
@@ -94,6 +104,18 @@ python3 ~/.cursor/skills/scripts/migrate_legacy_artifacts.py --search-root ~/go 
 
 The script resolves **`$ARTIFACTS/`** per repository, skips files that already exist in the external store, and optionally deletes the legacy **`_artifacts_/`** tree after copy.
 
+### Migrating misplaced `<repo-key>/knowledge/`
+
+Do **not** write general knowledge under **`$ARTIFACTS/<repo-key>/knowledge/`**. If files landed there, move them to **`$KNOWLEDGE/`**:
+
+```bash
+DEST="$(python3 ~/.cursor/skills/scripts/resolve_artifact_path.py \
+  --scope knowledge --basename analysis_ufm_gaf.md)"
+mkdir -p "$(dirname "$DEST")"
+mv ~/.cursor/agent-artifacts/github.com-snyk-go-application-framework/knowledge/analysis_ufm_gaf.md "$DEST"
+rmdir ~/.cursor/agent-artifacts/github.com-snyk-go-application-framework/knowledge 2>/dev/null || true
+```
+
 ### Path precedence (writes)
 
 1. **Explicit user instruction** — absolute or relative paths always win for that run.
@@ -106,10 +128,12 @@ The script resolves **`$ARTIFACTS/`** per repository, skips files that already e
 When opening existing context, check in this order:
 
 1. explicit user path
-2. **`$GLOBAL/<meaningful_id>/`** when the topic is cross-repo
-3. **`$ARTIFACTS/<meaningful_id>/`**
-4. legacy **`_artifacts_/<meaningful_id>/`** under the repository root
-5. legacy repo-root filenames (e.g. `review_mr_<iid>.md`) when already in use
+2. **`$GLOBAL/<meaningful_id>/`** when the topic is cross-repo org reference
+3. **`$KNOWLEDGE/`** for general technical-analysis reference
+4. **`$ARTIFACTS/<meaningful_id>/`**
+5. legacy **`$ARTIFACTS/<repo-key>/knowledge/`** (migrate to **`$KNOWLEDGE/`**)
+6. legacy **`_artifacts_/<meaningful_id>/`** under the repository root
+7. legacy repo-root filenames (e.g. `review_mr_<iid>.md`) when already in use
 
 Prefer **non-destructive migration**: read legacy paths, write new material to **`$ARTIFACTS/`** unless the user keeps using the old location.
 
@@ -145,10 +169,11 @@ Downstream workflow files may add extra sections after these, but they should pr
 
 ## Artifact directories
 
-Prefer writing **new** artifacts under **`$ARTIFACTS/`**:
+Prefer writing **new** artifacts under the correct scope:
 
 ```text
 $ARTIFACTS/<meaningful_id>/<basename>.md
+$KNOWLEDGE/<basename>.md
 ```
 
 Portable cross-ticket lessons belong in:
@@ -163,6 +188,8 @@ Pick a compact, filesystem-safe label so parallel work separates cleanly:
 1. **Tracker key first** — e.g. `CLI-123`, `GOV-456`.
 2. **Else PR / MR shorthand** — e.g. `pr-336`, `mr-1447`.
 3. **Else** a sanitized slug from the git branch (`feature/foo-bar` → `feature-foo-bar`) or a topic slug the user provides.
+
+General knowledge does **not** use **`meaningful_id`** — write directly under **`$KNOWLEDGE/`**.
 
 Use the **same `meaningful_id` for every file** belonging to one ticket/session when possible.
 
@@ -197,6 +224,7 @@ Resolution order for **new writes**:
 - GitHub PR review bootstrap: `review_pr_<number>.md`
 - GitHub PR investigation bootstrap: `analysis_pr_<number>.md`
 - Repository / branch investigations: existing patterns such as `analysis_<relevant_name>.md` or `review_<sanitized-branch>.md` — place them under **`$ARTIFACTS/<meaningful_id>/`** unless the artifact already exists elsewhere
+- General knowledge from **`repository-technical-analysis`** or a repo overlay: **`$KNOWLEDGE/analysis_<relevant_name>.md`** (and optional slide companions in the same folder)
 - Informal working drafts: `fix_draft_<topic>.md` (same folder; not validated by default)
 
 Equivalent paths at repo root or under in-repo **`_artifacts_/`** are still tolerated for legacy workflows; **`$ARTIFACTS/...`** remains the preference for newly created files.
@@ -211,6 +239,7 @@ Full examples (external store; home and repo-key vary by machine):
 - `$ARTIFACTS/issue-16/triage_issue_16.md`
 - `$ARTIFACTS/pr-336/review_pr_336.md`
 - `$ARTIFACTS/feature-auth-guard/review_feature-auth-guard.md` (branch-based branch review layouts)
+- `$KNOWLEDGE/analysis_ufm_gaf.md` (general subsystem / architecture reference)
 - `$ARTIFACTS/NEXT_TIME_CHECKS.md`
 
 **Grouped MR/PR comment analysis** lives **inside** the corresponding review or analysis artifact under:
@@ -242,4 +271,5 @@ Prefer merging durable content from legacy files into the main artifact, then de
 - `gitlab-mr-comment-analysis` refreshes live MR state and writes grouped unresolved threads **into** the main MR Markdown file (typically **`$ARTIFACTS/…/review_mr_<iid>.md`** or **`$ARTIFACTS/…/analysis_mr_<iid>.md`**) inside `## Grouped unresolved comments`
 - **`GITHUB-ACCESS.md`** + `gh` prepares normalized issue/PR context; **`scripts/github/bootstrap_github_artifact.py`** bootstraps **`triage_issue_<number>.md`** / **`analysis_issue_<number>.md`** under **`$ARTIFACTS/issue-<n>/`** or **`review_pr_<number>.md`** / **`analysis_pr_<number>.md`** under **`$ARTIFACTS/pr-<n>/`**
 - `github-pr-comment-analysis` refreshes live PR state and writes grouped unresolved threads **into** the canonical PR Markdown file (typically **`$ARTIFACTS/…/review_pr_<number>.md`** or **`$ARTIFACTS/…/analysis_pr_<number>.md`**) under the same subsection contract
+- `repository-technical-analysis` and repo overlays write ticket-scoped analysis under **`$ARTIFACTS/<meaningful_id>/`** and general knowledge under **`$KNOWLEDGE/`**
 - repository-specific overlay skills should reuse these artifacts when possible instead of recreating context
