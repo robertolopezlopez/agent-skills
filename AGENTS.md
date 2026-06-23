@@ -166,6 +166,8 @@ Bundled **`jira-api`** / **`jira-request`** use Basic auth (`email:ATLASSIAN_API
 
 Host CLIs and bundled helpers often need **auth or defaults files** under **`$AGENT_CONFIG_HOME`** (Cursor: **`~/.cursor/`**; Codex: **`~/.codex/`**). After install checks, run **`scripts/check_skill_config.sh <skill>`** (synced shared file).
 
+**Helper invocation:** run synced **`*.sh`** helpers directly (bash — **do not** prefix with `python3`). Use **`python3`** only for **`*.py`** helpers (`agent_config.py`, `resolve_artifact_path.py`, …).
+
 When config is **missing or incomplete**:
 
 1. **Help the user finish setup** before falling back to MCP or giving up. Give the resolved file path (`agent_config.py --atlassian-env`, `--circleci-env`, …), the variables needed, and vendor doc links for tokens.
@@ -203,6 +205,18 @@ Prereqs: check_skill_prereqs.sh git-access  |  GitLab ID: check_skill_prereqs.sh
 The installable **`git`** skill was removed in Phase C. **`gitlab`**, **`circleci`**, and **`GITHUB-ACCESS.md`** consume identity from this policy.
 
 Templates: **`templates/atlassian.env.example`**, **`templates/circleci.env.example`**.
+
+## Contributor design principles
+
+Contributor skills (`python-fastapi-contributor`, `private-contributor`, repo overlays, …) treat **testability** as a primary objective:
+
+- **Dependency injection** — pass collaborators (HTTP clients, clocks, stores, config) via constructors, parameters, or framework hooks (`Depends`, factory args). Avoid reaching for module singletons inside business logic.
+- **No hidden globals** — avoid module-level mutable state, import-time side effects, and ambient `process.env` / `os.environ` reads deep in logic. Centralize config at the composition root and inject it.
+- **Test seams** — prefer fakes/stubs over broad mocks; new behavior should be provable with a narrow unit or integration test without network, disk, or real time unless the task explicitly needs them.
+- **Refactor for injection** — when touching code that uses globals or hard-coded deps, narrow the change but move toward injectable dependencies when the cost is small.
+- **`tdd`** owns the red-green-refactor loop; contributor skills own testable structure (DI, no globals).
+
+Repo overlays add language- and stack-specific patterns; this block is the shared default.
 
 ## Design rules
 

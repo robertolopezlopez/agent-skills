@@ -1,6 +1,6 @@
 ---
 name: python-fastapi-contributor
-description: Use this when working on Python or FastAPI code in any repository, including routine implementation, debugging, validation, and pull request or merge request summaries. Covers repo-aware discovery, narrow test selection, failure grouping, and practical validation.
+description: Use this when working on Python or FastAPI code in any repository, including routine implementation, debugging, validation, and pull request or merge request summaries. Covers repo-aware discovery, narrow test selection, failure grouping, practical validation, and testable design (dependency injection, no hidden globals).
 ---
 
 # Python FastAPI Contributor
@@ -32,6 +32,16 @@ Do not use this skill when:
 - Keep comments minimal and only explain non-obvious constraints or patterns.
 - If the user provides a local workflow artifact such as `$ARTIFACTS/<meaningful_id>/task_<issue>.md`, `review_mr_<MR>.md`, or `analysis_mr_<MR>.md` (or legacy root-level equivalents), read it first and reuse its repository, links, assumptions, plan, and open questions before changing code.
 - Do not revert unrelated user changes in the worktree.
+
+## Design principles
+
+Testability is a **primary objective** (see **Contributor design principles** in repo `AGENTS.md`):
+
+- **Inject dependencies** — pass clients, stores, clocks, and config into functions/classes; use FastAPI `Depends()` at route boundaries and constructor injection for services.
+- **Avoid globals** — no module-level mutable singletons, import-time I/O, or `os.environ` reads buried in business logic; load settings once at the app/composition root and pass them in.
+- **Side effects at the edge** — keep domain logic pure where practical; isolate HTTP, DB, filesystem, and time behind injectable collaborators.
+- **Tests first-class** — new behavior should be exercisable with narrow pytest targets and fakes; avoid tests that need the whole stack when a unit test suffices.
+- For new behavior or regressions, pair with **`tdd`**: red-green-refactor on public interfaces using injected fakes.
 
 ## Workflow
 

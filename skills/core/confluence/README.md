@@ -11,7 +11,7 @@ Configuration for fallback helpers lives in the runtime **`atlassian.env`** file
 Check readiness:
 
 ```bash
-python3 ~/.cursor/skills/scripts/check_skill_config.sh confluence
+~/.cursor/skills/scripts/check_skill_config.sh confluence
 ```
 
 If setup is incomplete, help the user using **`templates/atlassian.env.example`** and **AGENTS.md** (runtime tool and helper configuration).

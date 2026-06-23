@@ -7,6 +7,8 @@ set -euo pipefail
 #   check_skill_prereqs.sh [SKILL ...]
 #   check_skill_prereqs.sh github gitlab
 #   check_skill_prereqs.sh --all
+#
+# Bash script — run directly (or: bash check_skill_prereqs.sh …). Do not use python3.
 
 usage() {
   cat <<'EOH'
@@ -15,10 +17,13 @@ Usage: check_skill_prereqs.sh [--all | SKILL ...]
 Check whether host CLIs referenced by skills are on PATH. When a tool is
 missing, print install suggestions for the detected OS and package managers.
 
+Bash script — run directly, not with python3.
+
 Does not install anything.
 
 Examples:
   check_skill_prereqs.sh github gitlab
+  ~/.cursor/skills/scripts/check_skill_prereqs.sh circleci
   check_skill_prereqs.sh --all
 EOH
 }

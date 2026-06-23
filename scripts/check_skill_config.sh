@@ -7,6 +7,8 @@ set -euo pipefail
 #   check_skill_config.sh [SKILL ...]
 #   check_skill_config.sh jira confluence
 #   check_skill_config.sh --all
+#
+# Bash script — run directly (or: bash check_skill_config.sh …). Do not use python3.
 
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 agent_config="$script_dir/agent_config.py"
@@ -19,8 +21,14 @@ Usage: check_skill_config.sh [--all | SKILL ...]
 Check auth and defaults-file readiness for skills that use host CLIs or bundled
 helpers. Print setup steps when config is missing. Never prints tokens.
 
+Bash script — run directly, not with python3.
+
+Contributor and TDD skills have no runtime auth — they are skipped. Use
+check_skill_prereqs.sh in the target repository for test runners and tools.
+
 Examples:
   check_skill_config.sh jira github
+  ~/.cursor/skills/scripts/check_skill_config.sh circleci
   check_skill_config.sh --all
 EOH
 }
@@ -292,6 +300,7 @@ for raw in "${targets[@]}"; do
     github-pr-comment-analysis|github-issue-triage) group=github ;;
     gitlab-mr-comment-analysis) group=gitlab ;;
     repository-technical-analysis|diagnose) continue ;;
+    python-fastapi-contributor|private-contributor|private-service-contributor|tdd) continue ;;
   esac
   case " $seen " in
     *" $group "*) continue ;;

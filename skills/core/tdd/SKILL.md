@@ -1,6 +1,6 @@
 ---
 name: tdd
-description: Build or fix behavior through a test-first red-green-refactor loop using small vertical slices and tests through public interfaces. Use when the target behavior is already understood and the user wants disciplined implementation or regression-test-driven bug fixing.
+description: Build or fix behavior through a test-first red-green-refactor loop using small vertical slices and tests through public interfaces. Aligned with contributor design principles (dependency injection, no hidden globals). Use when the target behavior is already understood and the user wants disciplined implementation or regression-test-driven bug fixing.
 ---
 
 # Test-Driven Development
@@ -43,6 +43,7 @@ Accept any of:
 - Reuse repository-specific contributor skills for local commands and validation.
 - When picking test files, public interfaces, or regression anchors, follow synced **`LITERAL-CODE-SEARCH.md`** for literal symbol/string search.
 - Reuse `repository-technical-analysis` or `diagnose` first when the behavior or failure mode is still unclear.
+- Apply **Contributor design principles** in repo `AGENTS.md`: structure production code so each red-green step can inject fakes; avoid new globals to make a test pass.
 
 ## Workflow
 
@@ -52,6 +53,7 @@ Accept any of:
 4. Write one test for one observable behavior.
 5. Run the test and confirm it fails for the right reason.
 6. Write the smallest amount of code needed to make that test pass.
+6b. Prefer an injection-friendly shape (parameters, constructors, `Depends`) before starting the next slice.
 7. Re-run the test and confirm green.
 8. Repeat for the next behavior slice.
 9. After the necessary slices are green, refactor carefully while keeping tests green.
@@ -66,6 +68,9 @@ Accept any of:
 - Do not speculate too far ahead.
 - Refactor only after reaching green.
 - Use regression tests when fixing bugs, but only after the target behavior is clear enough to encode.
+- **Inject test doubles** — pass collaborators into the unit under test; do not patch module singletons when constructor or parameter injection is viable.
+- **No new globals for green** — if a test needs env or a client, inject it in test setup instead of adding module-level state.
+- **Refactor toward DI** — after green, replace hard-coded deps introduced under time pressure with injected parameters when the change is local.
 
 ## Anti-Patterns
 
@@ -76,6 +81,8 @@ Avoid:
 - coupling tests tightly to implementation structure
 - adding future-facing code before a test demands it
 - refactoring while still red
+- using `unittest.mock.patch` / `vi.mock` / `jest.mock` on import paths because production code reads global singletons
+- adding module-level mutable state to shortcut a failing test
 
 ## Validation
 
@@ -106,8 +113,9 @@ Common pairings:
 
 - `diagnose` to isolate a bug before driving the fix through tests
 - `repository-technical-analysis` when broader investigation is still needed
-- repository-specific contributor skills for local commands, validation, and conventions
-- `python-fastapi-contributor` for Python or FastAPI implementation work
+- `python-fastapi-contributor` for Python or FastAPI structure, commands, and validation
+- `private-contributor` for CLI product monorepo structure, commands, and validation
+- repository-specific contributor overlays for local conventions layered on the generic contributors above
 
 ## Safety Notes
 
