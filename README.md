@@ -212,6 +212,95 @@ For per-role configuration details and template-specific notes, see `codex-multi
 
 For larger tasks, the lead can break work into milestones so review and validation can start on completed slices before the entire implementation is finished.
 
+## CLI tools
+
+Host CLIs and bundled helpers used by skills in this repository. **Required** means a skill group fails its prereq check when the tool is missing. **Optional** improves speed or convenience but has fallbacks. **Target repo** tools live in the repository you are working on, not in agent-skills itself.
+
+Agents should run **`check_skill_prereqs.sh`** before relying on a transport or search skill, and **`check_skill_config.sh`** for auth and defaults files. Both scripts print **OS-appropriate** install suggestions (`brew`, `apt`, `dnf`, `pacman`, …) — ask before installing; do not install packages unless the user explicitly asks (see `AGENTS.md`).
+
+### Audit commands
+
+After syncing skills (`./scripts/sync_skills.sh --all`):
+
+```bash
+# All skill groups tracked by this repo
+./scripts/check_skill_prereqs.sh --all
+
+# One group or skill alias
+./scripts/check_skill_prereqs.sh github jira literal-search gmail
+
+# Auth and runtime defaults (after CLIs are on PATH)
+./scripts/check_skill_config.sh --all
+```
+
+Synced copies: `~/.cursor/skills/scripts/check_skill_prereqs.sh` and `~/.codex/skills/scripts/check_skill_prereqs.sh` (same for `check_skill_config.sh`).
+
+### Runtime helpers (this repo)
+
+| Tool | Role |
+|------|------|
+| **bash** | Run synced `*.sh` helpers directly — do not prefix with `python3` |
+| **python3** | Run synced `*.py` helpers (`agent_config.py`, `resolve_artifact_path.py`, `validate_artifact.py`, …) |
+| **git** | Repository identity, diffs, rebases (`GIT-ACCESS.md`, `git-rebase-conflict-resolver`, `branch-change-reviewer`) |
+
+### Transport and access
+
+| Tool | Required | Used by | Auth / config |
+|------|----------|---------|----------------|
+| **gh** | yes | `GITHUB-ACCESS.md`, `github-pr-comment-analysis`, `github-issue-triage` | `gh auth login` — `check_skill_config.sh github` |
+| **glab** | yes | `gitlab`, `gitlab-mr-comment-analysis` | `glab auth login` — `check_skill_config.sh gitlab` |
+| **acli** | yes | `JIRA-ACCESS.md`, Jira helpers | `acli jira auth login` — `check_skill_config.sh jira` |
+| **jq** | optional | Jira, Confluence, investigation JSON filtering | — |
+| **circleci** | yes | `circleci` skill | `CIRCLE_TOKEN` / `circleci.env` — `check_skill_config.sh circleci` |
+
+Confluence uses bundled **`confluence-api`** / **`confluence-request`** helpers with **`atlassian.env`** (`ATLASSIAN_API_BASE_URL`, `ATLASSIAN_API_TOKEN`, `git config user.email`). See `skills/core/confluence/README.md`.
+
+### Gmail (`GMAIL-ACCESS.md`)
+
+| Tool | Required | Notes |
+|------|----------|-------|
+| **notmuch** | one of notmuch **or** himalaya | Offline Maildir search; pair with **mbsync** / **isync** to sync mail first |
+| **himalaya** | one of notmuch **or** himalaya | Live IMAP CLI; OAuth builds may need `cargo install` with `oauth2,keyring` (see `scripts/gmail/README.md`) |
+| **mbsync** | optional | IMAP sync for notmuch workflows |
+
+### Investigation and literal search (`repository-technical-analysis`)
+
+`repository-technical-analysis` and **`LITERAL-CODE-SEARCH.md`** prefer host literal search before the agent Grep tool.
+
+| Tool | Required | Search tier |
+|------|----------|-------------|
+| **rg** (ripgrep) | recommended | Fastest — preferred when on `PATH` |
+| **ugrep** | optional | Fast alternative |
+| **ag** (The Silver Searcher) | optional | Moderate |
+| **ack** | optional | Moderate |
+| **git** + **git grep** | fallback | Scoped search when faster tools are missing |
+| **grep** | fallback | POSIX slowest host tier |
+| **jq** | optional | JSON filtering during investigation — `check_skill_prereqs.sh investigate` |
+
+Configure preference in **`~/.cursor/fast-grep.env`** or **`~/.codex/fast-grep.env`** (`agent_config.py --fast-grep-env`). Policy: **`agent_config.py --literal-search-policy`**.
+
+### Parallel test skills
+
+| Tool | Required | Used by |
+|------|----------|---------|
+| **parallel** (GNU parallel) | optional | `private-parallel-tests`, `private-service-parallel-tests` — speeds disjoint suite splits; sequential fallback when absent |
+
+### Target-repository tools (not checked by `--all`)
+
+Install and run these **in the repository under investigation**. Use overlay skills for exact commands.
+
+| Stack | Typical CLIs | Overlay skills |
+|-------|----------------|----------------|
+| **CLI product** | **pnpm**, **node**, repo `package.json` scripts | `private-contributor`, `private-technical-analysis`, `private-parallel-tests` |
+| **private-service** | **uv**, **make**, **pytest** (via `uv run`) | `private-service-contributor`, `private-service-technical-analysis` |
+| **Python / FastAPI** (generic) | **pytest**, repo lint/format targets | `python-fastapi-contributor` + `repository-technical-analysis` |
+
+Contributor and **tdd** skills have no transport auth — run **`check_skill_prereqs.sh`** in the target repo for project-specific test runners.
+
+### MCP (last resort)
+
+Skills prefer **local CLI → bundled helpers → MCP**. Configure MCP servers (for example Slack, Snyk, Google Gmail) only when host tools are missing or insufficient after prereq checks. Gmail: see **`GMAIL-ACCESS.md`** — no community Gmail MCP repos.
+
 ## Verify Local Setup
 
 Verify the shared installed assets:
