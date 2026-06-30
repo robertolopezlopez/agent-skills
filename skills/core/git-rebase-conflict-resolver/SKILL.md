@@ -30,15 +30,36 @@ Do not use this skill when:
 - If the user provides a target branch, use it.
 - If the user does not provide one, use `origin/main`.
 
+## First read
+
+- Read repo guidance from `AGENTS.md`, `Makefile`, `pyproject.toml`, `package.json`, or CI config when choosing validation commands.
+- Literal codebase search: follow synced **`LITERAL-CODE-SEARCH.md`** (`agent_config.py --literal-search-policy`) when conflict hunks need surrounding context.
+
 ## Inspect state first
 
-- When conflict hunks need surrounding context (imports, callers, renamed symbols), follow synced **`LITERAL-CODE-SEARCH.md`** to locate related references before choosing a resolution.
 - Run `git status --short --branch`.
 - Detect whether a rebase is already in progress before starting a new one.
 - If the worktree is dirty, separate unrelated user changes from rebase work.
 - Do not overwrite or discard unrelated local changes.
 - Refresh the chosen target branch with `git fetch` before rebasing.
 - When rerunning similar rebases, preserve durable learned sections such as `Conflict Pattern Notes`, `Files With Recurring Conflicts`, and `Post-Rebase Validation Lessons` when they still match the current branch and conflict set.
+
+## Literal codebase search (conflict context)
+
+When a conflicted hunk is not self-explanatory — renamed symbols, moved imports, duplicate helpers, signature changes, or both sides touching the same call path — use **host literal search through Shell**, not the agent Grep tool, unless **`fast-grep`** exits **4** or Shell is unavailable.
+
+1. Read **`fast-grep.env`** when set (`agent_config.py --fast-grep-env`); else run **`fast-grep-prefs.sh show`** once.
+2. Search with **`fast-grep --literal 'PATTERN' [PATH]`** from **`agent_config.py --literal-search-dir`**, or run **`rg`** directly when it is the preferred/on-PATH tool.
+3. Tighten scope: search the conflicted file's directory or package first; widen only when hits are insufficient.
+4. Typical conflict probes:
+   - symbols, types, or functions appearing in one side of the hunk but not the other
+   - import paths changed on the target branch
+   - callers of a merged API or shared config key
+   - test files referencing the conflicted module
+5. On **`fast-grep`** exit **5**, show **OS-appropriate** **`install_cmd`** from **`fast-grep-resolve --missing`** or **`check_skill_prereqs.sh literal-search`** — ask before installing; do not install unless the user asks.
+6. On exit **4** only, fall back to the agent Grep tool if the runtime provides it.
+
+Do not walk the tree manually when a host search tier is available. Prefer **`git grep`** inside the repo when faster tools are missing.
 
 ## Start or resume
 
@@ -59,6 +80,7 @@ For each conflicted file:
 - Do not take `ours` or `theirs` wholesale unless the conflict is trivial and verified.
 - Identify what changed on the target branch.
 - Identify what the local commit intended to add or fix.
+- When either side renames, moves, or reshapes a symbol, run **literal codebase search** (above) before merging so callers, imports, and tests stay consistent.
 - Keep both changes when compatible.
 - If both sides changed the same logic, produce a merged version that preserves the newer architecture and the useful behavior from the local branch.
 - Use `git show ORIG_HEAD:path` when helpful to understand the branch state before the rebase began.
@@ -87,6 +109,7 @@ Use the repository's real validation flow.
 
 - Refresh the chosen target branch before rebasing.
 - Verify merged conflict resolution behavior from live files and Git stages, not just conflict markers.
+- When resolution depended on call-site or import context, confirm findings with **host literal search** (`rg`, `fast-grep`, or documented fallback) rather than guesswork.
 - Run relevant lint, format, and test commands before treating the rebase as complete.
 - Keep unrelated local changes intact throughout the workflow.
 
@@ -138,8 +161,10 @@ When rerunning rebases for the same branch family or recurring conflict area:
 
 Common pairings:
 
+- **`LITERAL-CODE-SEARCH.md`** + **`check_skill_prereqs.sh literal-search`** for host `rg` / `fast-grep` readiness
+- **`GIT-ACCESS.md`** for repository identity and safe git operations
 - repository-specific contributor skills for repo-local validation commands
-- repository-specific analysis skills when conflict resolution needs deeper investigation before merging intent
+- **`repository-technical-analysis`** when conflict resolution needs deeper investigation before merging intent
 
 ## Safety Notes
 
