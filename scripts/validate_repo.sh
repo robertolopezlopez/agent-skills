@@ -38,6 +38,9 @@ done
 echo "==> Validating manifest-declared skills"
 python3 "$repo_root/scripts/validate_skill.py"
 
+echo "==> Validating rule synchronization"
+bash "$repo_root/tests/test_sync_codex_rules.sh"
+
 artifact_paths=()
 while IFS= read -r path; do
   [[ -n "$path" ]] && artifact_paths+=("$path")

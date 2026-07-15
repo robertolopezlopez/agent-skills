@@ -41,7 +41,7 @@ Overlays for the **CLI product** source repository (agent- and IDE-agnostic: wor
 ### Other tracked assets
 
 - `codex-multi-agent-template/`: copy-ready multi-agent starter with `.codex/`, `AGENTS.md`, and prompts
-- `git-hooks/post-commit`: copies committed skills into the configured install roots (default: `~/.codex/skills` and `~/.cursor/skills`) and refreshes Cursor rules under `~/.cursor/rules/`
+- `git-hooks/post-commit`: copies committed skills into the configured install roots, refreshes Cursor rules under `~/.cursor/rules/`, and refreshes managed Codex rule blocks in `~/.codex/AGENTS.md`
 
 The private-service and **CLI product** (`skills/cli/`) skills are overlays. Use them with the matching generic skills when working in those repositories.
 Use **`JIRA-ACCESS.md`** + **`acli`** for Jira Cloud issue access (resolve policy with **`scripts/agent_config.py --jira-access-policy`**).
@@ -162,11 +162,12 @@ Durable workflow artifacts default outside project checkouts under **`$AGENT_ART
 
 ```bash
 ./scripts/bootstrap_agent_artifacts.sh --cursor-rule   # Cursor: store README + optional phrase rule
+./scripts/bootstrap_agent_artifacts.sh --codex-rule    # Codex: store README + managed global AGENTS.md rule
 ./scripts/bootstrap_agent_artifacts.sh                   # Codex-only or shared store without Cursor rule
 AGENT_ARTIFACTS_HOME=~/agent-artifacts ./scripts/bootstrap_agent_artifacts.sh   # unified store for both runtimes
 ```
 
-Creates **`$AGENT_ARTIFACTS_HOME/README.md`**, scaffolds **`$GLOBAL/NEXT_TIME_CHECKS.md`**, and optionally installs **`~/.cursor/rules/agent-artifacts-directory.mdc`**. Idempotent unless **`--overwrite`**.
+Creates **`$AGENT_ARTIFACTS_HOME/README.md`**, scaffolds **`$GLOBAL/NEXT_TIME_CHECKS.md`**, and optionally installs the Cursor rule or its managed Codex `AGENTS.md` equivalent. Idempotent unless **`--overwrite`**.
 
 Environment overrides: `CODEX_HOME` (Codex base), `CURSOR_AGENT_SKILLS_HOME` (parent of `skills/`, default `~/.cursor`), `AGENT_ARTIFACTS_HOME` (external artifact store root), `AGENT_SKILLS_SYNC_TARGETS` (`codex`, `cursor`, or `codex,cursor` / `all`). Use `./scripts/sync_skills.sh --codex-only` or `--cursor-only` for a single destination.
 
@@ -329,7 +330,7 @@ test -x .git/hooks/post-commit && echo "ok: post-commit hook" || echo "MISSING: 
 
 ## Behavior
 
-After each commit in this repository, the installed `post-commit` hook runs `scripts/sync_skills.sh --all` with `AGENT_SKILLS_SYNC_TARGETS=codex,cursor`, then `scripts/sync_cursor_rules.sh --overwrite`, so **both** Codex and Cursor install roots and **Cursor always-on rules** (`templates/cursor/rules/*.mdc` → `~/.cursor/rules/`) are updated on every commit. Manual runs can still use `--codex-only`, `--cursor-only`, or a custom `AGENT_SKILLS_SYNC_TARGETS`. Uses `git rev-parse --show-toplevel` so the hook works when `.git/hooks/post-commit` is a symlink.
+After each commit in this repository, the installed `post-commit` hook runs `scripts/sync_skills.sh --all` with `AGENT_SKILLS_SYNC_TARGETS=codex,cursor`, then refreshes Cursor and Codex rules. Cursor templates copy from `templates/cursor/rules/*.mdc` to `~/.cursor/rules/`; Codex templates from `templates/codex/rules/*.md` are merged into individually marked blocks in `~/.codex/AGENTS.md`, preserving personal content outside those blocks. Manual runs can still use `--codex-only`, `--cursor-only`, `scripts/sync_cursor_rules.sh`, or `scripts/sync_codex_rules.sh`. Uses `git rev-parse --show-toplevel` so the hook works when `.git/hooks/post-commit` is a symlink.
 
 - copies `ARTIFACTS.md`, `scripts/validate_artifact.py`, and `scripts/atlassian-auth.sh` into each destination skills tree
 - reads manifest-declared skill directories from `skills_manifest.yaml`

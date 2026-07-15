@@ -22,7 +22,7 @@ To sync only one stack, use `./scripts/sync_skills.sh --codex-only` or `./script
 
 To **omit** manifest skills when installing (e.g. skip all `private-service` overlays), set `AGENT_SKILLS_EXCLUDE_RELEASE_GROUPS` and/or `AGENT_SKILLS_EXCLUDE_SKILL_NAMES` when running `scripts/sync_skills.sh` (see script usage). The hook does not set these by default.
 
-The `git-hooks/post-commit` hook runs `scripts/sync_skills.sh --all` with `AGENT_SKILLS_SYNC_TARGETS=codex,cursor` and `scripts/sync_cursor_rules.sh --overwrite` so each commit refreshes **both** default install roots and **Cursor always-on rules** from `templates/cursor/rules/` (update the hook if you need different behavior).
+The `git-hooks/post-commit` hook runs `scripts/sync_skills.sh --all` with `AGENT_SKILLS_SYNC_TARGETS=codex,cursor`, `scripts/sync_cursor_rules.sh --overwrite`, and `scripts/sync_codex_rules.sh --overwrite` so each commit refreshes **both** default install roots, **Cursor always-on rules** from `templates/cursor/rules/`, and managed **Codex global `AGENTS.md` rules** from `templates/codex/rules/` (update the hook if you need different behavior).
 
 Treat this sync as part of the required workflow for skill changes in this repository.
 

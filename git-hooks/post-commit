@@ -9,3 +9,6 @@ env AGENT_SKILLS_SYNC_TARGETS=codex,cursor "$repo_root/scripts/sync_skills.sh" -
 
 # Refresh Cursor always-on rules from templates/cursor/rules/ (skip when ~/.cursor is absent).
 "$repo_root/scripts/sync_cursor_rules.sh" --overwrite
+
+# Refresh managed Codex rules in the global AGENTS.md (skip when ~/.codex is absent).
+"$repo_root/scripts/sync_codex_rules.sh" --overwrite

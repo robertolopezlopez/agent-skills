@@ -1,5 +1,7 @@
 # Changelog
 
+- Added **`scripts/sync_codex_rules.sh`** and `templates/codex/rules/*.md` to maintain always-on Codex guidance as managed blocks in the global `AGENTS.md`, with selective sync, dry-run, personal-content preservation, bootstrap integration, tests, and post-commit refresh parity with Cursor rules.
+
 This repository uses a lightweight changelog.
 
 It is intended for:

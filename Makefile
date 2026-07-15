@@ -1,4 +1,4 @@
-.PHONY: validate validate-skills validate-artifacts sync-skills sync-skills-codex sync-skills-cursor sync-cursor-rules install-hooks
+.PHONY: validate validate-skills validate-artifacts validate-rules sync-skills sync-skills-codex sync-skills-cursor sync-cursor-rules sync-codex-rules install-hooks
 
 validate:
 	./scripts/validate_repo.sh
@@ -14,6 +14,9 @@ validate-artifacts:
 		echo "No matching workflow artifacts found"; \
 	fi
 
+validate-rules:
+	bash tests/test_sync_codex_rules.sh
+
 sync-skills:
 	./scripts/sync_skills.sh --all
 
@@ -25,6 +28,9 @@ sync-skills-cursor:
 
 sync-cursor-rules:
 	./scripts/sync_cursor_rules.sh --overwrite
+
+sync-codex-rules:
+	./scripts/sync_codex_rules.sh --overwrite
 
 install-hooks:
 	./scripts/install_hooks.sh
