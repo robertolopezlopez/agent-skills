@@ -34,6 +34,7 @@ Custom agent skills tracked in git. They install to **Codex** (`~/.codex/skills`
 Overlays for the **CLI product** source repository (agent- and IDE-agnostic: works with any assistant using these skills). Layer on generic skills the same way guided-experience overlays do.
 
 - `skills/cli/contributor/`: implementation and validation conventions; pnpm, Turbo, and `package.json` script discovery
+- `skills/cli/branch-change-reviewer/`: read-only branch review overlay combining CLI technical analysis with terse Caveman findings
 - `skills/cli/technical-analysis/`: investigation and repro commands for the CLI tree
 - `skills/cli/parallel-tests/`: broad suite runs aligned with CI scripts
 - `skills/cli/pr-comment-analysis/`: GitHub PR grouped-comment analysis with repo-specific verdicts and proposed changes (`private-pr-comment-analysis`)

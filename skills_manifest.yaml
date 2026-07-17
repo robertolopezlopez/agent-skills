@@ -124,6 +124,19 @@ skills:
     release_group: private-service
     companion_skills:
       - repository-technical-analysis
+  - name: private-branch-change-reviewer
+    path: skills/cli/branch-change-reviewer
+    status: stable
+    type: overlay
+    repo_scope: cli
+    release_group: cli
+    companion_skills:
+      - branch-change-reviewer
+      - private-technical-analysis
+      - repository-technical-analysis
+      - github-pr-comment-analysis
+      - caveman-review
+      - multi-spawn-agent
   - name: private-contributor
     path: skills/cli/contributor
     status: stable
