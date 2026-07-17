@@ -1,160 +1,117 @@
 ---
 name: branch-change-reviewer
-description: Review the current branch against a target Git branch, defaulting to origin/main, and write review findings to a Markdown output file under `$ARTIFACTS/<meaningful_id>/` (default basename `review_<sanitized-branch>.md`; legacy root-level review files remain valid). Use when Codex is asked to review a branch diff without writing code, especially to assess code style, architecture, testing, regressions, and whether changes are worth raising as comments.
+description: Review the current branch against a target Git branch, defaulting to origin/main, and write review findings to a Markdown output file under `$ARTIFACTS/{meaningful_id}/` (default basename `review_{sanitized-branch}.md`; legacy root-level review files remain valid). For non-trivial diffs, use authorized read-only parallel workers through multi-spawn-agent. Use when Codex is asked to review a branch diff without writing code, especially to assess code style, architecture, testing, regressions, and whether changes are worth raising as comments.
 ---
 
 # Branch Change Reviewer
 
-Review changes against a target branch. Default to `origin/main`. Do not write code. Write the review to both the screen and a Markdown file. Focus on code style, architecture, testing, and possible regressions.
+Review a branch diff without changing code. Report only actionable findings to
+both the screen and a Markdown artifact.
 
 ## When to Use
 
-Use this skill when the user wants:
-
-- a branch diff reviewed without changing code
-- review comments focused on regressions, architecture, testing, or maintainability
-- a written review artifact for the current branch against a target branch
+- Branch-diff review for regressions, architecture, tests, or maintainability
+- Written review artifact requested or useful
 
 ## When Not to Use
 
-Do not use this skill when:
-
-- the user wants code changes, fixes, or implementation work
-- the task is primarily MR transport access or comment grouping
-- the task is repository investigation rather than branch-diff review
+- Implementation or fix requests
+- MR transport or comment-grouping work
+- Broad investigation without a branch diff
 
 ## Inputs
 
-- Accept an optional target branch.
-- If the user provides a target branch, use it.
-- If the user does not provide one, use `origin/main`.
-- Accept an optional output file path (absolute or relative).
-- Accept an optional local workflow artifact such as `$ARTIFACTS/…/task_<issue>.md`, `review_mr_<MR>.md`, or `analysis_mr_<MR>.md` as additional review context.
-- If the user provides an output file, use it.
-- If the user does not provide one, write under `$ARTIFACTS/<meaningful_id>/` per repository `ARTIFACTS.md`:
-  - default basename: `review_<sanitized-branch>.md` from the current branch name (e.g. `feature/foo-bar` → `$ARTIFACTS/feature-foo-bar/review_feature-foo-bar.md`)
-  - default `meaningful_id`: tracker key from a provided task artifact when present; else the same sanitized branch slug
-- **Legacy:** an existing root-level `review_<branch>.md` (or other user path) already present remains valid—open and extend it instead of relocating unless the user asks to migrate.
+- Target branch; default `origin/main`.
+- Optional output path. Otherwise resolve
+  `$ARTIFACTS/<meaningful_id>/review_<sanitized-branch>.md`; use a provided
+  tracker key as `meaningful_id`, else the branch slug.
+- Optional workflow artifact for context.
+- Optional parallel preference. Explicit `$branch-change-reviewer` invocation
+  authorizes its documented read-only workers; ask before workers when the
+  skill was activated implicitly.
+- Reuse an existing user or legacy root-level review path instead of moving it.
 
-## Inspect the repository first
+## Workflow
 
-- When the diff alone does not explain impact (call sites, rename fallout, shared helpers), follow synced **`LITERAL-CODE-SEARCH.md`** to find literal references before concluding on regressions.
-- Run `git status --short --branch`.
-- Determine the current branch name and resolve the default output path under `$ARTIFACTS/<meaningful_id>/` (or an existing legacy review file when already present).
-- Refresh the target branch with `git fetch` before reviewing.
-- Keep any existing user changes intact.
-- Do not modify code, tests, or configuration as part of this skill.
+1. Read repository guidance that affects review standards.
+2. Run `git status --short --branch`, identify the current branch, fetch the
+   target, and resolve the output path per `ARTIFACTS.md`.
+3. Read relevant workflow and prior review artifacts before repeating work.
+4. Review committed changes first. Include relevant uncommitted changes
+   explicitly when present.
+5. Read changed and adjacent files. When impact is unclear, follow
+   `LITERAL-CODE-SEARCH.md` to inspect callers, contracts, renames, and shared
+   helpers.
+6. Use parallel review below when authorized and worthwhile.
+7. Verify findings against the live diff, then write the final report.
 
-## Gather the review scope
+## Parallel Review
 
-- Compare the current branch against the target branch with the narrowest useful diff.
-- Review committed changes first.
-- If uncommitted changes are present and appear relevant to the user's request, include them explicitly in the review scope.
-- Read the changed files and any adjacent files needed to understand architecture, call sites, and test coverage.
-- Read repo guidance such as `AGENTS.md`, `README`, `Makefile`, `pyproject.toml`, `package.json`, CI config, or test configuration when they affect the review standard.
-- If a local workflow artifact is provided, read it first and reuse its scope, links, assumptions, and open questions as review context, while keeping the branch diff as the source of truth.
-- if prior review artifacts for the same branch or area exist (under `$ARTIFACTS/…/` or legacy root-level paths), preserve durable learned sections such as `Recurring Findings`, `Missed In Prior Review`, or `Repo-Specific Review Heuristics` when they still match the current diff and surrounding code.
+- Keep small or tightly coupled diffs local.
+- For non-trivial diffs, create a temporary work-definition file containing
+  target, scope, changed files, worker assignments, and constraints. Never
+  replace an existing review artifact with temporary coordination content.
+- Spawn 2–3 read-only workers with context forking enabled. Split by disjoint
+  file groups when practical; otherwise by correctness, architecture, and
+  tests. The main agent remains the only report writer.
+- Tell each worker to read the work definition, use
+  `branch-change-reviewer` plus relevant analysis skills, inspect only its
+  scope, make no edits, and say: `You are not alone in the codebase; do not
+  revert others' changes.`
+- Require file-and-line evidence, scope reviewed, validation run, and blockers.
+  Continue a non-overlapping local review before waiting.
+- Verify and deduplicate worker findings against the live diff, then remove the
+  temporary work definition.
 
-## Review standards
+## Review Standards
 
-Focus on comments worth raising. Do not pad the review with praise or trivial observations.
-
-- Prioritize bugs, possible regressions, architectural drift, weak abstractions, missing or incorrect tests, and code style issues that reduce maintainability.
-- Check whether changed logic could break existing callers, data flows, contracts, edge cases, or previously covered behavior even when the diff looks locally correct.
-- Treat testing gaps as findings when behavior changed without adequate coverage.
-- Call out architecture issues when the change conflicts with existing patterns, duplicates logic, weakens boundaries, or increases coupling.
-- Call out code style issues when they materially affect readability, consistency, or future maintenance.
-- Prefer concrete, actionable comments tied to specific files and lines when possible.
-- When a risk was missed in a prior review and is now visible in the diff or surrounding code, record it once in `Missed In Prior Review` with the signal that should have been checked earlier.
-- If no meaningful findings exist, say so clearly.
+- Prioritize bugs, regressions, architectural drift, missing or incorrect
+  tests, and maintainability problems worth raising.
+- Check callers, data flows, contracts, edge cases, and existing behavior.
+- Treat missing tests as a finding only when changed behavior lacks equivalent
+  coverage.
+- Flag duplicated logic, weakened boundaries, or coupling that conflicts with
+  established patterns.
+- Raise style only when it materially harms readability or maintenance.
+- Prefer concrete file and line references. Do not invent risks without
+  evidence.
+- Record `Missed In Prior Review` only when a newly visible risk has a concrete
+  signal that should have been checked earlier.
 
 ## Validation
 
-- Review committed changes first, expanding to uncommitted changes only when relevant to the request.
-- Keep findings grounded in the live diff and surrounding code.
-- Prefer concrete file and line references when available.
-- Keep the report concise and ordered by severity.
-
-## Output format
-
-Write the same review content to both the screen and the output file.
-
-- Start with `Findings`.
-- List findings ordered by severity.
-- For each finding, include:
-  - severity
-  - file and line reference when available
-  - concise explanation of the issue
-  - why it matters
-  - what should change or what should be verified
-- After findings, include `Open Questions` only if they materially affect the review.
-- Include optional learned sections such as `Recurring Findings`, `Missed In Prior Review`, or `Repo-Specific Review Heuristics` when they are evidence-backed and useful for future reviews of the same area.
-- End with a short `Summary` stating:
-  - which branch was reviewed against which target branch
-  - whether the target branch was user-provided or defaulted
-  - which output file was written
-  - whether there were any findings
-
-## Writing rules
-
-- Do not write code.
-- Do not apply fixes.
-- Do not rewrite the user's files.
-- Do not invent issues without evidence from the diff and surrounding code.
-- Do not let minor style points drown out architectural or testing risks.
-- Keep the report concise, technical, and reviewer-oriented.
-
-## File writing rules
-
-- Always create or overwrite the requested output file with the full review text.
-- Use Markdown.
-- If there are no findings, still create the file and state that no review comments were warranted.
+- Ground every finding in the current diff and surrounding code.
+- Run or inspect the smallest relevant checks when they materially change
+  confidence.
+- Keep findings concise and severity-ordered.
 
 ## Outputs / Artifacts
 
-This skill should produce:
+Write identical review content to the screen and output file:
 
-- an on-screen review summary
-- a Markdown review file such as `$ARTIFACTS/<meaningful_id>/review_<sanitized-branch>.md` for new runs (legacy root-level `review_<branch>.md` paths remain valid when already in use)
+1. `Findings`, ordered by severity. Include location, issue, impact, and fix or
+   verification for each finding.
+2. `Open Questions` only when they affect the verdict.
+3. Evidence-backed learned sections when useful.
+4. `Summary` naming current branch, target, whether target was defaulted,
+   output path, and whether findings exist.
 
-The review should include:
+Always create the file, including when no findings warrant comments.
 
-- findings ordered by severity
-- open questions when materially relevant
-- short summary of review scope and result
+## Prior Artifacts
 
-## Artifact-Aware Behavior
-
-When a local workflow artifact is provided:
-
-- read it first for context and prior reviewer concerns
-- reuse its links, assumptions, and open questions to focus the review
-- keep the actual branch diff and surrounding code as the source of truth for findings
-- if you update the same artifact, preserve the shared core sections from `../ARTIFACTS.md`
-
-This is additive only and does not replace the normal diff-based review workflow.
+On reruns, preserve still-valid `Recurring Findings`, `Missed In Prior Review`,
+and `Repo-Specific Review Heuristics`; refresh findings from live code and
+remove stale heuristics. Preserve shared sections required by `ARTIFACTS.md`.
 
 ## Companion Skills
 
-Common pairings:
-
-- local workflow artifacts such as `$ARTIFACTS/…/task_<issue>.md` or `review_mr_<MR>.md` for extra review context
-- repository-specific contributor or analysis skills only after the review is complete and the user asks for follow-on changes
-
-## Self-Improving Behavior
-
-When rerunning review for the same branch, MR, or code area:
-
-- read any existing review artifact first (under `$ARTIFACTS/…/` by preference, or a legacy root-level file when that is where prior work lives)
-- preserve durable learned sections such as `## Recurring Findings`, `## Missed In Prior Review`, and `## Repo-Specific Review Heuristics` when they still match the current diff and surrounding code
-- refresh findings from the live diff and current code before concluding
-- promote repeated confirmed review themes into short heuristics, preferably phrased like `when code changes X, verify Y`
-- demote, mark stale, or remove heuristics contradicted by new code or evidence
-
-This makes the review artifact more useful across reruns without replacing the normal evidence-based review flow.
+- `multi-spawn-agent` for authorized parallel review
+- Repository-specific analysis overlays when the diff needs them
 
 ## Safety Notes
 
-- Do not write code or apply fixes as part of this skill.
+- Do not modify code, tests, or configuration.
+- Do not apply fixes or rewrite user files.
 - Keep existing user changes intact.
-- Do not invent issues without evidence from the diff and surrounding code.
+- Do not let praise or minor style points hide material findings.

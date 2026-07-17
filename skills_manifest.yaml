@@ -36,6 +36,8 @@ skills:
     type: core
     repo_scope: generic
     release_group: core
+    companion_skills:
+      - multi-spawn-agent
   - name: diagnose
     path: skills/core/diagnose
     status: stable
