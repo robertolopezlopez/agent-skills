@@ -397,6 +397,7 @@ check_group() {
       check_tool jq jq "JSON filter (optional)" "https://jqlang.org/" || true
       ;;
     confluence)
+      check_tool acli acli "Atlassian CLI (preferred)" "https://developer.atlassian.com/cloud/acli/" || true
       check_tool jq jq "JSON filter (optional)" "https://jqlang.org/" || true
       ;;
     investigate|repository-technical-analysis|diagnose)

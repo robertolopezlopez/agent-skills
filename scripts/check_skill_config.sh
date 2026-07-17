@@ -226,6 +226,28 @@ check_acli_jira_auth() {
   return 1
 }
 
+check_acli_confluence_auth() {
+  if ! command -v acli >/dev/null 2>&1; then
+    printf 'SKIP acli confluence auth (acli not installed — checking REST helper fallback)\n'
+    return 1
+  fi
+  if acli confluence auth status >/dev/null 2>&1; then
+    printf 'ok   acli confluence auth logged in\n'
+    return 0
+  fi
+  printf 'SKIP acli confluence auth (not logged in — checking REST helper fallback)\n'
+  printf '       preferred setup: acli confluence auth login\n'
+  return 1
+}
+
+check_confluence_config() {
+  if check_acli_confluence_auth; then
+    printf 'ok   REST helper config optional (acli is ready)\n'
+    return 0
+  fi
+  check_atlassian_config confluence
+}
+
 check_jira_config() {
   local issues=0
   check_acli_jira_auth || issues=$((issues + 1))
@@ -264,7 +286,7 @@ check_group() {
       check_jira_config || issues=$((issues + $?))
       ;;
     confluence)
-      check_atlassian_config "$group" || issues=$((issues + $?))
+      check_confluence_config || issues=$((issues + $?))
       ;;
     circleci)
       check_circleci_config || issues=$((issues + $?))

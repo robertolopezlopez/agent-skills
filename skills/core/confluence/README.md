@@ -4,9 +4,13 @@ Setup and usage notes for the generic `confluence` skill.
 
 ## Purpose
 
-Agents use this skill to access **Confluence Cloud** through the REST API when browser flows hit login walls or API access is more reliable.
+Agents use this skill to access **Confluence Cloud** through `acli` first, then
+the REST API when the CLI is unavailable or does not support the operation.
 
-Configuration for fallback helpers lives in the runtime **`atlassian.env`** file for the active install. Resolve it with **`scripts/agent_config.py --atlassian-env`**. The **`jira`** skill uses the same file. See **AGENTS.md** for runtime detection.
+Authenticate the preferred transport with `acli confluence auth login`.
+Configuration for fallback helpers lives in the runtime **`atlassian.env`**
+file for the active install. Resolve it with
+**`scripts/agent_config.py --atlassian-env`**.
 
 Check readiness:
 
@@ -75,6 +79,15 @@ then runtime **`atlassian.env`**. It reads the first line of the credentials fil
 Helpers source the shared Atlassian auth helper from the manifest **shared_files** directory next to `validate_artifact.py` under the skills install root (sync per **AGENTS.md** after cloning or updating).
 
 ## Helper usage
+
+For supported reads, prefer:
+
+```bash
+acli confluence page view --id 123456789 --body-format storage --json
+```
+
+Use the helpers below when `acli` is unavailable, unauthenticated, or lacks the
+required operation.
 
 ### confluence-api
 

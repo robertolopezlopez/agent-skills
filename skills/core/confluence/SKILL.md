@@ -1,11 +1,13 @@
 ---
 name: confluence
-description: Fetch, summarize, create, and update Confluence Cloud pages and related resources through the Confluence REST API. Use when the user provides a Confluence wiki URL or page id, asks to read or summarize a page, create or edit wiki content, list spaces, search Confluence, debug Confluence API access using ATLASSIAN_API_TOKEN, or override the Confluence API host and path. Prefer bundled `confluence-api` and `confluence-request` helpers, then Confluence or Atlassian MCP when local helpers are insufficient.
+description: Fetch, summarize, create, and update Confluence Cloud pages and related resources. Use when the user provides a Confluence wiki URL or page id, asks to read or summarize a page, create or edit wiki content, list spaces, search Confluence, debug Confluence access, or override the Confluence API host and path. Prefer authenticated `acli confluence` commands, then bundled REST helpers using ATLASSIAN_API_TOKEN, then Confluence or Atlassian MCP when local transports are insufficient.
 ---
 
 # Confluence Wiki Access
 
-When Confluence content is not readable through normal browser access, use the bundled Confluence REST helper workflow first, then Confluence or Atlassian MCP when local helpers are insufficient, before concluding the content is inaccessible.
+When Confluence content is not readable through normal browser access, use
+authenticated `acli confluence` commands first, then the bundled REST helpers,
+then Confluence or Atlassian MCP before concluding the content is inaccessible.
 
 ## When to Use
 
@@ -37,7 +39,11 @@ Accept, depending on the requested action:
 
 ## Workflow
 
-1. Invoke bundled helpers for reads and writes. They resolve defaults in this order:
+1. Check `acli confluence auth status`. When authenticated and the command
+   supports the operation, use `acli confluence` first. For a page read:
+   `acli confluence page view --id PAGE_ID --body-format storage --json`.
+2. If `acli` is missing, unauthenticated, or lacks the required operation, invoke
+   bundled helpers. They resolve defaults in this order:
    - exported environment variables (`ATLASSIAN_CONFLUENCE_API_BASE_URL`, then `ATLASSIAN_API_BASE_URL`)
    - then the runtime **`atlassian.env`** file for the active install (see **Local Defaults File**)
    - **Do not read defaults files with the editor/Read tool** unless the user explicitly asked to debug helper resolution.
@@ -60,7 +66,10 @@ Accept, depending on the requested action:
 
 ## Validation
 
-- Run **`scripts/check_skill_config.sh confluence`** (and **`check_skill_prereqs.sh confluence`** for optional `jq`). If Atlassian defaults or auth are missing, **help the user** finish **`atlassian.env`** setup (shared with **`jira`**) per **AGENTS.md**.
+- Run **`scripts/check_skill_config.sh confluence`** and
+  **`check_skill_prereqs.sh confluence`**. The config check accepts authenticated
+  `acli confluence` first and checks `atlassian.env` only as fallback. If neither
+  is ready, help the user finish one setup path per **AGENTS.md**.
 - Bundled **`confluence-api`** / **`confluence-request`** are required; sync shared files per **AGENTS.md** if helpers are missing from the install root.
 - Prefer bundled helpers before Confluence or Atlassian MCP.
 - Keep helper execution routed through `confluence-api` or `confluence-request`, never direct `curl`.
@@ -70,9 +79,10 @@ Accept, depending on the requested action:
 
 Preferred order:
 
-1. `confluence-api` for single-page reads by id
-2. `confluence-request` for arbitrary REST v2 operations
-3. Confluence or Atlassian MCP when local helpers are missing or insufficient
+1. `acli confluence` for supported operations when authenticated
+2. `confluence-api` for single-page reads by id
+3. `confluence-request` for arbitrary REST v2 operations
+4. Confluence or Atlassian MCP when local transports are missing or insufficient
 
 ## API reference cache
 
@@ -96,7 +106,7 @@ Bundled helpers load defaults from **one** runtime config home (see **AGENTS.md*
 
 Override detection with **`AGENT_SKILLS_RUNTIME=cursor`** or **`codex`**, or set **`AGENT_CONFIG_HOME`**.
 
-Preferred usage:
+Fallback helper usage:
 
 ```bash
 ATLASSIAN_API_BASE_URL=https://example.atlassian.net

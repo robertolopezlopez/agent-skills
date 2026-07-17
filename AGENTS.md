@@ -181,7 +181,7 @@ When config is **missing or incomplete**:
 | Skill / helper | Config / auth |
 |----------------|---------------|
 | Jira (`JIRA-ACCESS.md`) | **`acli jira auth login`** — see **`JIRA-ACCESS.md`**; optional **`atlassian.env`** for **`jira-request`** fallback |
-| `confluence` | **`atlassian.env`** — `ATLASSIAN_API_BASE_URL`, `ATLASSIAN_API_TOKEN` (or export / `~/.config/.jira/.credentials`), `git config user.email` |
+| `confluence` | **`acli confluence auth login`** first; fallback **`atlassian.env`** — `ATLASSIAN_API_BASE_URL`, `ATLASSIAN_API_TOKEN` (or export / `~/.config/.jira/.credentials`), `git config user.email` |
 | `circleci` | **`CIRCLE_TOKEN`** export and/or **`circleci.env`** |
 | GitHub (`GITHUB-ACCESS.md`) | **`gh auth login`** — see **`GITHUB-ACCESS.md`** |
 | `gitlab`, `git --fetch-id` | **`glab auth login`** |
