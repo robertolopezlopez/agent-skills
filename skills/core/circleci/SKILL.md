@@ -102,6 +102,10 @@ The generic request helper lives at `scripts/circleci-request`, resolved relativ
 
 Bundled helpers load defaults from **one** runtime config home (see **AGENTS.md**). Resolve with **`scripts/agent_config.py --circleci-env`** (shell: **`scripts/agent-config.sh --circleci-env`**).
 
+The Codex-installed resolver must return `~/.codex/circleci.env`; the
+Cursor-installed resolver must return `~/.cursor/circleci.env`. Never probe the
+other runtime's defaults file.
+
 Override detection with **`AGENT_SKILLS_RUNTIME=cursor`** or **`codex`**. Let **`circleci-request`** read the file; agents must not open it unless debugging config resolution. Scaffold from **`templates/circleci.env.example`** when helping the user set up config.
 
 Preferred usage (non-secret base URL only in file; token optional if you already export it):

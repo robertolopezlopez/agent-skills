@@ -23,6 +23,9 @@ def detect_runtime(infer_from: Path | None = None) -> str:
             if part in {".cursor", ".codex"} and idx + 1 < len(parts) and parts[idx + 1] == "skills":
                 return "cursor" if part == ".cursor" else "codex"
 
+    if os.environ.get("CODEX_THREAD_ID") or os.environ.get("CODEX_CI"):
+        return "codex"
+
     if (Path.home() / ".cursor").is_dir():
         return "cursor"
     return "codex"
@@ -227,7 +230,7 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> None:
     parser = build_parser()
     args = parser.parse_args()
-    infer_from = Path(args.infer_from).expanduser() if args.infer_from else None
+    infer_from = Path(args.infer_from).expanduser() if args.infer_from else Path(__file__)
 
     flags = [
         args.runtime,

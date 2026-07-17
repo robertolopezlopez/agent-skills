@@ -28,6 +28,10 @@ AGENT_CONFIG_RUNTIME=""
 AGENT_CONFIG_HOME=""
 
 agent_config_default_runtime() {
+  if [ -n "${CODEX_THREAD_ID:-}${CODEX_CI:-}" ]; then
+    AGENT_CONFIG_RUNTIME=codex
+    return 0
+  fi
   if [ -d "${HOME}/.cursor" ]; then
     AGENT_CONFIG_RUNTIME=cursor
     return 0
@@ -203,74 +207,76 @@ agent_config_api_docs_dir() {
 }
 
 if [ "${0##*/}" = "agent-config.sh" ] && [ -n "${1:-}" ]; then
+  agent_config_cli_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+  agent_config_cli_infer=${2:-$agent_config_cli_dir}
   case "$1" in
     --config-home)
-      agent_config_init "${2:-}"
+      agent_config_init "$agent_config_cli_infer"
       printf '%s\n' "$AGENT_CONFIG_HOME"
       exit 0
       ;;
     --atlassian-env)
-      agent_config_init "${2:-}"
+      agent_config_init "$agent_config_cli_infer"
       agent_config_env_path atlassian.env
       exit 0
       ;;
     --circleci-env)
-      agent_config_init "${2:-}"
+      agent_config_init "$agent_config_cli_infer"
       agent_config_env_path circleci.env
       exit 0
       ;;
     --fast-grep-env)
-      agent_config_init "${2:-}"
+      agent_config_init "$agent_config_cli_infer"
       agent_config_env_path fast-grep.env
       exit 0
       ;;
     --skills-root)
-      agent_config_init "${2:-}"
+      agent_config_init "$agent_config_cli_infer"
       agent_config_skills_root
       exit 0
       ;;
     --literal-search-dir)
-      agent_config_init "${2:-}"
+      agent_config_init "$agent_config_cli_infer"
       agent_config_literal_search_dir
       exit 0
       ;;
     --literal-search-policy)
-      agent_config_init "${2:-}"
+      agent_config_init "$agent_config_cli_infer"
       agent_config_literal_search_policy
       exit 0
       ;;
     --github-scripts-dir)
-      agent_config_init "${2:-}"
+      agent_config_init "$agent_config_cli_infer"
       agent_config_github_scripts_dir
       exit 0
       ;;
     --git-scripts-dir)
-      agent_config_init "${2:-}"
+      agent_config_init "$agent_config_cli_infer"
       agent_config_git_scripts_dir
       exit 0
       ;;
     --git-access-policy)
-      agent_config_init "${2:-}"
+      agent_config_init "$agent_config_cli_infer"
       agent_config_git_access_policy
       exit 0
       ;;
     --github-access-policy)
-      agent_config_init "${2:-}"
+      agent_config_init "$agent_config_cli_infer"
       agent_config_github_access_policy
       exit 0
       ;;
     --jira-scripts-dir)
-      agent_config_init "${2:-}"
+      agent_config_init "$agent_config_cli_infer"
       agent_config_jira_scripts_dir
       exit 0
       ;;
     --jira-access-policy)
-      agent_config_init "${2:-}"
+      agent_config_init "$agent_config_cli_infer"
       agent_config_jira_access_policy
       exit 0
       ;;
     --runtime)
-      agent_config_init "${2:-}"
+      agent_config_init "$agent_config_cli_infer"
       printf '%s\n' "$AGENT_CONFIG_RUNTIME"
       exit 0
       ;;
@@ -279,12 +285,12 @@ if [ "${0##*/}" = "agent-config.sh" ] && [ -n "${1:-}" ]; then
         echo "usage: agent-config.sh --defaults-hint FILENAME" >&2
         exit 2
       fi
-      agent_config_init "${3:-}"
+      agent_config_init "${3:-$agent_config_cli_dir}"
       agent_config_defaults_hint "$2"
       exit 0
       ;;
     --api-docs-root)
-      agent_config_init "${2:-}"
+      agent_config_init "$agent_config_cli_infer"
       agent_config_api_docs_root
       exit 0
       ;;
@@ -293,7 +299,7 @@ if [ "${0##*/}" = "agent-config.sh" ] && [ -n "${1:-}" ]; then
         echo "usage: agent-config.sh --api-docs-dir SLUG" >&2
         exit 2
       fi
-      agent_config_init "${3:-}"
+      agent_config_init "${3:-$agent_config_cli_dir}"
       agent_config_api_docs_dir "$2"
       exit 0
       ;;
