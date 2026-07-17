@@ -19,6 +19,7 @@ Custom agent skills tracked in git. They install to **Codex** (`~/.codex/skills`
 - `skills/core/confluence/`: generic Confluence Cloud wiki access and updates through the Confluence REST API
   See `skills/core/confluence/README.md` for `atlassian.env` defaults shared with Jira transport, auth expectations, and helper usage.
 - `skills/core/multi-spawn-agent/`: reusable template for spawning parallel worker agents with disjoint ownership
+- `skills/core/prepare-daily-status/`: consolidated local standup and team-status logging
 - `skills/core/git-rebase-conflict-resolver/`: rebase and conflict-resolution workflow
 - `skills/core/branch-change-reviewer/`: branch review workflow against a target branch
 

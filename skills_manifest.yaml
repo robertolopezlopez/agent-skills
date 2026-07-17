@@ -199,6 +199,14 @@ skills:
     type: core
     repo_scope: generic
     release_group: core
+  - name: prepare-daily-status
+    path: skills/core/prepare-daily-status
+    status: stable
+    type: core
+    repo_scope: generic
+    release_group: core
+    companion_skills:
+      - learn-daily
   - name: multi-spawn-agent
     path: skills/core/multi-spawn-agent
     status: stable

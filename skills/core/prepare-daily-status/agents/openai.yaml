@@ -1,0 +1,4 @@
+interface:
+  display_name: "Prepare Daily Status"
+  short_description: "Maintain a concise daily team status log"
+  default_prompt: "Use $prepare-daily-status to update today’s team status from this session and return a share-ready summary."
