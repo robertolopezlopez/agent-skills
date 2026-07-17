@@ -148,6 +148,17 @@ skills:
       - diagnose
       - repository-technical-analysis
       - circleci
+  - name: private-support-triage
+    path: skills/cli/private-support-triage
+    status: stable
+    type: overlay
+    repo_scope: cli
+    release_group: cli
+    companion_skills:
+      - confluence
+      - circleci
+      - private-branch-change-reviewer
+      - private-technical-analysis
   - name: private-technical-analysis
     path: skills/cli/technical-analysis
     status: stable

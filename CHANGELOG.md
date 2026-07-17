@@ -39,6 +39,7 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 ### Added
 
+- **`private-support-triage`**: CLI Ask Caretaker workflow for asks, initial support triage, alerts, `main` CI failures, PR asks, and shift handoff.
 - **`JIRA-ACCESS.md`**: synced portable Jira Cloud access policy (`shared_files`; resolve with **`agent_config.py --jira-access-policy`**)
 - **`docs/jira-access-migration.md`**: Jira transport migration checklist
 - **`scripts/git/`**: **`git-repo-identity`**, **`resolve_repo_identity.py`** (synced; **`agent_config.py --git-scripts-dir`**)
