@@ -7,8 +7,7 @@ Durable working notes for Cursor and Codex agents live **outside** git checkouts
 ## Default root resolution
 
 1. exported **`AGENT_ARTIFACTS_HOME`**
-2. **`~/.cursor/agent-artifacts`** when **`~/.cursor`** exists
-3. **`~/.codex/agent-artifacts`**
+2. **`~/Documents/agent-artifacts`**
 
 Set **`AGENT_ARTIFACTS_HOME`** in your shell profile when you want **one shared store** for both Cursor and Codex on the same machine.
 

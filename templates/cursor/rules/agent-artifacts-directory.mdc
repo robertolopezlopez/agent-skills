@@ -8,7 +8,7 @@ alwaysApply: true
 When the user says **"the artifacts directory"** (or similar: "artifact path", "save to artifacts", "write the analysis md"):
 
 1. Use the **relevant subdirectory** under **`$AGENT_ARTIFACTS_HOME`**, not in-repo **`_artifacts_/`** unless they explicitly ask for that.
-2. Default home: exported **`AGENT_ARTIFACTS_HOME`**, else **`~/.cursor/agent-artifacts`** when **`~/.cursor`** exists, else **`~/.codex/agent-artifacts`**.
+2. Default home: exported **`AGENT_ARTIFACTS_HOME`**, else **`~/Documents/agent-artifacts`**.
 3. General technical-analysis reference belongs under **`$AGENT_ARTIFACTS_HOME/knowledge/`** (`$KNOWLEDGE/`) — store root, **not** under **`<repo-key>/`**.
 4. Cross-repo org knowledge belongs under **`$AGENT_ARTIFACTS_HOME/_global/`** (`$GLOBAL/`).
 

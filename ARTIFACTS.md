@@ -69,8 +69,7 @@ Store index at **`$AGENT_ARTIFACTS_HOME/README.md`**, bootstrapped from **`templ
 Resolve **`AGENT_ARTIFACTS_HOME`** in this order:
 
 1. exported environment variable **`AGENT_ARTIFACTS_HOME`**
-2. **`~/.cursor/agent-artifacts`** when **`~/.cursor`** exists
-3. **`~/.codex/agent-artifacts`**
+2. **`~/Documents/agent-artifacts`**
 
 Resolve **`<repo-key>`** in this order:
 
@@ -109,11 +108,13 @@ The script resolves **`$ARTIFACTS/`** per repository, skips files that already e
 Do **not** write general knowledge under **`$ARTIFACTS/<repo-key>/knowledge/`**. If files landed there, move them to **`$KNOWLEDGE/`**:
 
 ```bash
+REPO_ROOT="$(python3 ~/.cursor/skills/scripts/resolve_artifact_path.py \
+  --repo-artifacts-root)"
 DEST="$(python3 ~/.cursor/skills/scripts/resolve_artifact_path.py \
   --scope knowledge --basename analysis_ufm_gaf.md)"
 mkdir -p "$(dirname "$DEST")"
-mv ~/.cursor/agent-artifacts/github.com-snyk-go-application-framework/knowledge/analysis_ufm_gaf.md "$DEST"
-rmdir ~/.cursor/agent-artifacts/github.com-snyk-go-application-framework/knowledge 2>/dev/null || true
+mv "$REPO_ROOT/knowledge/analysis_ufm_gaf.md" "$DEST"
+rmdir "$REPO_ROOT/knowledge" 2>/dev/null || true
 ```
 
 ### Path precedence (writes)

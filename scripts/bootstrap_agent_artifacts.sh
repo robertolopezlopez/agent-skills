@@ -37,7 +37,7 @@ Environment:
 Examples:
   ./scripts/bootstrap_agent_artifacts.sh --cursor-rule
   ./scripts/bootstrap_agent_artifacts.sh --codex-rule
-  AGENT_ARTIFACTS_HOME=~/agent-artifacts ./scripts/bootstrap_agent_artifacts.sh
+  AGENT_ARTIFACTS_HOME=~/Documents/agent-artifacts ./scripts/bootstrap_agent_artifacts.sh
 EOH
 }
 

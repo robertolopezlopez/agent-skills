@@ -17,6 +17,8 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 ### Changed
 
+- **Artifact store default** — use **`~/Documents/agent-artifacts`** for both
+  Codex and Cursor unless `AGENT_ARTIFACTS_HOME` overrides it.
 - **Jira access migration (Phase C)** — removed installable **`skills/core/jira/`** skill directory and manifest entry. Jira transport is **`JIRA-ACCESS.md`** + synced **`scripts/jira/`** helpers only.
 - **Jira access migration (Phase B)** — synced helpers under **`scripts/jira/`**: **`jira-fetch`**, **`jira_context.py`**, **`jira-api`**, **`jira-request`**, **`bootstrap_jira_artifact.py --fetch`**; **`ATLASSIAN_AUTH_EMAIL`** in **`atlassian.env`** for REST fallback.
 - **Jira access migration (Phase A)** — portable Jira Cloud policy in **`JIRA-ACCESS.md`**; primary transport **`acli jira workitem …`**; installable **`jira`** skill stubbed until Phase C; **`jira`** removed from **`plan-issues`** **`companion_skills`**; **`check_skill_prereqs.sh jira`** checks **`acli`**; **`check_skill_config.sh jira`** checks **`acli jira auth status`**. See **`docs/jira-access-migration.md`**.

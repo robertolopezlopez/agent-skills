@@ -35,11 +35,7 @@ def artifacts_home() -> Path:
     override = (os.environ.get("AGENT_ARTIFACTS_HOME") or "").strip()
     if override:
         return Path(override).expanduser()
-    cursor_home = Path.home() / ".cursor" / "agent-artifacts"
-    codex_home = Path.home() / ".codex" / "agent-artifacts"
-    if (Path.home() / ".cursor").is_dir():
-        return cursor_home
-    return codex_home
+    return Path.home() / "Documents" / "agent-artifacts"
 
 
 def sanitize_component(text: str) -> str:

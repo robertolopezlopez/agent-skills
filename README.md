@@ -167,7 +167,7 @@ Durable workflow artifacts default outside project checkouts under **`$AGENT_ART
 ./scripts/bootstrap_agent_artifacts.sh --cursor-rule   # Cursor: store README + optional phrase rule
 ./scripts/bootstrap_agent_artifacts.sh --codex-rule    # Codex: store README + managed global AGENTS.md rule
 ./scripts/bootstrap_agent_artifacts.sh                   # Codex-only or shared store without Cursor rule
-AGENT_ARTIFACTS_HOME=~/agent-artifacts ./scripts/bootstrap_agent_artifacts.sh   # unified store for both runtimes
+AGENT_ARTIFACTS_HOME=~/Documents/agent-artifacts ./scripts/bootstrap_agent_artifacts.sh   # shared default store
 ```
 
 Creates **`$AGENT_ARTIFACTS_HOME/README.md`**, scaffolds **`$GLOBAL/NEXT_TIME_CHECKS.md`**, and optionally installs the Cursor rule or its managed Codex `AGENTS.md` equivalent. Idempotent unless **`--overwrite`**.
