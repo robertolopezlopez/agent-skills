@@ -136,6 +136,7 @@ skills:
       - repository-technical-analysis
       - github-pr-comment-analysis
       - caveman-review
+      - ponytail-review
       - multi-spawn-agent
   - name: private-contributor
     path: skills/cli/contributor
