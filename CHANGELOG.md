@@ -17,6 +17,8 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 ### Changed
 
+- **`branch-change-reviewer`** — require output under the resolved external
+  `$ARTIFACTS` store by default.
 - **Artifact store default** — use **`~/Documents/agent-artifacts`** for both
   Codex and Cursor unless `AGENT_ARTIFACTS_HOME` overrides it.
 - **Jira access migration (Phase C)** — removed installable **`skills/core/jira/`** skill directory and manifest entry. Jira transport is **`JIRA-ACCESS.md`** + synced **`scripts/jira/`** helpers only.

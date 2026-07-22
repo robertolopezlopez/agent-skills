@@ -1,6 +1,6 @@
 ---
 name: branch-change-reviewer
-description: Review the current branch against a target Git branch, defaulting to origin/main, and write review findings to a Markdown output file under `$ARTIFACTS/{meaningful_id}/` (default basename `review_{sanitized-branch}.md`; legacy root-level review files remain valid). For non-trivial diffs, use authorized read-only parallel workers through multi-spawn-agent. Use when Codex is asked to review a branch diff without writing code, especially to assess code style, architecture, testing, regressions, and whether changes are worth raising as comments.
+description: Review the current branch against a target Git branch, defaulting to origin/main, and write review findings to the external `$ARTIFACTS/{meaningful_id}/` store (defaulting under `~/Documents/agent-artifacts/{repo-key}/`; default basename `review_{sanitized-branch}.md`). For non-trivial diffs, use authorized read-only parallel workers through multi-spawn-agent. Use when Codex is asked to review a branch diff without writing code, especially to assess code style, architecture, testing, regressions, and whether changes are worth raising as comments.
 ---
 
 # Branch Change Reviewer
@@ -22,20 +22,24 @@ both the screen and a Markdown artifact.
 ## Inputs
 
 - Target branch; default `origin/main`.
-- Optional output path. Otherwise resolve
-  `$ARTIFACTS/<meaningful_id>/review_<sanitized-branch>.md`; use a provided
-  tracker key as `meaningful_id`, else the branch slug.
+- Optional output path. Otherwise use the synced `resolve_artifact_path.py` to
+  resolve `$ARTIFACTS/<meaningful_id>/review_<sanitized-branch>.md`; use a
+  provided tracker key as `meaningful_id`, else the branch slug. The default
+  store is `~/Documents/agent-artifacts/<repo-key>/`; honor an explicit
+  `AGENT_ARTIFACTS_HOME` override.
 - Optional workflow artifact for context.
 - Optional parallel preference. Explicit `$branch-change-reviewer` invocation
   authorizes its documented read-only workers; ask before workers when the
   skill was activated implicitly.
-- Reuse an existing user or legacy root-level review path instead of moving it.
+- Reuse an existing user-provided or legacy review path on reruns. Never create
+  a new root-level or in-repository `_artifacts_/` review by default.
 
 ## Workflow
 
 1. Read repository guidance that affects review standards.
 2. Run `git status --short --branch`, identify the current branch, fetch the
-   target, and resolve the output path per `ARTIFACTS.md`.
+   target, and resolve the external output path with
+   `resolve_artifact_path.py` per `ARTIFACTS.md`.
 3. Read relevant workflow and prior review artifacts before repeating work.
 4. Review committed changes first. Include relevant uncommitted changes
    explicitly when present.
@@ -97,6 +101,8 @@ Write identical review content to the screen and output file:
    output path, and whether findings exist.
 
 Always create the file, including when no findings warrant comments.
+Unless the user supplied another path or an existing legacy review is being
+extended, the file must be under the resolved external `$ARTIFACTS` root.
 
 ## Prior Artifacts
 
@@ -113,5 +119,6 @@ remove stale heuristics. Preserve shared sections required by `ARTIFACTS.md`.
 
 - Do not modify code, tests, or configuration.
 - Do not apply fixes or rewrite user files.
+- Do not create new review artifacts inside the repository checkout.
 - Keep existing user changes intact.
 - Do not let praise or minor style points hide material findings.

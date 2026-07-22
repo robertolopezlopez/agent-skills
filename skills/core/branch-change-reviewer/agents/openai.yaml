@@ -1,4 +1,4 @@
 interface:
   display_name: "Branch Change Reviewer"
   short_description: "Review branch changes with parallel read-only workers."
-  default_prompt: "Use $branch-change-reviewer to review my changes against a target branch, defaulting to origin/main. Use read-only parallel workers for non-trivial diffs and write verified findings to the screen and review artifact."
+  default_prompt: "Use $branch-change-reviewer to review my changes against a target branch, defaulting to origin/main. Use read-only parallel workers for non-trivial diffs and write verified findings to the screen and resolved external $ARTIFACTS review path."
