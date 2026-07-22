@@ -17,6 +17,8 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 ### Changed
 
+- **`private-support-triage`** — include read-only questions mentioning Slack user group
+  `@ask-private-support-triage` (`private-group-id`) in caretaker research and reports.
 - **`branch-change-reviewer`** — require output under the resolved external
   `$ARTIFACTS` store by default.
 - **`private-branch-change-reviewer`** — add a separate `ponytail-review` pass for
