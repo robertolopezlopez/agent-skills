@@ -204,6 +204,14 @@ skills:
     companion_skills:
       - repository-technical-analysis
       - diagnose
+  - name: latex-to-pdf
+    path: skills/core/latex-to-pdf
+    status: stable
+    type: core
+    repo_scope: generic
+    release_group: core
+    companion_skills:
+      - diagnose
   - name: learn-daily
     path: skills/core/learn-daily
     status: stable

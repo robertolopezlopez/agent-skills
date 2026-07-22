@@ -1,0 +1,4 @@
+interface:
+  display_name: "LaTeX to PDF"
+  short_description: "Compile local LaTeX documents to PDF"
+  default_prompt: "Use $latex-to-pdf to compile this LaTeX document locally and verify the generated PDF."

@@ -39,6 +39,8 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 ### Added
 
+- **`latex-to-pdf`**: local LaTeX compilation using project commands or
+  XeLaTeX/`latexmk`.
 - **`private-support-triage`**: CLI Ask Caretaker workflow for asks, initial support triage, alerts, `main` CI failures, PR asks, and shift handoff.
 - **`JIRA-ACCESS.md`**: synced portable Jira Cloud access policy (`shared_files`; resolve with **`agent_config.py --jira-access-policy`**)
 - **`docs/jira-access-migration.md`**: Jira transport migration checklist
