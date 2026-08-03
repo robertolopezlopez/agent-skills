@@ -60,18 +60,21 @@ Confirm ambiguous slugs with the user when multiple remotes or organizations cou
 1. Use the `circleci` CLI when it can satisfy the request.
 2. Invoke `scripts/circleci-request` for API v2 calls. It resolves the API base URL and token from exported env vars, then the runtime **`circleci.env`** file (see **Local Defaults File**). **Do not read defaults files with the editor/Read tool** unless the user explicitly asked to debug helper resolution.
 3. Resolve `scripts/circleci-request` relative to this skill directory.
-4. If the helper is not executable, run `chmod +x` on the resolved helper path.
-5. Call the smallest endpoint set needed (pipeline list, then pipeline detail, then workflows or jobs).
-6. If the helper request fails because outbound HTTPS is blocked (for example in a restricted agent sandbox), rerun the same helper from an environment that allows TLS to `circleci.com` or to your configured API host.
-7. Use CircleCI MCP only when local tools are missing or insufficient.
-8. Normalize results for downstream skills: project slug, pipeline id and number, workflow ids, job numbers, states, and relevant URLs from API fields.
-9. Never issue a raw `curl` to CircleCI from this skill workflow. Route HTTP through `scripts/circleci-request`, then MCP when helpers are insufficient.
+4. Run every helper request as a standalone command. Do not wrap it in shell assignments, command substitutions, pipelines, `&&`, or `;`; compound shell syntax prevents reusable approval-prefix matching.
+5. For multi-request workflows, call the helper once, parse its returned JSON in agent/tool memory, then call the helper again with the resolved literal path. Process or filter the final response separately.
+6. If the helper is not executable, run `chmod +x` on the resolved helper path.
+7. Call the smallest endpoint set needed (pipeline list, then pipeline detail, then workflows or jobs).
+8. If the helper request fails because outbound HTTPS is blocked (for example in a restricted agent sandbox), rerun the same helper from an environment that allows TLS to `circleci.com` or to your configured API host.
+9. Use CircleCI MCP only when local tools are missing or insufficient.
+10. Normalize results for downstream skills: project slug, pipeline id and number, workflow ids, job numbers, states, and relevant URLs from API fields.
+11. Never issue a raw `curl` to CircleCI from this skill workflow. Route HTTP through `scripts/circleci-request`, then MCP when helpers are insufficient.
 
 ## Validation
 
 - Run **`scripts/check_skill_prereqs.sh circleci`** and **`scripts/check_skill_config.sh circleci`**. **Help the user** install `circleci` when needed and configure **`CIRCLE_TOKEN`** (export and/or **`circleci.env`** from **`templates/circleci.env.example`**) before API calls fail.
 - Prefer local `circleci` CLI and `circleci-request` before CircleCI MCP.
 - Keep HTTP access behind `scripts/circleci-request`, not ad hoc `curl`.
+- Keep each `circleci-request` invocation direct and standalone so approved helper prefixes remain reusable.
 - Stop when authenticated API access fails and report missing or invalid token clearly.
 - Do not expose tokens in logs, skill output, or committed files.
 
