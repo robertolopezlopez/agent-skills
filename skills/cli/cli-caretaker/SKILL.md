@@ -1,176 +1,79 @@
 ---
 name: cli-caretaker
-description: Research a CLI Ask Caretaker shift and write an evidence-backed report with advised actions for the CLI Ask queue, questions mentioning the Slack user group `@ask-cli-caretaker` (`S075HU4SREC`), support triage, Datadog signals, alerts, main-branch CI failures, redirected requests, and PR asks. Use when the user asks for CLI caretaker analysis, Ask or support triage, a caretaker report or handoff, or advice on whether an item should be answered, escalated, converted, reviewed, or closed. Exclude the separate On Caller role and on-call incident work. Keep Jira, Slack, GitHub, CircleCI, and Datadog interactions read-only unless the user explicitly requests a specific external action.
+description: >-
+  Research a CLI Ask Caretaker shift and write an evidence-backed, read-only report covering Asks,
+  `@ask-cli-caretaker` (`S075HU4SREC`) questions, support triage, alerts, Datadog, main CircleCI
+  failures, redirected requests, and PR asks. Use for caretaker triage or handoffs, not On Caller or
+  incident work. Advise actions; mutate external systems only when explicitly asked.
 ---
 
 # CLI Ask Caretaker
 
-Protect the CLI team's sprint focus by researching the queue and producing a
-technical-analysis-style report with evidence and advised actions.
+Protect sprint focus by researching the queue and advising actions.
 
 ## When to Use
 
-Use for a CLI caretaker shift, Ask or support triage, or caretaker handoff.
+Use for CLI caretaker shifts, Ask/support triage, or handoffs. Exclude On Caller, paging, incident command, and deep investigation after initial triage.
 
 ## When Not to Use
 
-Do not use for an unrelated repository, the separate CLI `On Caller` role,
-on-call rotations or handoffs, paging or incident command, or deep bug
-investigation after initial triage.
+Do not use outside CLI Ask Caretaker scope or for On Caller/incident ownership.
 
-## Scope Boundary
+## Sources
 
-- Model only `Roles and Responsibilities > CLI Ask Caretaker`, including its
-  Ask handling, support triage, alert-channel monitoring, and `main` CI triage.
-- Ignore `Roles and Responsibilities > On Caller` and its included on-call
-  guide. Do not absorb on-call duties merely because they appear on the same
-  Confluence page.
-- Treat alerts as caretaker research and routing only; do not assume incident
-  response or on-call ownership.
-
-## Source of Truth
-
-- Refresh the [CLI Support page](https://snyksec.atlassian.net/wiki/spaces/CLI/pages/2120417317/Support)
-  with `confluence` when practical, but read only the `CLI Ask Caretaker` scope
-  and its support-triage guidance. Live guidance wins over this summary.
-- Use the [support/ask decision diagram](https://miro.com/app/board/uXjVKD3VYxU=/)
-  as a secondary workflow source. Prefer newer Confluence or Jira policy when
-  they conflict.
-- Review the [CLI Support Board](https://snyksec.atlassian.net/jira/software/c/projects/CLI/boards/715)
-  and the `Triage Status` section of the
-  [CLI Support Dashboard](https://snyksec.atlassian.net/jira/dashboards/10913).
-- Use Jira transport per `JIRA-ACCESS.md`. Use connected Slack tools for
-  questions mentioning `@ask-cli-caretaker` (user group `S075HU4SREC`) and for
-  `#ask-cli`, `#cli-alerts`, and `#hammerhead-alerts` when available.
-- Use the connected Datadog app and its skill guides for relevant observability
-  evidence when available.
+- Refresh the [CLI Support page](https://snyksec.atlassian.net/wiki/spaces/CLI/pages/2120417317/Support) with `confluence`; use only `CLI Ask Caretaker` guidance. Live policy wins.
+- Use the [decision diagram](https://miro.com/app/board/uXjVKD3VYxU=/) secondarily, plus [Support Board](https://snyksec.atlassian.net/jira/software/c/projects/CLI/boards/715) and [Support Dashboard](https://snyksec.atlassian.net/jira/dashboards/10913) `Triage Status`.
+- Use `JIRA-ACCESS.md`; any connected Slack capability for group `S075HU4SREC` and `#ask-cli`, `#cli-alerts`, `#hammerhead-alerts`; `circleci`; and connected Datadog skills when relevant. Never assume runtime-specific Slack tool names.
 
 ## Inputs
 
-- Accept an optional shift window, queue snapshot, issue list, or handoff.
-- Keep Jira, Slack, GitHub, CircleCI, and Datadog access read-only by default.
-- Treat a request to research, review, triage, prepare, or run the caretaker
-  report as authorization to read evidence only—not to comment, transition,
-  close, assign, message, reply, or submit a PR review.
-- Perform an external action only when the user explicitly asks for that
-  specific interaction. Confirm destructive, ambiguous, or bulk changes.
+Accept a shift window, queue snapshot, issue list, or handoff. Research/triage/report requests authorize reads only. Require an explicit request for each comment, transition, close, assignment, message, reply, or PR review; confirm destructive, ambiguous, or bulk writes.
 
 ## Workflow
 
-1. Research current work through read-only access:
-   - every Ask in the Asks swimlane outside `Done`
-   - every visible question in the shift window mentioning
-     `@ask-cli-caretaker` or user group ID `S075HU4SREC`; read its parent and
-     thread, then deduplicate it against tracked Ask and Jira items
-   - new support requests in dashboard `Triage Status`
-   - relevant CLI and Hammerhead alerts
-   - CI/CD failures on `main` in the
-     [snyk/cli CircleCI pipelines](https://app.circleci.com/pipelines/gh/snyk/cli),
-     using `circleci` read-only
-   - requests redirected to the team outside `#ask-cli`
-   - when acceptance tests fail, advise whether `TEST_SNYK_IGNORE_LIST`, as documented in CLI `CONTRIBUTING.md`, can selectively unblock an out-of-scope spec; do not recommend it for a CLI-owned regression
-2. For alerts, CI failures, errors, or performance symptoms with observable
-   signals, research Datadog read-only:
-   - list Datadog skill guides, then load the best matching guide before using
-     related tools; common matches include logs, incidents and alerting, and
-     change tracking
-   - start with the item identifier, service, error text, and narrowest useful
-     time window; inspect relevant monitors, incidents, logs, metrics, traces,
-     and changes
-   - record queries, time ranges, result links, and whether evidence confirms
-     or only suggests the diagnosis
-   - skip Datadog when the item has no observability signal or existing evidence
-     already answers the caretaker question
-3. Classify each Ask and advise the matching branch:
-   - Simple question, remark, or update: draft the answer and advise closure. If
-     the answer is unclear, advise requesting help in `#ask-cli` and tracking
-     the follow-up.
-   - Feature request: advise asking the reporter to create an Aha! entry and
-     closing the Ask after the request is captured.
-   - Customer-reported bug: advise asking the reporter to create or link a
-     Zendesk ticket with logs, screenshots, and reproducible steps, then close
-     the Ask and continue through the support process.
-   - Non-customer bug: advise creating a bug in the CLI/IDE Jira project,
-     linking it from the Ask, and prioritizing it through KLO/Cooldown planning.
-   - Deeper documentation problem rather than a product bug: advise a
-     documentation tech-debt ticket; if an answer is time-sensitive, advise
-     marking it as a `Cycle <X> Cooldown candidate` for team discussion.
-   - PR ask: inspect PR evidence read-only and advise review and closure steps.
-     Do not submit a review or close the Ask.
-4. Apply the 30-minute gate. If an Ask needs more than 30 minutes, advise the
-   appropriate tracked-work branch above instead of continued Ask-channel
-   investigation.
-5. Perform initial SUP triage in 5–10 minutes and within 1–3 days according to
-   priority:
-   - decide whether CLI can fix it; otherwise advise assigning the owning team
-     and moving the ticket to that team's project
-   - for `Highest (Critical)`, advise `Backlog`, pulling it into the current
-     sprint, and fixing it; otherwise advise `Backlog` for a confirmed CLI bug
-   - treat red SUP items as breached due dates and yellow SUP items as breached
-     triage dates; surface both prominently in the report
-   - identify feature requests; advise `Customer Need` with a short reason
-   - sanity-check priority and obvious missing information
-   - advise `Won't Fix` with a reason for a bug CLI will not address
-   - do not investigate the issue, design a solution, or promise an exact ETA
-     during initial triage
-6. During sprint-planning work, flag whether roughly 30% of team capacity is
-   reserved for support and whether support SLOs are at risk.
-7. Write the report. Include a reminder to update Slack `@ask-cli-caretaker`
-   when appropriate; do not update it.
-8. If the user separately requests a specific external action, perform only
-   that action and record the resulting URL.
+1. Read and deduplicate:
+   - every non-`Done` Ask
+   - every visible shift-window `@ask-cli-caretaker`/`S075HU4SREC` question, including parent and thread
+   - new support `Triage Status` items
+   - CLI/Hammerhead alerts, `main` failures in [snyk/cli CircleCI](https://app.circleci.com/pipelines/gh/snyk/cli), redirected requests, and PR asks
+   - acceptance failures where documented `TEST_SNYK_IGNORE_LIST` may unblock an out-of-scope spec, never a CLI regression
+2. For observable alerts, CI errors, or performance symptoms, discover and load the matching Datadog guide; query the narrowest useful identifier/service/error/time window. Record query, range, link, and whether evidence confirms or suggests. Skip Datadog when no signal exists or other evidence answers the item.
+3. Classify each Ask:
+   - simple question/update: draft answer; advise close, or `#ask-cli` follow-up if unclear
+   - feature: advise Aha! entry, then close after capture
+   - customer bug: advise Zendesk ticket/link with logs, screenshots, repro; then close Ask and follow support flow
+   - non-customer bug: advise CLI/IDE Jira bug, Ask link, and KLO/Cooldown prioritization
+   - documentation debt: advise tech-debt ticket; if urgent, `Cycle <X> Cooldown candidate`
+   - PR ask: inspect read-only; advise review/closure, never submit or close
+4. Apply 30-minute Ask gate: route longer work into tracked flow instead of continuing channel investigation.
+5. Perform initial SUP triage in 5–10 minutes and within 1–3 days by priority:
+   - decide CLI ownership; otherwise advise owner assignment and project move
+   - confirmed CLI bug: advise `Backlog`; for `Highest (Critical)`, also current sprint and fix
+   - surface red breached due dates and yellow breached triage dates
+   - feature: advise `Customer Need` with reason; sanity-check priority/missing data
+   - declined bug: advise `Won't Fix` with reason
+   - do not design solutions, deeply investigate, or promise exact ETA
+6. During planning, flag whether about 30% capacity remains for support and whether SLOs are at risk.
+7. Write report with reminder to update Slack group when appropriate; do not update it.
+8. Perform only separately requested external actions and record resulting URLs.
 
 ## Validation
 
-- Cover every visible non-Done Ask and new support-triage item.
-- Cover every visible `@ask-cli-caretaker` (`S075HU4SREC`) question in the
-  shift window, or state the Slack coverage gap.
-- Record the decision branch for source type, CLI ownership, feature/bug type,
-  customer origin, and Critical priority when applicable.
-- Keep work over 30 minutes out of the Ask queue.
-- Cite the evidence supporting each recommendation.
-- Leave Jira, Slack, GitHub, CircleCI, and Datadog unchanged unless a specific
-  action was explicitly requested.
-- Exclude On Caller responsibilities from findings and advised actions.
+- Cover all visible non-Done Asks, new triage items, and shift-window group mentions, or state gaps.
+- Record source type, ownership, classification, customer origin, priority, and decision branch where applicable.
+- Keep over-30-minute work out of Ask; cite evidence; exclude On Caller.
+- Verify Jira, Slack, GitHub, CircleCI, and Datadog remained unchanged unless explicitly requested.
 
 ## Outputs
 
-Write non-trivial research to a user-provided path or, by default,
-`$ARTIFACTS/cli-caretaker-YYYY-MM-DD/analysis_cli_caretaker.md`. Resolve the
-path per `ARTIFACTS.md`, read an existing same-day report first, and extend it
-instead of creating a duplicate.
+Write non-trivial work to the user path or `$ARTIFACTS/cli-caretaker-YYYY-MM-DD/analysis_cli_caretaker.md`. Resolve via `ARTIFACTS.md`; extend same-day report.
 
-Report each item with:
-
-- identifier and source
-- classification: answer, needs help, PR review, customer support, CLI bug,
-  feature request, alert, or CI failure
-- advised action and rationale
-- owner, blocker, and follow-up when known
-- link to the Ask, ticket, PR, Datadog evidence, alert, or CI run
-
-Finish with queue counts, evidence gaps, prioritized advised actions, and a
-share-ready caretaker handoff. Clearly separate observed state from advice.
+For each item record identifier/source, classification, advised action/rationale, owner/blocker/follow-up, and links. End with counts, evidence gaps, prioritized advice, and share-ready handoff; separate observation from advice.
 
 ## Companion Skills
 
-- Use `slack` read-only to find `@ask-cli-caretaker` questions and inspect their
-  threads. Use `slack-outgoing-message` only after an explicit Slack write
-  request.
-- Use `confluence` to refresh the support guidance.
-- Use `circleci` read-only for `main` pipeline checks in `gh/snyk/cli`.
-- Use `cli-branch-change-reviewer` read-only for PR asks requiring code review;
-  do not post its findings to GitHub.
-- Use `cli-technical-analysis` only after work has left initial triage and a
-  deeper investigation is explicitly requested.
-- Use the connected Datadog app's skill discovery first, then load the relevant
-  Datadog guide before querying telemetry.
+Use connected Slack capability read-only when available, `confluence`, `circleci` read-only, `cli-branch-change-reviewer` read-only for PR asks, `cli-technical-analysis` only after explicit deep-investigation request, and discovered Datadog guides. External writes require their write workflow and explicit request.
 
 ## Safety Notes
 
-- Do not paste customer data, credentials, private logs, or Salesforce content
-  into chat or artifacts.
-- Never infer write authorization from a request to research, triage, review,
-  prepare, run, or report.
-- Draft comments and messages inside the report; do not send them unless the
-  user explicitly requests sending.
+Never expose customer data, credentials, private logs, or Salesforce content. Draft messages in report; never infer write authority from research, triage, review, prepare, run, or report.
