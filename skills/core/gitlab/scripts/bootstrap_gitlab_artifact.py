@@ -174,6 +174,10 @@ def default_output_path(iid: str, artifact_type: str) -> Path:
     return resolve_default_output_path(meaningful_id, basename)
 
 
+def extract_mr(payload: dict[str, Any]) -> dict[str, Any]:
+    return payload.get("merge_request", payload)
+
+
 def build_content(mr: dict[str, Any], artifact_type: str, defaults_files: list[str], preserved_sections: dict[str, str]) -> str:
     iid = mr.get("iid", "")
     title = mr.get("title") or ""
@@ -281,7 +285,8 @@ def main() -> None:
     parser.add_argument("--overwrite", action="store_true", help="Overwrite output if it exists.")
     args = parser.parse_args()
 
-    mr = json.loads(Path(args.json).read_text())
+    payload = json.loads(Path(args.json).read_text())
+    mr = extract_mr(payload)
     if args.mr:
         mr["iid"] = args.mr
 

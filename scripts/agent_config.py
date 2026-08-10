@@ -82,6 +82,10 @@ def github_scripts_dir(infer_from: Path | None = None) -> Path:
     return skills_root(infer_from=infer_from) / "scripts" / "github"
 
 
+def gitlab_scripts_dir(infer_from: Path | None = None) -> Path:
+    return skills_root(infer_from=infer_from) / "scripts" / "gitlab"
+
+
 def github_access_policy(infer_from: Path | None = None) -> Path:
     return skills_root(infer_from=infer_from) / "GITHUB-ACCESS.md"
 
@@ -195,6 +199,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Print the synced GitHub helper scripts directory.",
     )
     parser.add_argument(
+        "--gitlab-scripts-dir",
+        action="store_true",
+        help="Print the synced GitLab helper scripts directory.",
+    )
+    parser.add_argument(
         "--github-access-policy",
         action="store_true",
         help="Print the synced GITHUB-ACCESS.md path.",
@@ -243,6 +252,7 @@ def main() -> None:
         args.literal_search_policy,
         args.github_access_policy,
         args.github_scripts_dir,
+        args.gitlab_scripts_dir,
         args.jira_access_policy,
         args.jira_scripts_dir,
         args.git_access_policy,
@@ -255,7 +265,7 @@ def main() -> None:
         parser.error(
             "specify exactly one of --runtime, --config-home, --atlassian-env, "
             "--defaults-hint, --circleci-env, --fast-grep-env, --skills-root, "
-            "--literal-search-dir, --literal-search-policy, --github-access-policy, --github-scripts-dir, "
+            "--literal-search-dir, --literal-search-policy, --github-access-policy, --github-scripts-dir, --gitlab-scripts-dir, "
             "--jira-access-policy, --jira-scripts-dir, "
             "--git-access-policy, --git-scripts-dir, --api-docs-root, or --api-docs-dir"
         )
@@ -289,6 +299,9 @@ def main() -> None:
         return
     if args.github_scripts_dir:
         print(github_scripts_dir(infer_from=infer_from))
+        return
+    if args.gitlab_scripts_dir:
+        print(gitlab_scripts_dir(infer_from=infer_from))
         return
     if args.jira_access_policy:
         print(jira_access_policy(infer_from=infer_from))

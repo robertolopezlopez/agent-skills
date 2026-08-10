@@ -17,6 +17,8 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 ### Changed
 
+- **GitLab transport** — add a normalized `gl-fetch` wrapper over `glab api` and
+  shrink MR access/comment skills around its paginated discussion contract.
 - **`cli-ci-monitor` runner** — move polling, conservative failure classification,
   cancellation, and rerun lineage into a tested local command to reduce agent tool churn.
 - **Cross-agent skill portability** — remove a Cursor-only GitLab artifact path,
