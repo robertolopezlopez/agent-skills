@@ -17,6 +17,8 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 ### Changed
 
+- **`cli-ci-monitor` runner** — move polling, conservative failure classification,
+  cancellation, and rerun lineage into a tested local command to reduce agent tool churn.
 - **Cross-agent skill portability** — remove a Cursor-only GitLab artifact path,
   make `multi-spawn-agent` runtime-neutral, and route optional CLI Slack
   enrichment through whichever connected Slack capability is available.

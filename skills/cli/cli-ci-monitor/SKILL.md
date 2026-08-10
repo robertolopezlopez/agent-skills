@@ -8,7 +8,7 @@ description: >-
 
 # CLI CI Monitor
 
-Monitor one workflow lineage. Use `circleci` for transport; keep retry judgment here.
+Monitor one workflow lineage through the bundled deterministic runner.
 
 ## When to Use
 
@@ -34,35 +34,25 @@ Monitor one workflow lineage. Use `circleci` for transport; keep retry judgment 
 
 ## Workflow
 
-1. Record start, deadline, workflow ID, and attempt `1`. Resolve `workflowId` directly from URLs.
-2. Check CircleCI authentication. Stop on auth failure. Fetch `GET /workflow/{id}` and paginated `GET /workflow/{id}/job`.
-3. Poll with the runtime wait mechanism, never blocking over 60 seconds. Report transitions, retry decisions, and remaining time.
-4. Handle status:
-   - `success`: finish.
-   - `running`, `queued`: poll.
-   - `on_hold`: poll; never approve.
-   - `failing`: classify completed failed jobs.
-   - `failed`, `error`: classify all failed jobs.
-   - `unauthorized`: stop.
-   - `canceled`: continue only when this monitor canceled it for retry; otherwise stop.
-5. Classify conservatively from full job details. For `gh/org/repo`, use v1.1 `/project/gh/org/repo/{job-number}` when needed for structured fields. Environment evidence is any of:
-   - `status` or `outcome` is `timedout` or `infrastructure_fail`
-   - `timedout: true` or `infrastructure_fail: true`
-   - explicit CircleCI platform output for runtime/no-output timeout, missing heartbeat, executor startup failure, or runner loss
-6. Classify ordinary nonzero exits, tests, lint, compile, dependency, or project configuration errors as code failures. Missing or conflicting evidence is ambiguous. Ignore downstream `canceled` or `not_run` jobs.
-7. Retry only with at least one environment failure and no code or ambiguous failure. Otherwise stop with evidence; suggest `cli-technical-analysis` for code failures.
-8. Recheck deadline. If workflow is non-terminal, `POST /workflow/{id}/cancel` and wait for `canceled`. Then `POST /workflow/{id}/rerun` using resolved `assets/rerun-from-failed.json`; require returned `workflow_id`, increment attempt, and resume step 2 without resetting deadline.
-9. At deadline, stop without canceling a running workflow unless separately requested.
+1. Resolve `scripts/monitor_workflow.py` relative to this skill.
+2. For monitor-only requests run:
+
+   ```bash
+   scripts/monitor_workflow.py '<workflow-id-or-url>'
+   ```
+
+3. Only when the user authorized monitor-and-retry, add `--retry-infra`. The runner uses one two-hour deadline, polls every 60 seconds, paginates jobs, follows rerun workflow IDs, and retries only structured `timedout`/`infrastructure_fail` results with no code or ambiguous failures.
+4. Report transition lines and the final JSON. For code failures, suggest `cli-technical-analysis`.
+5. If a failed job is ambiguous but CircleCI output explicitly proves timeout, missing heartbeat, executor startup failure, or runner loss, inspect via `circleci` and apply the same retry boundary manually. Never infer environment failure from an ordinary nonzero exit.
 
 ## Validation
 
-- Never rerun before terminal state or after deadline.
-- Follow returned `workflow_id`, not completed source workflow.
-- Keep an in-memory timeline of IDs, statuses, evidence, and mutations.
+- Run `python3 -m unittest tests/test_cli_ci_monitor.py` after changing the runner.
+- Verify final JSON includes status, attempts, and workflow lineage.
 
 ## Outputs / Artifacts
 
-Return final status, elapsed time, attempt count, workflow IDs, retry evidence/actions, and current workflow when unfinished. Create no artifact by default.
+Return final status, attempt count, workflow IDs, classification when failed, and current workflow when unfinished. Create no artifact by default.
 
 ## Companion Skills
 
