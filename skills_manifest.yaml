@@ -161,6 +161,15 @@ skills:
       - circleci
       - cli-branch-change-reviewer
       - cli-technical-analysis
+  - name: cli-ci-monitor
+    path: skills/cli/cli-ci-monitor
+    status: stable
+    type: overlay
+    repo_scope: cli
+    release_group: cli
+    companion_skills:
+      - circleci
+      - cli-technical-analysis
   - name: cli-technical-analysis
     path: skills/cli/technical-analysis
     status: stable
