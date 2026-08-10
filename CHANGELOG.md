@@ -47,6 +47,9 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 ### Added
 
+- **`private-ci-monitor`**: monitor CLI CircleCI workflow lineages for up to two
+  hours, conservatively classify environment failures, cancel active workflows,
+  and rerun from failed jobs until success.
 - **`latex-to-pdf`**: local LaTeX compilation using project commands or
   XeLaTeX/`latexmk`.
 - **`private-support-triage`**: CLI Ask Caretaker workflow for asks, initial support triage, alerts, `main` CI failures, PR asks, and shift handoff.

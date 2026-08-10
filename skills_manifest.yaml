@@ -161,6 +161,15 @@ skills:
       - circleci
       - private-branch-change-reviewer
       - private-technical-analysis
+  - name: private-ci-monitor
+    path: skills/cli/private-ci-monitor
+    status: stable
+    type: overlay
+    repo_scope: cli
+    release_group: cli
+    companion_skills:
+      - circleci
+      - private-technical-analysis
   - name: private-technical-analysis
     path: skills/cli/technical-analysis
     status: stable
