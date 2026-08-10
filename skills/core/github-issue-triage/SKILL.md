@@ -1,6 +1,6 @@
 ---
 name: github-issue-triage
-description: Triage GitHub issues by interpreting normalized issue context (GITHUB-ACCESS.md + gh), recommending category and next state, identifying missing information, and preparing follow-on actions. Use when the user wants a maintainer-facing GitHub issue triage workflow after issue context has been fetched.
+description: Triage normalized GitHub issues for maintainers by recommending category, next state, missing information, and follow-on actions after `GITHUB-ACCESS.md` fetch.
 ---
 
 # GitHub Issue Triage

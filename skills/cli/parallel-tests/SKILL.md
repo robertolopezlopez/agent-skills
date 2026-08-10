@@ -1,9 +1,6 @@
 ---
 name: cli-parallel-tests
-description: >-
-  Run broad CLI repository validation using documented package.json or Turbo scripts. Use for all
-  tests, local CI, or pre-merge suites; split independent scripts only when parallel workers are
-  authorized, then analyze failures with repository-technical-analysis and cli-technical-analysis.
+description: Run broad CLI tests, local CI, or pre-merge validation using documented package/Turbo scripts; parallelize independent commands only when workers are authorized and analyze failures.
 ---
 
 # CLI Broad Tests

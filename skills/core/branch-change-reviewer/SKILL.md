@@ -1,6 +1,6 @@
 ---
 name: branch-change-reviewer
-description: Review the current branch against a target Git branch, defaulting to origin/main, and write review findings to the external `$ARTIFACTS/{meaningful_id}/` store (defaulting under `~/Documents/agent-artifacts/{repo-key}/`; default basename `review_{sanitized-branch}.md`). For non-trivial diffs, use authorized read-only parallel workers through multi-spawn-agent. Use when Codex is asked to review a branch diff without writing code, especially to assess code style, architecture, testing, regressions, and whether changes are worth raising as comments.
+description: Review a branch against a target (default `origin/main`) for regressions, architecture, tests, and actionable comments; write findings under `$ARTIFACTS/<meaningful_id>/` without changing code.
 ---
 
 # Branch Change Reviewer

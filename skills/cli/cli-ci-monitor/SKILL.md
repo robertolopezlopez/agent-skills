@@ -1,9 +1,6 @@
 ---
 name: cli-ci-monitor
-description: >-
-  Monitor a CLI CircleCI workflow for up to two hours. Use when asked to watch or babysit a
-  workflow and automatically cancel and rerun from failed jobs only for confirmed CircleCI
-  timeouts or infrastructure failures.
+description: Monitor or babysit a CLI CircleCI workflow for up to two hours, automatically canceling and rerunning only confirmed timeout or infrastructure failures.
 ---
 
 # CLI CI Monitor

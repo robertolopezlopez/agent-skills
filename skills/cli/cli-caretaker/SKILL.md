@@ -1,10 +1,6 @@
 ---
 name: cli-caretaker
-description: >-
-  Research a CLI Ask Caretaker shift and write an evidence-backed, read-only report covering Asks,
-  `@ask-cli-caretaker` (`S075HU4SREC`) questions, support triage, alerts, Datadog, main CircleCI
-  failures, redirected requests, and PR asks. Use for caretaker triage or handoffs, not On Caller or
-  incident work. Advise actions; mutate external systems only when explicitly asked.
+description: Research CLI Ask Caretaker shifts and handoffs read-only across Asks, `S075HU4SREC` questions, support, alerts, Datadog, main CircleCI, redirects, and PR asks; exclude On Caller/incident work.
 ---
 
 # CLI Ask Caretaker

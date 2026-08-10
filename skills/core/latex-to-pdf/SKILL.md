@@ -1,6 +1,6 @@
 ---
 name: latex-to-pdf
-description: Compile local LaTeX `.tex` documents to PDF with the project's existing build command or, by default, `latexmk -xelatex` with repeated `xelatex` as a fallback. Use when the user asks to build, compile, regenerate, or validate a PDF from local LaTeX sources.
+description: Build, compile, regenerate, or validate PDFs from local LaTeX sources using project commands, then `latexmk -xelatex` or repeated `xelatex` fallback.
 ---
 
 # LaTeX to PDF

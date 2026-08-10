@@ -1,6 +1,6 @@
 ---
 name: plan-issues
-description: Break a scoped plan, task, or change into dependency-aware vertical slices that are ready for human or agent execution. Use when the goal is already understood and the user wants an actionable implementation breakdown rather than investigation or coding.
+description: Break an understood plan, task, or change into dependency-aware vertical slices ready for human or agent execution, without investigating or coding.
 ---
 
 # Plan Issues

@@ -1,6 +1,6 @@
 ---
 name: gitlab
-description: Fetch and normalize GitLab merge requests and discussions from an IID or URL. Use for MR metadata, comments, unresolved thread state, project identity, or local MR artifact bootstrap. Prefer the bundled `gl-fetch` wrapper over manual `glab api`; use GitLab MCP only when local transport is unavailable or insufficient.
+description: Fetch normalized GitLab MR metadata, discussions, unresolved state, project identity, or artifact bootstrap from an IID/URL using bundled `gl-fetch` before MCP.
 ---
 
 # GitLab Merge Request Access

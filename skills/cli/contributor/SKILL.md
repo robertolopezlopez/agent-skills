@@ -1,10 +1,6 @@
 ---
 name: cli-contributor
-description: >-
-  Implement CLI product changes with tdd and repository-technical-analysis. Use for CLI
-  TypeScript/JavaScript monorepo work needing documented package scripts, pnpm/Turbo scoping,
-  injectable design, CI-aligned validation, minimal diffs, and merge-request summaries. Slack is
-  optional supplemental context.
+description: Implement CLI TypeScript/JavaScript monorepo changes with TDD, documented package scripts, pnpm/Turbo scoping, injectable design, CI-aligned validation, minimal diffs, and MR summaries.
 ---
 
 # CLI Contributor

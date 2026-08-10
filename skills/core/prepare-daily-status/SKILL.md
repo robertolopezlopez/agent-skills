@@ -1,6 +1,6 @@
 ---
 name: prepare-daily-status
-description: Maintain a consolidated daily team status log under configurable `TEAM_STATUS_DIR` and return a share-ready update. Load the directory from the runtime `prepare-daily-status.env` file, defaulting to `$HOME/Documents/team-status/`. Use when the user mentions standup, daily status, team sync, EOD, progress for colleagues, or asks to log, prepare, append, or update team status. Use only session evidence or work the user explicitly states.
+description: Maintain a consolidated `TEAM_STATUS_DIR` log and produce share-ready standup, daily status, team sync, EOD, or colleague-progress updates using only stated/session evidence.
 ---
 
 # Prepare Daily Status

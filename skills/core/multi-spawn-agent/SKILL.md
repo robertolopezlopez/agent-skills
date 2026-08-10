@@ -1,6 +1,6 @@
 ---
 name: multi-spawn-agent
-description: Use when the user explicitly asks for subagents, delegation, or parallel agent work and you want a reusable template for spawning multiple worker agents from a work definition file. Best for parallel implementation or validation tasks where each worker should use named skills, read a shared work definition or plan file, own specific files or directories, avoid overlapping write scopes, and return a summary, files changed, and validation.
+description: Delegate parallel implementation or validation only when explicitly requested, using a shared work definition, named skills, disjoint file ownership, and concise worker results.
 ---
 
 # Multi Spawn Agent

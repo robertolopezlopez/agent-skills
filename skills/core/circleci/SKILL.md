@@ -1,6 +1,6 @@
 ---
 name: circleci
-description: Fetch and inspect CircleCI Cloud pipelines, workflows, jobs, artifacts, and test metadata from project slugs, IDs, job numbers, or app URLs. Prefer the local `circleci` CLI and bundled `circleci-request`; use CircleCI MCP only when local transport is unavailable or insufficient. Use for read operations, requested pipeline actions, and CircleCI auth diagnosis.
+description: Fetch CircleCI pipelines, workflows, jobs, artifacts, or tests from slugs, IDs, numbers, or URLs; perform requested actions and auth diagnosis using local `circleci`/`circleci-request` before MCP.
 ---
 
 # CircleCI Access

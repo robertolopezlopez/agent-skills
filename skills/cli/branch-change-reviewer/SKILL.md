@@ -1,9 +1,6 @@
 ---
 name: cli-branch-change-reviewer
-description: >-
-  Review CLI product branch diffs with branch-change-reviewer, CLI monorepo evidence,
-  caveman-review findings, and a separate ponytail-review simplification pass. Use for read-only
-  CLI reviews covering regressions, architecture, package boundaries, CI, tests, and excess code.
+description: Review CLI branch diffs for regressions, architecture, package boundaries, CI, tests, and excess code using branch-change-reviewer, CLI evidence, caveman-review, and ponytail-review.
 ---
 
 # CLI Branch Change Reviewer

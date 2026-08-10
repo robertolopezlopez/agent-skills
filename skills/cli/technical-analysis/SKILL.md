@@ -1,9 +1,6 @@
 ---
 name: cli-technical-analysis
-description: >-
-  Investigate the CLI product repository with repository-technical-analysis, pnpm/Turbo-aware
-  repro commands, CI parity, artifact conventions, and optional Slack context. Use for CLI
-  TypeScript/JavaScript root-cause, regression, architecture, or performance analysis.
+description: Investigate CLI TypeScript/JavaScript root causes, regressions, architecture, or performance using pnpm/Turbo-aware repros, CI parity, artifacts, and optional Slack context.
 ---
 
 # CLI Technical Analysis

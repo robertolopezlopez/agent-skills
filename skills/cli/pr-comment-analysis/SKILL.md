@@ -1,10 +1,6 @@
 ---
 name: cli-pr-comment-analysis
-description: >-
-  Analyze unresolved GitHub PR review threads for the CLI product using grouped issues from
-  github-pr-comment-analysis, repository-technical-analysis, cli-technical-analysis, and
-  cli-contributor. Use for code-grounded verdicts or proposed fixes from a CLI PR number, URL, or
-  grouped review artifact. Slack is optional supplemental context.
+description: Analyze unresolved CLI GitHub PR threads from a PR number, URL, or grouped artifact; produce code-grounded verdicts and proposed fixes using CLI analysis/contributor workflows.
 ---
 
 # CLI PR Comment Analysis

@@ -1,15 +1,6 @@
 ---
 name: github-pr-comment-analysis
-description: >-
-  Analyze GitHub pull requests comment-by-comment. Consume normalized PR context per GITHUB-ACCESS.md
-  (gh / gh api), skip resolved threads, group actionable unresolved comments into subsections inside
-  the main PR Markdown artifact (prefer `$ARTIFACTS/<meaningful_id>/review_pr_<PR>.md`; use
-  `analysis_pr_<PR>.md` when that file is the working artifact), preserve full plan history there,
-  track PR/comment anchors plus proposed solution and reply-waiting status, optionally support
-  quick-fix mode for selected grouped issues such as `fix 2 and 5 now`, optionally split grouped
-  issues across subagents when explicitly authorized with disjoint subsection ownership in the same
-  file, migrate legacy split artifacts into the main file when present, and produce a short final
-  report on-screen.
+description: Analyze actionable unresolved GitHub PR threads from normalized context, group them into stable subsections in one artifact, support selected quick fixes, and optionally delegate disjoint groups when authorized.
 ---
 
 # GitHub PR Comment Analysis

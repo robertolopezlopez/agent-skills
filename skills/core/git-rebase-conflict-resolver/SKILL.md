@@ -1,6 +1,6 @@
 ---
 name: git-rebase-conflict-resolver
-description: Rebase a Git branch onto a user-provided target branch, defaulting to origin/main, resolve merge or rebase conflicts by preserving compatible intent from both remote and local changes, complete interrupted rebases, and verify the rebased branch with the repository's real lint, format, and test commands. Use when Codex is asked to rebase onto origin/main or another specified branch, fix conflicts, keep both sides' changes where possible, or ensure the final branch still works after history rewrite.
+description: Rebase onto a requested target (default `origin/main`), resolve or complete conflicts while preserving compatible intent, and verify the rewritten branch with repository commands.
 ---
 
 # Git Rebase Conflict Resolver

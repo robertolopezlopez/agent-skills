@@ -1,9 +1,6 @@
 ---
 name: guided-experience-service-mr-comment-analysis
-description: >-
-  Analyze guided-experience-service merge request comments by enriching grouped MR issues inside the
-  main MR Markdown artifact with guided-experience-service-specific technical analysis. Use when given an MR IID or URL and asked to analyze unresolved review comments in guided-experience-service,
-  using repository-technical-analysis with guided-experience-service-technical-analysis for each grouped issue subsection and guided-experience-service-contributor to add proposed changes in place.
+description: Analyze unresolved guided-experience-service MR comments, enriching grouped issue subsections in the main artifact with repository-specific evidence and proposed changes.
 ---
 
 # Guided Experience Service MR Comment Analysis

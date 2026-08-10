@@ -1,6 +1,6 @@
 ---
 name: guided-experience-service-contributor
-description: Use this with python-fastapi-contributor when working in the guided-experience-service repository. Adds repo-specific uv usage, lint and format commands, pytest commands, optional Weaviate setup, merge request summary rules against origin/main, and reinforces testable design (dependency injection, no hidden globals).
+description: Implement guided-experience-service changes with python-fastapi-contributor, repo-specific `uv`/pytest/lint/format commands, optional Weaviate, MR summaries, dependency injection, and no hidden globals.
 ---
 
 # Guided Experience Service Contributor

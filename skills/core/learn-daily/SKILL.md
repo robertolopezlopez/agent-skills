@@ -1,12 +1,6 @@
 ---
 name: learn-daily
-description: >-
-  Streamline repeatable daily agent habits (learn daily): session start (repo guidance + consolidated
-  next-time checks), disciplined artifact placement under $ARTIFACTS/<meaningful_id>/ (repo-scoped)
-  or $GLOBAL/<meaningful_id>/ (cross-repo knowledge), general technical-analysis reference under
-  $KNOWLEDGE/, and session end capture into
-  $GLOBAL/NEXT_TIME_CHECKS.md and/or $ARTIFACTS/NEXT_TIME_CHECKS.md. Use when starting or closing focused work in a codebase, when the user asks for a daily
-  routine, or to avoid re-learning the same friction every session.
+description: Run repeatable learn-daily session start/end habits: read repo guidance and next-time checks, place scoped artifacts correctly, and capture durable lessons without relearning prior friction.
 ---
 
 # Learn Daily

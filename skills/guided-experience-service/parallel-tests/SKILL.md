@@ -1,6 +1,6 @@
 ---
 name: guided-experience-service-parallel-tests
-description: "Use this when working in the guided-experience-service repository and the user wants to run all unit tests and integration tests in parallel. Prefer 2 parallel workers when subagents are explicitly authorized: one worker for the unit suite and one worker for the integration suite, each using 10 pytest workers. Run make install-splunk-app-deps immediately before the integration suite. After the parallel test runs complete, use repository-technical-analysis together with guided-experience-service-technical-analysis to review failures, suspicious errors, missing prerequisites, or likely root causes. Covers the repo-specific uv and pytest commands, when to prefer direct pytest over Makefile targets, optional Weaviate setup, and how to report results separately for unit and integration suites."
+description: Run guided-experience-service unit and integration suites with repo-specific `uv`/pytest prerequisites, optionally in authorized parallel workers, then analyze and report failures separately.
 ---
 
 # Guided Experience Service Parallel Tests
