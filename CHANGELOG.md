@@ -17,6 +17,8 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 ### Changed
 
+- **Transport skill disclosure** — keep CircleCI and Confluence routing/safety in
+  `SKILL.md` while loading exact helper commands and config details only on demand.
 - **GitLab transport** — add a normalized `gl-fetch` wrapper over `glab api` and
   shrink MR access/comment skills around its paginated discussion contract.
 - **`cli-ci-monitor` runner** — move polling, conservative failure classification,
