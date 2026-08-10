@@ -243,7 +243,7 @@ Skills synced under **`~/.cursor/skills/`** use **`~/.cursor/`** for local defau
 
 **Agents must not read defaults files directly** — invoke bundled helpers (`jira-api`, `confluence-api`, `circleci-request`, …) or bootstrap scripts, which load the runtime-appropriate file via **`scripts/agent-config.sh`**. Do not probe the other runtime's config home unless the user is debugging cross-runtime setup.
 
-Resolve runtime config paths with **`scripts/agent_config.py`** (synced next to **`scripts/resolve_artifact_path.py`**): **`--atlassian-env`**, **`--circleci-env`**, **`--fast-grep-env`**, **`--skills-root`**, **`--literal-search-dir`**, **`--literal-search-policy`**, **`--github-access-policy`**, **`--jira-access-policy`**, **`--config-home`**, **`--runtime`**, **`--defaults-hint atlassian.env`**, **`--api-docs-root`**, or **`--api-docs-dir <slug>`**. Shell equivalent: **`scripts/agent-config.sh`** with the same flags.
+Resolve runtime config paths with **`scripts/agent_config.py`** (synced next to **`scripts/resolve_artifact_path.py`**): **`--atlassian-env`**, **`--circleci-env`**, **`--fast-grep-env`**, **`--skills-root`**, **`--literal-search-dir`**, **`--literal-search-policy`**, **`--github-access-policy`**, **`--gitlab-scripts-dir`**, **`--jira-access-policy`**, **`--config-home`**, **`--runtime`**, **`--defaults-hint atlassian.env`**, **`--api-docs-root`**, or **`--api-docs-dir <slug>`**. Shell equivalent: **`scripts/agent-config.sh`** with the same flags.
 
 ## REST API reference cache
 

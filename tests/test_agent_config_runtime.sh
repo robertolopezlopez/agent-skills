@@ -28,6 +28,9 @@ for runtime in codex cursor; do
   expected=$home/.$runtime/circleci.env
   assert_eq "$(clean_env python3 "$home/.$runtime/skills/scripts/agent_config.py" --circleci-env)" "$expected"
   assert_eq "$(clean_env "$home/.$runtime/skills/scripts/agent-config.sh" --circleci-env)" "$expected"
+  expected_gitlab=$home/.$runtime/skills/scripts/gitlab
+  assert_eq "$(clean_env python3 "$home/.$runtime/skills/scripts/agent_config.py" --gitlab-scripts-dir)" "$expected_gitlab"
+  assert_eq "$(clean_env "$home/.$runtime/skills/scripts/agent-config.sh" --gitlab-scripts-dir)" "$expected_gitlab"
 done
 
 assert_eq "$(clean_env env CODEX_THREAD_ID=test python3 "$repo_root/scripts/agent_config.py" --circleci-env)" "$home/.codex/circleci.env"
