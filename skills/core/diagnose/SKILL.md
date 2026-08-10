@@ -1,6 +1,6 @@
 ---
 name: diagnose
-description: Diagnose concrete bugs and regressions with a tight repro, hypothesis, and instrumentation loop. Use when a specific failing behavior already exists and the user wants disciplined debugging of a broken behavior, flaky issue, or performance regression.
+description: Diagnose a concrete bug, flaky issue, regression, or performance failure through a tight reproduction, hypothesis, instrumentation, and verification loop.
 ---
 
 # Diagnose

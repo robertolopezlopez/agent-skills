@@ -1,6 +1,6 @@
 ---
 name: python-fastapi-contributor
-description: Use this when working on Python or FastAPI code in any repository, including routine implementation, debugging, validation, and pull request or merge request summaries. Covers repo-aware discovery, narrow test selection, failure grouping, practical validation, and testable design (dependency injection, no hidden globals).
+description: Implement, debug, validate, or summarize Python/FastAPI changes with repo-aware commands, narrow tests, failure grouping, dependency injection, and no hidden globals.
 ---
 
 # Python FastAPI Contributor

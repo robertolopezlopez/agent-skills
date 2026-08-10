@@ -1,6 +1,6 @@
 ---
 name: tdd
-description: Build or fix behavior through a test-first red-green-refactor loop using small vertical slices and tests through public interfaces. Aligned with contributor design principles (dependency injection, no hidden globals). Use when the target behavior is already understood and the user wants disciplined implementation or regression-test-driven bug fixing.
+description: Build understood behavior or regression fixes through small test-first red-green-refactor slices, public interfaces, dependency injection, and no hidden globals.
 ---
 
 # Test-Driven Development

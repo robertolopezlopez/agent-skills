@@ -1,6 +1,6 @@
 ---
 name: confluence
-description: Fetch, summarize, search, create, and update Confluence Cloud pages and spaces from wiki URLs or IDs. Prefer authenticated `acli confluence`, then bundled `confluence-api`/`confluence-request`, then Confluence or Atlassian MCP. Use for Confluence content work and access diagnosis.
+description: Fetch, summarize, search, create, or update Confluence pages/spaces from URLs or IDs; diagnose access using `acli confluence`, bundled helpers, then MCP.
 ---
 
 # Confluence Access

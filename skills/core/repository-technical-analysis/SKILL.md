@@ -1,6 +1,6 @@
 ---
 name: repository-technical-analysis
-description: Use this when performing technical analysis in a code repository, including test failure investigation, root-cause analysis, architecture inspection, incident debugging, regression triage, or performance analysis. Covers evidence-first investigation, targeted reproduction, root-cause grouping, and concise recommendations. Literal codebase search follows synced LITERAL-CODE-SEARCH.md (step 3). Non-trivial ticket-scoped analysis writes to `$ARTIFACTS/<meaningful_id>/analysis_<relevant_name>.md`; general knowledge writes to `$KNOWLEDGE/analysis_<relevant_name>.md`; legacy root-level analysis files remain valid.
+description: Investigate repository test failures, root causes, architecture, incidents, regressions, or performance with evidence-first reproduction and concise recommendations; use scoped artifacts for non-trivial analysis.
 ---
 
 # Repository Technical Analysis

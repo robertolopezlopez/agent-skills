@@ -1,6 +1,6 @@
 ---
 name: gitlab-mr-comment-analysis
-description: Analyze actionable unresolved GitLab MR discussions from normalized `gl-fetch` context, group them into stable issue subsections in one MR artifact, support selected quick fixes, and optionally delegate disjoint groups when the user explicitly authorizes subagents.
+description: Analyze normalized unresolved GitLab MR discussions, group them into stable subsections in one artifact, support selected quick fixes, and delegate disjoint groups only when authorized.
 ---
 
 # GitLab MR Comment Analysis
