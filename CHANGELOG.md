@@ -17,6 +17,9 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 ### Changed
 
+- **Cross-agent skill portability** — remove a Cursor-only GitLab artifact path,
+  make `multi-spawn-agent` runtime-neutral, and route optional CLI Slack
+  enrichment through whichever connected Slack capability is available.
 - **`private-support-triage`** — include read-only questions mentioning Slack user group
   `@ask-private-support-triage` (`private-group-id`) in caretaker research and reports.
 - **`branch-change-reviewer`** — require output under the resolved external

@@ -216,7 +216,7 @@ python3 gitlab/scripts/bootstrap_gitlab_artifact.py --json /tmp/mr_<MR>.json --m
 For investigation-heavy bootstrap, use `--type analysis`. To pin a path explicitly:
 
 ```bash
-ARTIFACTS="$(python3 ~/.cursor/skills/scripts/resolve_artifact_path.py --repo-artifacts-root)"
+ARTIFACTS="$(python3 scripts/resolve_artifact_path.py --repo-artifacts-root)"
 python3 gitlab/scripts/bootstrap_gitlab_artifact.py --json /tmp/mr_<MR>.json --mr <MR> --output "$ARTIFACTS/mr-<MR>/analysis_mr_<MR>.md"
 ```
 

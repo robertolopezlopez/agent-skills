@@ -7,8 +7,6 @@ description: Use when the user explicitly asks for subagents, delegation, or par
 
 Use this skill to structure parallel worker delegation after the user has explicitly authorized subagents.
 
-If the user wants a reusable project-level starter instead of ad hoc delegation only, pair this skill with the shipped template in `codex-multi-agent-template/`.
-
 ## When to Use
 
 Use this skill when the user has explicitly authorized subagents and wants:
@@ -25,7 +23,6 @@ Do not use this skill when:
 - the user has not explicitly authorized subagents or parallel agent work
 - the next step is blocked on a small urgent task better handled locally
 - write scopes overlap heavily and would create merge churn
-- a fixed starter layout from `codex-multi-agent-template/` is a better fit than dynamic worker splitting
 
 ## Inputs
 
@@ -53,7 +50,7 @@ Use that file as the shared source of truth for worker scopes, ownership, constr
    - dependency or integration order
 2. Make a local plan from that file and identify tasks that are safe to run in parallel.
 3. Spawn only **worker** agents for bounded tasks with disjoint write scopes.
-4. Use `fork_context: true`.
+4. Pass enough task context for each worker using the runtime's supported context-sharing option.
 5. For each worker:
    - explicitly mention the required skill names
    - tell the worker to read the shared work definition file
@@ -87,7 +84,7 @@ Use this template when spawning a flexible number of workers:
 ```text
 Use the work definition file at <work definition file>.
 
-Spawn N parallel worker agents, where N is determined by the work definition and the number of disjoint write scopes, with fork_context: true.
+Spawn N parallel worker agents, where N is determined by the work definition and the number of disjoint write scopes. Use the runtime's supported context-sharing option.
 
 For each worker:
 - explicitly mention the required skill names
@@ -120,7 +117,6 @@ If a worker cannot keep to its assigned write scope, it should stop and report t
 ## Notes
 
 - Treat the work definition file as authoritative unless the user says otherwise.
-- When the user wants a copy-ready project setup, use `codex-multi-agent-template/` as the baseline scaffold and keep this skill focused on dynamic work-split logic.
 - Choose the number of workers from the work definition and the number of truly independent write scopes.
 - Do not force parallelism when tasks are tightly coupled.
 - Prefer fewer workers when integration cost is high.
@@ -130,33 +126,11 @@ If a worker cannot keep to its assigned write scope, it should stop and report t
 - Reuse the same work definition file across workers to maintain coordination.
 - When a split causes avoidable overlap, waiting, or integration churn, record it once in `Bad Split Patterns` with the smallest useful correction.
 
-## Companion Template
-
-This repository also ships `codex-multi-agent-template/` for a fixed role-based starter layout:
-
-- `lead`
-- `developer`
-- `reviewer`
-- `tester`
-
-Use that template when the user wants:
-- a copyable `.codex/config.toml`
-- named role configs in `.codex/agents/*.toml`
-- a shared `AGENTS.md`
-- starter prompts for kickoff and status tracking
-
-Use this skill when the user wants:
-- dynamic worker counts
-- work-definition-driven file ownership
-- non-standard splits
-- narrower or more flexible parallel execution than a fixed 4-role team
-
 ## Companion Skills
 
 Common pairings:
 
 - repository or language-specific contributor skills for actual worker execution
-- `codex-multi-agent-template/` when the user wants a copyable fixed-role starter
 
 ## Team Sync Pattern
 
