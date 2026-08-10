@@ -220,6 +220,7 @@ Repo overlays add language- and stack-specific patterns; this block is the share
 
 ## Design rules
 
+- Prefer the smallest implementation and instruction footprint that preserves behavior, safety, compatibility, and validation. Reuse local CLIs, repository helpers, and standard-library features before adding prose, wrappers, dependencies, or remote tool calls.
 - Keep skills modular. Prefer a small focused skill over a large mixed-purpose skill.
 - Separate transport/access skills from workflow/analysis skills when practical.
 - Put repo-specific behavior in overlay skills instead of polluting general skills.
