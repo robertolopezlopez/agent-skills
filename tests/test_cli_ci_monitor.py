@@ -41,15 +41,62 @@ class MonitorWorkflowTest(unittest.TestCase):
         result = module.classify_failed_jobs(jobs, lambda job: details[job["job_number"]])
 
         self.assertEqual(result["environment"], ["timeout"])
+        self.assertEqual(result["transient"], [])
         self.assertEqual(result["code"], ["test"])
         self.assertEqual(result["ambiguous"], ["unknown"])
 
-    def test_cancels_failing_workflow_then_follows_rerun_id(self):
+    def test_classifies_jest_test_timeout_output_as_transient(self):
+        module = load_module()
+        jobs = [{"name": "acceptance", "status": "failed", "job_number": 1}]
+
+        result = module.classify_failed_jobs(
+            jobs,
+            lambda _job: {"outcome": "failed"},
+            lambda _detail: 'thrown: "Exceeded timeout of 120000 ms for a test."',
+        )
+
+        self.assertEqual(result["transient"], ["acceptance"])
+        self.assertEqual(result["code"], [])
+
+    def test_keeps_ordinary_test_failure_classified_as_code(self):
+        module = load_module()
+        jobs = [{"name": "acceptance", "status": "failed", "job_number": 1}]
+
+        result = module.classify_failed_jobs(
+            jobs,
+            lambda _job: {"outcome": "failed"},
+            lambda _detail: "Expected true, received false",
+        )
+
+        self.assertEqual(result["transient"], [])
+        self.assertEqual(result["code"], ["acceptance"])
+
+    def test_keeps_failed_output_fetch_errors_ambiguous(self):
+        module = load_module()
+        jobs = [{"name": "acceptance", "status": "failed", "job_number": 1}]
+
+        def fail_output(_detail):
+            raise RuntimeError("output unavailable")
+
+        result = module.classify_failed_jobs(
+            jobs,
+            lambda _job: {"outcome": "failed"},
+            fail_output,
+        )
+
+        self.assertEqual(result["ambiguous"], ["acceptance"])
+        self.assertEqual(result["code"], [])
+
+    def test_retries_transient_failure_then_follows_rerun_id(self):
         module = load_module()
 
         class FakeClient:
             def __init__(self):
                 self.old_reads = 0
+
+            def request_url(self, url):
+                self.assert_url = url
+                return [{"message": "Exceeded timeout of 120000 ms for a test."}]
 
             def request(self, method, path, body=None, root=None):
                 if method == "GET" and path == "/workflow/old":
@@ -57,8 +104,14 @@ class MonitorWorkflowTest(unittest.TestCase):
                     return {"status": "failing" if self.old_reads == 1 else "canceled"}
                 if method == "GET" and path == "/workflow/old/job":
                     return {"items": [{"name": "timeout", "status": "failed", "job_number": 1, "project_slug": "gh/snyk/cli"}]}
-                if root:
-                    return {"outcome": "timedout"}
+                if root == "https://circleci.com/api/v1.1":
+                    return {
+                        "outcome": "failed",
+                        "steps": [{"actions": [{
+                            "failed": True,
+                            "output_url": "https://output.example/log?token=secret",
+                        }]}],
+                    }
                 if method == "POST" and path == "/workflow/old/cancel":
                     return {}
                 if method == "POST" and path == "/workflow/old/rerun":

@@ -17,6 +17,13 @@ UUID_RE = re.compile(r"^[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$")
 FAILED = {"failed", "failing", "error", "timedout", "infrastructure_fail"}
 IGNORED = {"canceled", "not_run"}
 ENVIRONMENT = {"timedout", "infrastructure_fail"}
+TRANSIENT_OUTPUT_RE = re.compile(
+    r"Exceeded timeout of \d+ ms for a test|"
+    r"\b(?:ECONNRESET|ETIMEDOUT|EAI_AGAIN)\b|"
+    r"connection reset by peer|socket hang up|TLS handshake timeout|"
+    r"temporary failure in name resolution",
+    re.IGNORECASE,
+)
 
 
 def resolve_workflow_id(value: str) -> str:
@@ -28,8 +35,8 @@ def resolve_workflow_id(value: str) -> str:
     raise ValueError("expected a workflow UUID or CircleCI URL containing workflowId")
 
 
-def classify_failed_jobs(jobs, fetch_detail):
-    result = {"environment": [], "code": [], "ambiguous": []}
+def classify_failed_jobs(jobs, fetch_detail, fetch_output=lambda _detail: ""):
+    result = {"environment": [], "transient": [], "code": [], "ambiguous": []}
     for job in jobs:
         status = str(job.get("status", "")).lower()
         if status in IGNORED or status not in FAILED:
@@ -49,6 +56,14 @@ def classify_failed_jobs(jobs, fetch_detail):
             markers.add("timedout" if combined.get("timedout") else "infrastructure_fail")
         if markers & ENVIRONMENT:
             result["environment"].append(name)
+            continue
+        try:
+            output = fetch_output(detail)
+        except (RuntimeError, subprocess.SubprocessError, json.JSONDecodeError):
+            result["ambiguous"].append(name)
+            continue
+        if TRANSIENT_OUTPUT_RE.search(output):
+            result["transient"].append(name)
         elif str(detail.get("outcome", "")).lower() == "failed":
             result["code"].append(name)
         else:
@@ -78,6 +93,15 @@ class Client:
         completed = subprocess.run(command, check=True, capture_output=True, text=True)
         return json.loads(completed.stdout)
 
+    def request_url(self, url: str):
+        parsed = urlparse(url)
+        if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+            raise RuntimeError("invalid CircleCI output URL")
+        path = parsed.path or "/"
+        if parsed.query:
+            path += f"?{parsed.query}"
+        return self.request("GET", path, root=f"{parsed.scheme}://{parsed.netloc}")
+
 
 def fetch_jobs(client: Client, workflow_id: str):
     items = []
@@ -99,6 +123,28 @@ def fetch_job_detail(client: Client, job):
     return client.request(
         "GET", f"/project/{slug}/{number}", root="https://circleci.com/api/v1.1"
     )
+
+
+def fetch_failed_output(client: Client, detail) -> str:
+    messages = []
+    for step in detail.get("steps", []):
+        for action in step.get("actions", []):
+            failed = (
+                action.get("failed") is True
+                or str(action.get("status", "")).lower() == "failed"
+                or action.get("exit_code") not in {None, 0}
+            )
+            output_url = action.get("output_url")
+            if not failed or not output_url:
+                continue
+            payload = client.request_url(output_url)
+            records = payload if isinstance(payload, list) else [payload]
+            messages.extend(
+                str(record.get("message", ""))
+                for record in records
+                if isinstance(record, dict)
+            )
+    return "\n".join(messages)
 
 
 def rerun_workflow(client: Client, workflow_id: str, body: Path) -> str:
@@ -129,10 +175,14 @@ def monitor(client: Client, workflow_id: str, retry_infra: bool, timeout: int, p
             return {"status": status, "attempts": attempt, "workflow_ids": lineage}
 
         jobs = fetch_jobs(client, workflow_id)
-        classification = classify_failed_jobs(jobs, lambda job: fetch_job_detail(client, job))
+        classification = classify_failed_jobs(
+            jobs,
+            lambda job: fetch_job_detail(client, job),
+            lambda detail: fetch_failed_output(client, detail),
+        )
         retryable = (
             retry_infra
-            and classification["environment"]
+            and (classification["environment"] or classification["transient"])
             and not classification["code"]
             and not classification["ambiguous"]
         )

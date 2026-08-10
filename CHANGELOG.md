@@ -23,6 +23,9 @@ Use commit history for routine wording, cleanup, and implementation-only changes
   shrink MR access/comment skills around its paginated discussion contract.
 - **`cli-ci-monitor` runner** — move polling, conservative failure classification,
   cancellation, and rerun lineage into a tested local command to reduce agent tool churn.
+- **`cli-ci-monitor` transient retries** — inspect failed action output and retry
+  narrow, high-confidence test-timeout and temporary-network signatures without
+  treating ordinary assertion failures as infrastructure.
 - **Cross-agent skill portability** — remove a Cursor-only GitLab artifact path,
   make `multi-spawn-agent` runtime-neutral, and route optional CLI Slack
   enrichment through whichever connected Slack capability is available.

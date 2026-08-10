@@ -1,6 +1,6 @@
 ---
 name: cli-ci-monitor
-description: Monitor or babysit a CLI CircleCI workflow for up to two hours, automatically canceling and rerunning only confirmed timeout or infrastructure failures.
+description: Monitor or babysit a CLI CircleCI workflow for up to two hours, automatically canceling and rerunning confirmed infrastructure failures or high-confidence transient errors.
 ---
 
 # CLI CI Monitor
@@ -10,7 +10,7 @@ Monitor one workflow lineage through the bundled deterministic runner.
 ## When to Use
 
 - Watch a CLI CircleCI workflow until success or timeout.
-- Automatically retry confirmed environment failures.
+- Automatically retry confirmed environment failures and high-confidence transient errors.
 
 ## When Not to Use
 
@@ -38,9 +38,9 @@ Monitor one workflow lineage through the bundled deterministic runner.
    scripts/monitor_workflow.py '<workflow-id-or-url>'
    ```
 
-3. Only when the user authorized monitor-and-retry, add `--retry-infra`. The runner uses one two-hour deadline, polls every 60 seconds, paginates jobs, follows rerun workflow IDs, and retries only structured `timedout`/`infrastructure_fail` results with no code or ambiguous failures.
+3. Only when the user authorized monitor-and-retry, add `--retry-infra`. The runner uses one two-hour deadline, polls every 60 seconds, paginates jobs, follows rerun workflow IDs, and retries only structured `timedout`/`infrastructure_fail` results or narrow transient signatures in failed action output (such as a Jest test timeout or temporary network reset), with no code or ambiguous failures.
 4. Report transition lines and the final JSON. For code failures, suggest `cli-technical-analysis`.
-5. If a failed job is ambiguous but CircleCI output explicitly proves timeout, missing heartbeat, executor startup failure, or runner loss, inspect via `circleci` and apply the same retry boundary manually. Never infer environment failure from an ordinary nonzero exit.
+5. If a failed job remains ambiguous but CircleCI output explicitly proves timeout, missing heartbeat, executor startup failure, or runner loss, inspect via `circleci` and apply the same retry boundary manually. Never infer a transient failure from an ordinary nonzero exit.
 
 ## Validation
 
@@ -60,5 +60,5 @@ Return final status, attempt count, workflow IDs, classification when failed, an
 
 - Never expose tokens or read defaults files.
 - Never use raw `curl`.
-- Never retry code/ambiguous failures, approve holds, change parameters, or trigger a fresh pipeline.
+- Never retry code/ambiguous failures, approve holds, change parameters, or trigger a fresh pipeline. A transient log signature must be explicit.
 - Limit mutations to supplied workflow lineage.
