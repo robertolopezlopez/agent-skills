@@ -17,6 +17,8 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 ### Changed
 
+- **`cli-ci-monitor` diagnosis** — analyze final non-transient failures directly,
+  present the diagnosis, then stop.
 - **CircleCI CLI-first monitoring** — route `cli-ci-monitor` workflow, job,
   output, cancel, and rerun operations through the local CLI while retaining an
   explicit API-helper fallback.

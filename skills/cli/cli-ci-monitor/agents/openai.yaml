@@ -1,4 +1,4 @@
 interface:
   display_name: "CLI CI Monitor"
-  short_description: "Monitor and retry flaky CLI CircleCI workflows"
-  default_prompt: "Use $cli-ci-monitor to monitor this CLI CircleCI workflow, retry environment failures, and stop at success or the two-hour deadline."
+  short_description: "Monitor and diagnose CLI CircleCI workflows"
+  default_prompt: "Use $cli-ci-monitor to monitor this CLI CircleCI workflow, retry transient failures, and diagnose final non-transient failures."

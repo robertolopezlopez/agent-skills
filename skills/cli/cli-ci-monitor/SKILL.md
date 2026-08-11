@@ -1,6 +1,6 @@
 ---
 name: cli-ci-monitor
-description: Monitor a CLI CircleCI workflow or PR for up to two hours; retry transient failures, resolve PR conflicts with rebase/contributor skills, and follow replacement workflows.
+description: Monitor a CLI CircleCI workflow or PR for up to two hours; retry transient failures, diagnose non-transient failures, resolve PR conflicts, and follow replacement workflows.
 ---
 
 # CLI CI Monitor
@@ -43,7 +43,7 @@ Monitor one workflow lineage through the bundled deterministic runner.
 3. With `--pr-branch`, the runner resolves the PR via local `gh pr view`, checks immediately and every 300 seconds alongside CI, and returns `pr_conflict` plus `remaining_seconds` on conflict.
 4. Only when the user authorized monitor-and-retry, add `--retry-infra`. The runner uses the CircleCI CLI for workflow, job, output, cancel, and rerun operations; keeps one two-hour deadline; polls every 60 seconds; follows rerun workflow IDs; and retries only structured `timedout`/`infrastructure_fail` results or narrow transient signatures in failed output (such as a Jest test timeout or temporary network reset), with no code or ambiguous failures. Use `--request-helper <path>` only when CLI output or CircleCI Server compatibility is insufficient.
 5. On `pr_conflict`, stop monitoring the obsolete workflow; run `git-rebase-conflict-resolver`, then `cli-contributor`. Push only with user authorization. Resolve the replacement workflow and resume with `--timeout-seconds <remaining_seconds>` and the same branch; never guess ambiguous PR/workflow matches.
-6. Report transition lines and the final JSON. For code failures, suggest `cli-technical-analysis`.
+6. On a final non-transient failure, run `cli-technical-analysis` with the workflow and failed-job output, present the diagnosis, then stop.
 7. If a failed job remains ambiguous but CircleCI output explicitly proves timeout, missing heartbeat, executor startup failure, or runner loss, inspect via `circleci` and apply the same retry boundary manually. Never infer a transient failure from an ordinary nonzero exit.
 
 ## Validation
@@ -53,7 +53,7 @@ Monitor one workflow lineage through the bundled deterministic runner.
 
 ## Outputs / Artifacts
 
-Return final status, attempt count, workflow IDs, classification when failed, and current workflow when unfinished. Create no artifact by default.
+Return final status, attempt count, workflow IDs, classification when failed, and current workflow when unfinished. Create no artifact unless diagnosing a final failure.
 
 ## Companion Skills
 
