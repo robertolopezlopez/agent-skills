@@ -27,8 +27,8 @@ Infer GitHub slugs from `GIT-ACCESS.md` identity only when unambiguous; otherwis
 
 1. Read repository `AGENTS.md` when working from a checkout.
 2. Run `scripts/check_skill_prereqs.sh circleci` and `scripts/check_skill_config.sh circleci`; help configure `CIRCLE_TOKEN`/`CIRCLECI_TOKEN` before calls.
-3. Use the local `circleci` CLI when it directly supports the operation. Otherwise resolve `scripts/circleci-request` relative to this skill.
-4. Run each helper request as a standalone command so approval prefixes remain reusable. Fetch the smallest endpoint chain needed and parse responses separately.
+3. Resolve `scripts/circleci-cli` relative to this skill and use it for supported CLI operations. It loads runtime auth without exposing the token.
+4. Use `scripts/circleci-request` only when CLI output or CircleCI Server compatibility is insufficient. Run each helper request as a standalone command so approval prefixes remain reusable.
 5. Normalize project slug, pipeline ID/number, workflow IDs/statuses, job numbers/statuses, and useful URLs.
 6. Use CircleCI MCP only when local tools cannot supply the required data; keep the same output contract.
 7. Read [references/commands.md](references/commands.md) only when exact helper syntax, endpoint shapes, runtime config precedence, or write examples are needed.
@@ -37,7 +37,7 @@ Infer GitHub slugs from `GIT-ACCESS.md` identity only when unambiguous; otherwis
 
 - Stop clearly on missing/invalid auth; never expose tokens.
 - Use live API state rather than cached status.
-- Keep helper calls direct and route HTTP through `circleci-request`, never raw `curl`.
+- Keep launcher/helper calls direct and route fallback HTTP through `circleci-request`, never raw `curl`.
 - For uncertain endpoint semantics, consult the runtime API cache under `circleci-api-v2` per `AGENTS.md`.
 
 ## Outputs / Artifacts
