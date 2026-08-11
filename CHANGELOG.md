@@ -17,6 +17,9 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 ### Changed
 
+- **CircleCI CLI-first monitoring** — route `cli-ci-monitor` workflow, job,
+  output, cancel, and rerun operations through the local CLI while retaining an
+  explicit API-helper fallback.
 - **`cli-ci-monitor` PR conflicts** — resolve branches with local `gh`, check every
   five minutes alongside CI, then rebase and follow replacement CI within the deadline.
 - **Transport skill disclosure** — keep CircleCI and Confluence routing/safety in

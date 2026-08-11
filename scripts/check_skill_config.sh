@@ -163,6 +163,13 @@ check_circleci_config() {
   local env_file
   env_file=$(circleci_env_path)
 
+  if command -v circleci >/dev/null 2>&1; then
+    printf 'ok   circleci CLI available\n'
+  else
+    printf 'NEEDS circleci CLI (run check_skill_prereqs.sh circleci)\n'
+    issues=$((issues + 1))
+  fi
+
   if [[ -r "$env_file" ]]; then
     printf 'ok   circleci.env exists: %s\n' "$env_file"
   else
@@ -170,7 +177,7 @@ check_circleci_config() {
   fi
 
   if has_circleci_token; then
-    printf 'ok   CIRCLE_TOKEN source present\n'
+    printf 'ok   CircleCI CLI auth token source present\n'
   else
     printf 'NEEDS CIRCLE_TOKEN or CIRCLECI_TOKEN (export or %s)\n' "$env_file"
     print_circleci_setup

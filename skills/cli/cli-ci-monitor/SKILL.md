@@ -28,7 +28,7 @@ Monitor one workflow lineage through the bundled deterministic runner.
 ## First Read
 
 - Read CLI repository `AGENTS.md`.
-- Load `circleci`; follow its prerequisites, helper transport, and secret rules.
+- Load `circleci`; follow its prerequisites, CLI-first transport, and secret rules.
 - For PR monitoring, follow synced `GITHUB-ACCESS.md` and use local `gh` first.
 
 ## Workflow
@@ -41,7 +41,7 @@ Monitor one workflow lineage through the bundled deterministic runner.
    ```
 
 3. With `--pr-branch`, the runner resolves the PR via local `gh pr view`, checks immediately and every 300 seconds alongside CI, and returns `pr_conflict` plus `remaining_seconds` on conflict.
-4. Only when the user authorized monitor-and-retry, add `--retry-infra`. The runner uses one two-hour deadline, polls every 60 seconds, paginates jobs, follows rerun workflow IDs, and retries only structured `timedout`/`infrastructure_fail` results or narrow transient signatures in failed action output (such as a Jest test timeout or temporary network reset), with no code or ambiguous failures.
+4. Only when the user authorized monitor-and-retry, add `--retry-infra`. The runner uses the CircleCI CLI for workflow, job, output, cancel, and rerun operations; keeps one two-hour deadline; polls every 60 seconds; follows rerun workflow IDs; and retries only structured `timedout`/`infrastructure_fail` results or narrow transient signatures in failed output (such as a Jest test timeout or temporary network reset), with no code or ambiguous failures. Use `--request-helper <path>` only when CLI output or CircleCI Server compatibility is insufficient.
 5. On `pr_conflict`, stop monitoring the obsolete workflow; run `git-rebase-conflict-resolver`, then `cli-contributor`. Push only with user authorization. Resolve the replacement workflow and resume with `--timeout-seconds <remaining_seconds>` and the same branch; never guess ambiguous PR/workflow matches.
 6. Report transition lines and the final JSON. For code failures, suggest `cli-technical-analysis`.
 7. If a failed job remains ambiguous but CircleCI output explicitly proves timeout, missing heartbeat, executor startup failure, or runner loss, inspect via `circleci` and apply the same retry boundary manually. Never infer a transient failure from an ordinary nonzero exit.

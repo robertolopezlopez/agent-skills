@@ -82,12 +82,99 @@ def classify_failed_jobs(jobs, fetch_detail, fetch_output=lambda _detail: ""):
     return result
 
 
-def find_request_helper() -> Path:
+def find_cli_launcher() -> Path:
     for parent in Path(__file__).resolve().parents:
-        candidate = parent / "circleci/scripts/circleci-request"
+        candidate = parent / "circleci/scripts/circleci-cli"
         if candidate.is_file():
             return candidate
-    raise RuntimeError("circleci-request not found; sync the circleci skill")
+    raise RuntimeError("circleci-cli not found; sync the circleci skill")
+
+
+def normalize_cli_status(resource, running_failure="failed") -> str:
+    phase = str(resource.get("phase") or "").lower()
+    raw = str(
+        resource.get("outcome")
+        or resource.get("current_outcome")
+        or resource.get("status")
+        or ""
+    ).lower()
+    status = {"succeeded": "success", "errored": "error"}.get(raw, raw)
+    if phase in {"started", "running"}:
+        return running_failure if status in FAILED else "running"
+    if status:
+        return status
+    return "unknown" if phase == "ended" else phase or "unknown"
+
+
+class CLIClient:
+    def __init__(self, launcher: Path, run=subprocess.run):
+        self.launcher = launcher
+        self.run = run
+        self.workflows = {}
+
+    def command(self, *args, json_output=True):
+        completed = self.run(
+            [str(self.launcher), *args],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        return json.loads(completed.stdout) if json_output else None
+
+    def fetch_workflow(self, workflow_id: str):
+        workflow = self.command("workflow", "get", workflow_id, "--json")
+        workflow["status"] = normalize_cli_status(workflow, "failing")
+        self.workflows[workflow_id] = workflow
+        return workflow
+
+    def fetch_jobs(self, workflow_id: str):
+        workflow = self.workflows.get(workflow_id) or self.fetch_workflow(workflow_id)
+        return [
+            {**job, "status": normalize_cli_status(job)}
+            for job in workflow.get("jobs", [])
+        ]
+
+    def fetch_job_detail(self, job):
+        job_id = job.get("id")
+        if not job_id:
+            return {}
+        detail = self.command("job", "get", str(job_id), "--json")
+        detail.setdefault("outcome", normalize_cli_status(detail))
+        return detail
+
+    def fetch_failed_output(self, detail) -> str:
+        job_id = detail.get("id")
+        if not job_id:
+            return ""
+        messages = []
+        executions = detail.get("executions") or [{"index": 0}]
+        for execution in executions:
+            index = execution.get("index", 0)
+            args = ["job", "output", "list", str(job_id)]
+            if index:
+                args.extend(("--execution", str(index)))
+            payload = self.command(*args, "--json")
+            messages.extend(
+                str(step.get("output", ""))
+                for step in payload.get("steps", [])
+                if normalize_cli_status(step) in FAILED
+                or step.get("exit_code") not in {None, 0}
+            )
+        return "\n".join(messages)
+
+    def cancel_workflow(self, workflow_id: str):
+        self.command(
+            "workflow", "cancel", workflow_id, "--force", json_output=False
+        )
+
+    def rerun_workflow(self, workflow_id: str) -> str:
+        rerun = self.command(
+            "workflow", "rerun", workflow_id, "--from-failed", "--json"
+        )
+        next_id = rerun.get("workflow_id")
+        if not next_id:
+            raise RuntimeError("rerun response omitted workflow_id")
+        return next_id
 
 
 class Client:
@@ -114,7 +201,15 @@ class Client:
         return self.request("GET", path, root=f"{parsed.scheme}://{parsed.netloc}")
 
 
+def build_client(request_helper: Path | None, find_cli=find_cli_launcher):
+    if request_helper:
+        return Client(request_helper)
+    return CLIClient(find_cli())
+
+
 def fetch_jobs(client: Client, workflow_id: str):
+    if hasattr(client, "fetch_jobs"):
+        return client.fetch_jobs(workflow_id)
     items = []
     token = None
     while True:
@@ -127,6 +222,8 @@ def fetch_jobs(client: Client, workflow_id: str):
 
 
 def fetch_job_detail(client: Client, job):
+    if hasattr(client, "fetch_job_detail"):
+        return client.fetch_job_detail(job)
     slug = job.get("project_slug")
     number = job.get("job_number")
     if not slug or number is None:
@@ -137,6 +234,8 @@ def fetch_job_detail(client: Client, job):
 
 
 def fetch_failed_output(client: Client, detail) -> str:
+    if hasattr(client, "fetch_failed_output"):
+        return client.fetch_failed_output(detail)
     messages = []
     for step in detail.get("steps", []):
         for action in step.get("actions", []):
@@ -159,11 +258,25 @@ def fetch_failed_output(client: Client, detail) -> str:
 
 
 def rerun_workflow(client: Client, workflow_id: str, body: Path) -> str:
+    if hasattr(client, "rerun_workflow"):
+        return client.rerun_workflow(workflow_id)
     rerun = client.request("POST", f"/workflow/{workflow_id}/rerun", body)
     next_id = rerun.get("workflow_id")
     if not next_id:
         raise RuntimeError("rerun response omitted workflow_id")
     return next_id
+
+
+def fetch_workflow(client: Client, workflow_id: str):
+    if hasattr(client, "fetch_workflow"):
+        return client.fetch_workflow(workflow_id)
+    return client.request("GET", f"/workflow/{workflow_id}")
+
+
+def cancel_workflow(client: Client, workflow_id: str):
+    if hasattr(client, "cancel_workflow"):
+        return client.cancel_workflow(workflow_id)
+    return client.request("POST", f"/workflow/{workflow_id}/cancel")
 
 
 def monitor(
@@ -202,14 +315,14 @@ def monitor(
                     "pr": pr,
                     "remaining_seconds": max(0, int(deadline - clock())),
                 }
-        workflow = client.request("GET", f"/workflow/{workflow_id}")
+        workflow = fetch_workflow(client, workflow_id)
         status = str(workflow.get("status", "unknown")).lower()
         if status != last_status:
             print(f"attempt={attempt} workflow={workflow_id} status={status}", file=sys.stderr)
             last_status = status
         if status == "success":
             return {"status": status, "attempts": attempt, "workflow_ids": lineage}
-        if status in {"unauthorized", "canceled"}:
+        if status in {"unauthorized", "canceled", "not_run"}:
             return {"status": status, "attempts": attempt, "workflow_ids": lineage}
 
         jobs = fetch_jobs(client, workflow_id)
@@ -224,7 +337,9 @@ def monitor(
             and not classification["code"]
             and not classification["ambiguous"]
         )
-        if status in {"failed", "error"} or (status == "failing" and classification["code"]):
+        if status in FAILED - {"failing"} or (
+            status == "failing" and classification["code"]
+        ):
             if not retryable:
                 return {
                     "status": status,
@@ -239,9 +354,9 @@ def monitor(
             continue
 
         if status == "failing" and retryable:
-            client.request("POST", f"/workflow/{workflow_id}/cancel")
+            cancel_workflow(client, workflow_id)
             while clock() < deadline:
-                canceled = client.request("GET", f"/workflow/{workflow_id}")
+                canceled = fetch_workflow(client, workflow_id)
                 if str(canceled.get("status", "")).lower() == "canceled":
                     break
                 sleep(min(poll, max(0, deadline - clock())))
@@ -268,7 +383,7 @@ def main() -> int:
     args = parser.parse_args()
     try:
         result = monitor(
-            Client(args.request_helper or find_request_helper()),
+            build_client(args.request_helper),
             resolve_workflow_id(args.workflow),
             args.retry_infra,
             args.timeout_seconds,

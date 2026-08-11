@@ -1,0 +1,43 @@
+#!/bin/sh
+set -eu
+
+circleci_bin=$(command -v circleci 2>/dev/null) || {
+  echo "circleci CLI not found; run scripts/check_skill_prereqs.sh circleci" >&2
+  exit 127
+}
+
+agent_config_helper=""
+script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+search_dir=$script_dir
+while [ -n "$search_dir" ]; do
+  if [ -r "$search_dir/scripts/agent-config.sh" ]; then
+    agent_config_helper=$search_dir/scripts/agent-config.sh
+    break
+  fi
+  [ "$search_dir" = "/" ] && break
+  search_dir=$(dirname "$search_dir")
+done
+if [ -z "$agent_config_helper" ]; then
+  echo "could not find scripts/agent-config.sh next to the agent-skills manifest helpers (install/sync repo copies)" >&2
+  exit 1
+fi
+
+# shellcheck source=/dev/null
+agent_config_home_override=${AGENT_CONFIG_HOME:-}
+. "$agent_config_helper"
+[ -z "$agent_config_home_override" ] || AGENT_CONFIG_HOME=$agent_config_home_override
+agent_config_init "$script_dir"
+
+token=${CIRCLE_TOKEN:-${CIRCLECI_TOKEN:-}}
+if [ -z "$token" ]; then
+  if ! token=$(agent_config_read_var CIRCLE_TOKEN circleci.env); then
+    token=$(agent_config_read_var CIRCLECI_TOKEN circleci.env) || {
+      echo "set CIRCLE_TOKEN or CIRCLECI_TOKEN, or define one in $(agent_config_defaults_hint circleci.env)" >&2
+      exit 1
+    }
+  fi
+fi
+
+CIRCLE_TOKEN=$token
+export CIRCLE_TOKEN
+exec "$circleci_bin" "$@"

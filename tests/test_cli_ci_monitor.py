@@ -20,6 +20,199 @@ def load_module():
 
 
 class MonitorWorkflowTest(unittest.TestCase):
+    def test_cli_client_gets_and_normalizes_workflow_jobs(self):
+        module = load_module()
+        calls = []
+
+        def run(command, **kwargs):
+            calls.append((command, kwargs))
+            return subprocess.CompletedProcess(
+                command,
+                0,
+                stdout=json.dumps(
+                    {
+                        "id": "workflow",
+                        "phase": "started",
+                        "current_outcome": "failed",
+                        "jobs": [
+                            {
+                                "id": "job-id",
+                                "name": "acceptance",
+                                "phase": "ended",
+                                "outcome": "failed",
+                            }
+                        ],
+                    }
+                ),
+            )
+
+        client = module.CLIClient(Path("/circleci-cli"), run=run)
+
+        workflow = client.fetch_workflow("workflow")
+        jobs = client.fetch_jobs("workflow")
+
+        self.assertEqual(workflow["status"], "failing")
+        self.assertEqual(jobs[0]["status"], "failed")
+        self.assertEqual(
+            calls,
+            [
+                (
+                    ["/circleci-cli", "workflow", "get", "workflow", "--json"],
+                    {"check": True, "capture_output": True, "text": True},
+                )
+            ],
+        )
+
+    def test_normalizes_circleci_cli_terminal_outcomes(self):
+        module = load_module()
+
+        self.assertEqual(
+            module.normalize_cli_status({"phase": "ended", "outcome": "succeeded"}),
+            "success",
+        )
+        self.assertEqual(
+            module.normalize_cli_status({"phase": "ended", "outcome": "errored"}),
+            "error",
+        )
+        self.assertEqual(
+            module.normalize_cli_status(
+                {"phase": "started", "current_outcome": "succeeded"}
+            ),
+            "running",
+        )
+
+    def test_cli_client_fetches_failed_job_output(self):
+        module = load_module()
+        calls = []
+        responses = [
+            {
+                "id": "job-id",
+                "status": "failed",
+                "executions": [{"index": 0}],
+            },
+            {
+                "id": "job-id",
+                "steps": [
+                    {"name": "checkout", "outcome": "success", "output": "ok"},
+                    {
+                        "name": "test",
+                        "outcome": "failed",
+                        "exit_code": 1,
+                        "output": 'thrown: "Exceeded timeout of 120000 ms for a test."',
+                    },
+                ],
+            },
+        ]
+
+        def run(command, **_kwargs):
+            calls.append(command)
+            return subprocess.CompletedProcess(command, 0, stdout=json.dumps(responses.pop(0)))
+
+        client = module.CLIClient(Path("/circleci-cli"), run=run)
+        detail = client.fetch_job_detail({"id": "job-id"})
+        output = client.fetch_failed_output(detail)
+
+        self.assertIn("Exceeded timeout", output)
+        self.assertEqual(
+            calls,
+            [
+                ["/circleci-cli", "job", "get", "job-id", "--json"],
+                ["/circleci-cli", "job", "output", "list", "job-id", "--json"],
+            ],
+        )
+
+    def test_cli_client_fetches_output_from_parallel_executions(self):
+        module = load_module()
+        calls = []
+
+        def run(command, **_kwargs):
+            calls.append(command)
+            execution = (
+                command[command.index("--execution") + 1]
+                if "--execution" in command
+                else "0"
+            )
+            return subprocess.CompletedProcess(
+                command,
+                0,
+                stdout=json.dumps(
+                    {
+                        "steps": [
+                            {
+                                "outcome": "failed",
+                                "exit_code": 1,
+                                "output": f"failure for {execution}",
+                            }
+                        ]
+                    }
+                ),
+            )
+
+        client = module.CLIClient(Path("/circleci-cli"), run=run)
+        output = client.fetch_failed_output(
+            {"id": "job-id", "executions": [{"index": 0}, {"index": 1}]}
+        )
+
+        self.assertIn("failure for 0", output)
+        self.assertIn("failure for 1", output)
+        self.assertEqual(
+            calls,
+            [
+                ["/circleci-cli", "job", "output", "list", "job-id", "--json"],
+                [
+                    "/circleci-cli",
+                    "job",
+                    "output",
+                    "list",
+                    "job-id",
+                    "--execution",
+                    "1",
+                    "--json",
+                ],
+            ],
+        )
+
+    def test_cli_client_cancels_and_reruns_from_failed(self):
+        module = load_module()
+        calls = []
+
+        def run(command, **_kwargs):
+            calls.append(command)
+            stdout = json.dumps({"workflow_id": "new"}) if "rerun" in command else ""
+            return subprocess.CompletedProcess(command, 0, stdout=stdout)
+
+        client = module.CLIClient(Path("/circleci-cli"), run=run)
+
+        client.cancel_workflow("old")
+        workflow_id = client.rerun_workflow("old")
+
+        self.assertEqual(workflow_id, "new")
+        self.assertEqual(
+            calls,
+            [
+                ["/circleci-cli", "workflow", "cancel", "old", "--force"],
+                [
+                    "/circleci-cli",
+                    "workflow",
+                    "rerun",
+                    "old",
+                    "--from-failed",
+                    "--json",
+                ],
+            ],
+        )
+
+    def test_build_client_defaults_to_cli_and_keeps_explicit_request_fallback(self):
+        module = load_module()
+
+        cli = module.build_client(None, find_cli=lambda: Path("/circleci-cli"))
+        request = module.build_client(Path("/circleci-request"))
+
+        self.assertIsInstance(cli, module.CLIClient)
+        self.assertEqual(cli.launcher, Path("/circleci-cli"))
+        self.assertIsInstance(request, module.Client)
+        self.assertEqual(request.helper, Path("/circleci-request"))
+
     def test_resolves_workflow_id_from_circleci_url(self):
         module = load_module()
         workflow_id = "c444ed26-4e07-4bc0-9e16-37e884566f0d"
@@ -200,6 +393,30 @@ class MonitorWorkflowTest(unittest.TestCase):
                 if method == "GET" and path == "/workflow/new/job":
                     return {"items": []}
                 raise AssertionError((method, path, root))
+
+        result = module.monitor(FakeClient(), "old", True, timeout=5, poll=0)
+
+        self.assertEqual(result["status"], "success")
+        self.assertEqual(result["workflow_ids"], ["old", "new"])
+
+    def test_retries_terminal_cli_infrastructure_outcome(self):
+        module = load_module()
+
+        class FakeClient:
+            def fetch_workflow(self, workflow_id):
+                return {"status": "timedout" if workflow_id == "old" else "success"}
+
+            def fetch_jobs(self, workflow_id):
+                return [{"id": "job", "name": "test", "status": "timedout"}]
+
+            def fetch_job_detail(self, _job):
+                return {"id": "job", "status": "timedout"}
+
+            def fetch_failed_output(self, _detail):
+                return ""
+
+            def rerun_workflow(self, _workflow_id):
+                return "new"
 
         result = module.monitor(FakeClient(), "old", True, timeout=5, poll=0)
 
