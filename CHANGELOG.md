@@ -17,6 +17,8 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 ### Changed
 
+- **`cli-ci-monitor` PR conflicts** — resolve branches with local `gh`, check every
+  five minutes alongside CI, then rebase and follow replacement CI within the deadline.
 - **Transport skill disclosure** — keep CircleCI and Confluence routing/safety in
   `SKILL.md` while loading exact helper commands and config details only on demand.
 - **GitLab transport** — add a normalized `gl-fetch` wrapper over `glab api` and

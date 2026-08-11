@@ -17,6 +17,7 @@ UUID_RE = re.compile(r"^[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$")
 FAILED = {"failed", "failing", "error", "timedout", "infrastructure_fail"}
 IGNORED = {"canceled", "not_run"}
 ENVIRONMENT = {"timedout", "infrastructure_fail"}
+PR_FIELDS = "number,url,headRefName,baseRefName,mergeable,mergeStateStatus"
 TRANSIENT_OUTPUT_RE = re.compile(
     r"Exceeded timeout of \d+ ms for a test|"
     r"\b(?:ECONNRESET|ETIMEDOUT|EAI_AGAIN)\b|"
@@ -33,6 +34,16 @@ def resolve_workflow_id(value: str) -> str:
     if UUID_RE.fullmatch(workflow_id):
         return workflow_id
     raise ValueError("expected a workflow UUID or CircleCI URL containing workflowId")
+
+
+def resolve_pr(branch: str, run=subprocess.run):
+    completed = run(
+        ["gh", "pr", "view", branch, "--json", PR_FIELDS],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return json.loads(completed.stdout)
 
 
 def classify_failed_jobs(jobs, fetch_detail, fetch_output=lambda _detail: ""):
@@ -155,15 +166,42 @@ def rerun_workflow(client: Client, workflow_id: str, body: Path) -> str:
     return next_id
 
 
-def monitor(client: Client, workflow_id: str, retry_infra: bool, timeout: int, poll: int):
-    started = time.monotonic()
+def monitor(
+    client: Client,
+    workflow_id: str,
+    retry_infra: bool,
+    timeout: int,
+    poll: int,
+    pr_branch: str | None = None,
+    pr_poll: int = 300,
+    fetch_pr=None,
+    clock=None,
+    sleep=None,
+):
+    clock = clock or time.monotonic
+    sleep = sleep or time.sleep
+    fetch_pr = fetch_pr or resolve_pr
+    started = clock()
     deadline = started + timeout
+    next_pr_check = started
     lineage = [workflow_id]
     attempt = 1
     last_status = None
     rerun_body = Path(__file__).parents[1] / "assets/rerun-from-failed.json"
 
-    while time.monotonic() < deadline:
+    while clock() < deadline:
+        now = clock()
+        if pr_branch and now >= next_pr_check:
+            pr = fetch_pr(pr_branch)
+            next_pr_check = now + pr_poll
+            if pr.get("mergeable") == "CONFLICTING" or pr.get("mergeStateStatus") == "DIRTY":
+                return {
+                    "status": "pr_conflict",
+                    "attempts": attempt,
+                    "workflow_ids": lineage,
+                    "pr": pr,
+                    "remaining_seconds": max(0, int(deadline - clock())),
+                }
         workflow = client.request("GET", f"/workflow/{workflow_id}")
         status = str(workflow.get("status", "unknown")).lower()
         if status != last_status:
@@ -202,11 +240,11 @@ def monitor(client: Client, workflow_id: str, retry_infra: bool, timeout: int, p
 
         if status == "failing" and retryable:
             client.request("POST", f"/workflow/{workflow_id}/cancel")
-            while time.monotonic() < deadline:
+            while clock() < deadline:
                 canceled = client.request("GET", f"/workflow/{workflow_id}")
                 if str(canceled.get("status", "")).lower() == "canceled":
                     break
-                time.sleep(min(poll, max(0, deadline - time.monotonic())))
+                sleep(min(poll, max(0, deadline - clock())))
             else:
                 return {"status": "timeout", "attempts": attempt, "workflow_ids": lineage}
             workflow_id = rerun_workflow(client, workflow_id, rerun_body)
@@ -214,7 +252,7 @@ def monitor(client: Client, workflow_id: str, retry_infra: bool, timeout: int, p
             attempt += 1
             last_status = None
             continue
-        time.sleep(min(poll, max(0, deadline - time.monotonic())))
+        sleep(min(poll, max(0, deadline - clock())))
 
     return {"status": "timeout", "attempts": attempt, "workflow_ids": lineage}
 
@@ -225,6 +263,7 @@ def main() -> int:
     parser.add_argument("--retry-infra", action="store_true")
     parser.add_argument("--timeout-seconds", type=int, default=7200)
     parser.add_argument("--poll-seconds", type=int, default=60)
+    parser.add_argument("--pr-branch")
     parser.add_argument("--request-helper", type=Path)
     args = parser.parse_args()
     try:
@@ -234,8 +273,9 @@ def main() -> int:
             args.retry_infra,
             args.timeout_seconds,
             args.poll_seconds,
+            pr_branch=args.pr_branch,
         )
-    except (ValueError, RuntimeError, subprocess.SubprocessError, json.JSONDecodeError) as error:
+    except (OSError, ValueError, RuntimeError, subprocess.SubprocessError, json.JSONDecodeError) as error:
         print(str(error), file=sys.stderr)
         return 2
     print(json.dumps(result, separators=(",", ":")))

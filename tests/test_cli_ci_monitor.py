@@ -1,4 +1,6 @@
 import importlib.util
+import json
+import subprocess
 import unittest
 from pathlib import Path
 
@@ -23,6 +25,83 @@ class MonitorWorkflowTest(unittest.TestCase):
         workflow_id = "c444ed26-4e07-4bc0-9e16-37e884566f0d"
         url = f"https://app.circleci.com/pipelines/gh/snyk/cli/38962/details?job=x&workflowId={workflow_id}"
         self.assertEqual(module.resolve_workflow_id(url), workflow_id)
+
+    def test_resolves_pr_from_branch_with_local_gh(self):
+        module = load_module()
+        calls = []
+
+        def run(command, **kwargs):
+            calls.append((command, kwargs))
+            return subprocess.CompletedProcess(
+                command,
+                0,
+                stdout=json.dumps({"number": 123, "url": "https://github.com/snyk/cli/pull/123"}),
+            )
+
+        result = module.resolve_pr("feature/branch", run=run)
+
+        self.assertEqual(result["number"], 123)
+        self.assertEqual(calls[0][0][:4], ["gh", "pr", "view", "feature/branch"])
+
+    def test_returns_pr_conflict_with_remaining_deadline(self):
+        module = load_module()
+        result = module.monitor(
+            object(),
+            "workflow",
+            False,
+            timeout=7200,
+            poll=60,
+            pr_branch="feature/branch",
+            fetch_pr=lambda _branch: {
+                "number": 123,
+                "url": "https://github.com/snyk/cli/pull/123",
+                "mergeable": "CONFLICTING",
+            },
+            clock=lambda: 100,
+        )
+
+        self.assertEqual(result["status"], "pr_conflict")
+        self.assertEqual(result["pr"]["number"], 123)
+        self.assertEqual(result["remaining_seconds"], 7200)
+
+    def test_checks_pr_every_five_minutes_while_monitoring_ci(self):
+        module = load_module()
+        now = 0
+        checks = []
+
+        class FakeClient:
+            def request(self, method, path, body=None, root=None):
+                if path == "/workflow/workflow":
+                    return {"status": "success" if now >= 601 else "running"}
+                if path == "/workflow/workflow/job":
+                    return {"items": []}
+                raise AssertionError((method, path, body, root))
+
+        def clock():
+            return now
+
+        def sleep(seconds):
+            nonlocal now
+            now += seconds
+
+        def fetch_pr(branch):
+            checks.append((now, branch))
+            return {"number": 123, "mergeable": "MERGEABLE"}
+
+        result = module.monitor(
+            FakeClient(),
+            "workflow",
+            False,
+            timeout=700,
+            poll=60,
+            pr_branch="feature/branch",
+            fetch_pr=fetch_pr,
+            clock=clock,
+            sleep=sleep,
+        )
+
+        self.assertEqual(result["status"], "success")
+        self.assertEqual(checks, [(0, "feature/branch"), (300, "feature/branch"), (600, "feature/branch")])
 
     def test_classifies_only_structured_infrastructure_evidence_as_retryable(self):
         module = load_module()

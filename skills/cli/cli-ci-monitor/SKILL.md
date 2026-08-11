@@ -1,6 +1,6 @@
 ---
 name: cli-ci-monitor
-description: Monitor or babysit a CLI CircleCI workflow for up to two hours, automatically canceling and rerunning confirmed infrastructure failures or high-confidence transient errors.
+description: Monitor a CLI CircleCI workflow or PR for up to two hours; retry transient failures, resolve PR conflicts with rebase/contributor skills, and follow replacement workflows.
 ---
 
 # CLI CI Monitor
@@ -21,6 +21,7 @@ Monitor one workflow lineage through the bundled deterministic runner.
 ## Inputs
 
 - Workflow ID or any CircleCI URL containing `workflowId`.
+- Optional PR URL, number, or branch; resolve its branch with local `gh`, or use the workflow revision only for one matching open PR.
 - Defaults: 2-hour shared deadline and 60-second polling. Never reset deadline after reruns.
 - Monitor-and-retry requests authorize cancel/rerun below; monitor-only requests remain read-only.
 
@@ -28,19 +29,22 @@ Monitor one workflow lineage through the bundled deterministic runner.
 
 - Read CLI repository `AGENTS.md`.
 - Load `circleci`; follow its prerequisites, helper transport, and secret rules.
+- For PR monitoring, follow synced `GITHUB-ACCESS.md` and use local `gh` first.
 
 ## Workflow
 
 1. Resolve `scripts/monitor_workflow.py` relative to this skill.
-2. For monitor-only requests run:
+2. Run, adding `--pr-branch` when known:
 
    ```bash
-   scripts/monitor_workflow.py '<workflow-id-or-url>'
+   scripts/monitor_workflow.py '<workflow-id-or-url>' --pr-branch '<branch>'
    ```
 
-3. Only when the user authorized monitor-and-retry, add `--retry-infra`. The runner uses one two-hour deadline, polls every 60 seconds, paginates jobs, follows rerun workflow IDs, and retries only structured `timedout`/`infrastructure_fail` results or narrow transient signatures in failed action output (such as a Jest test timeout or temporary network reset), with no code or ambiguous failures.
-4. Report transition lines and the final JSON. For code failures, suggest `cli-technical-analysis`.
-5. If a failed job remains ambiguous but CircleCI output explicitly proves timeout, missing heartbeat, executor startup failure, or runner loss, inspect via `circleci` and apply the same retry boundary manually. Never infer a transient failure from an ordinary nonzero exit.
+3. With `--pr-branch`, the runner resolves the PR via local `gh pr view`, checks immediately and every 300 seconds alongside CI, and returns `pr_conflict` plus `remaining_seconds` on conflict.
+4. Only when the user authorized monitor-and-retry, add `--retry-infra`. The runner uses one two-hour deadline, polls every 60 seconds, paginates jobs, follows rerun workflow IDs, and retries only structured `timedout`/`infrastructure_fail` results or narrow transient signatures in failed action output (such as a Jest test timeout or temporary network reset), with no code or ambiguous failures.
+5. On `pr_conflict`, stop monitoring the obsolete workflow; run `git-rebase-conflict-resolver`, then `cli-contributor`. Push only with user authorization. Resolve the replacement workflow and resume with `--timeout-seconds <remaining_seconds>` and the same branch; never guess ambiguous PR/workflow matches.
+6. Report transition lines and the final JSON. For code failures, suggest `cli-technical-analysis`.
+7. If a failed job remains ambiguous but CircleCI output explicitly proves timeout, missing heartbeat, executor startup failure, or runner loss, inspect via `circleci` and apply the same retry boundary manually. Never infer a transient failure from an ordinary nonzero exit.
 
 ## Validation
 
