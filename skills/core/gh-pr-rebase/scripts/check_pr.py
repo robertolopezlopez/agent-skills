@@ -19,6 +19,8 @@ def inspect_pr(ref, run=subprocess.run):
     pr = json.loads(result.stdout)
     if pr.get("mergeable") == "CONFLICTING" or pr.get("mergeStateStatus") == "DIRTY":
         pr["status"] = "conflict"
+    elif pr.get("mergeStateStatus") == "BEHIND":
+        pr["status"] = "out_of_date"
     elif pr.get("mergeable") == "MERGEABLE":
         pr["status"] = "clean"
     else:

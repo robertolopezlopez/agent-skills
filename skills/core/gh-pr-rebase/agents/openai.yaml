@@ -1,4 +1,4 @@
 interface:
   display_name: "GitHub PR Rebase"
   short_description: "Check PR conflicts and rebase safely"
-  default_prompt: "Use $gh-pr-rebase to check this pull request, rebase confirmed conflicts onto its target branch, and force-push the rebased head branch."
+  default_prompt: "Use $gh-pr-rebase to update this conflicted or out-of-date pull request while preserving its source changes."

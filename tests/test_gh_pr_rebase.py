@@ -41,6 +41,18 @@ class CheckPRTest(unittest.TestCase):
 
         self.assertEqual(module.inspect_pr("feature", run)["status"], "unknown")
 
+    def test_marks_behind_pr_out_of_date_even_when_mergeable(self):
+        module = load_module()
+        run = lambda command, **kwargs: subprocess.CompletedProcess(
+            command,
+            0,
+            stdout=json.dumps(
+                {"mergeable": "MERGEABLE", "mergeStateStatus": "BEHIND"}
+            ),
+        )
+
+        self.assertEqual(module.inspect_pr("feature", run)["status"], "out_of_date")
+
 
 if __name__ == "__main__":
     unittest.main()
