@@ -1,4 +1,4 @@
 interface:
   display_name: "Guided Experience Service Parallel Tests"
   short_description: "Run parallel tests and analyze failures"
-  default_prompt: "Use this skill to run guided-experience-service unit and integration tests in parallel with 2 workers, using 10 pytest workers inside each suite, run make install-splunk-app-deps immediately before the integration suite, then use repository-technical-analysis plus guided-experience-service-technical-analysis to review failures or suspicious errors and report results separately."
+  default_prompt: "Use $guided-experience-service-parallel-tests to run guided-experience-service unit and integration suites and analyze any failures."
