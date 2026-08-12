@@ -314,9 +314,9 @@ def monitor(
         if pr_branch and now >= next_pr_check:
             pr = fetch_pr(pr_branch)
             next_pr_check = now + pr_poll
-            if pr.get("status") == "conflict":
+            if pr.get("status") in {"conflict", "out_of_date"}:
                 return {
-                    "status": "pr_conflict",
+                    "status": f"pr_{pr['status']}",
                     "attempts": attempt,
                     "workflow_ids": lineage,
                     "pr": pr,

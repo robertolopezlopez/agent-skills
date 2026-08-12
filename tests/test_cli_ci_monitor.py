@@ -257,6 +257,22 @@ class MonitorWorkflowTest(unittest.TestCase):
         self.assertEqual(result["pr"]["number"], 123)
         self.assertEqual(result["remaining_seconds"], 7200)
 
+    def test_returns_pr_out_of_date_with_remaining_deadline(self):
+        module = load_module()
+        result = module.monitor(
+            object(),
+            "workflow",
+            False,
+            timeout=7200,
+            poll=60,
+            pr_branch="feature/branch",
+            fetch_pr=lambda _branch: {"number": 123, "status": "out_of_date"},
+            clock=lambda: 100,
+        )
+
+        self.assertEqual(result["status"], "pr_out_of_date")
+        self.assertEqual(result["remaining_seconds"], 7200)
+
     def test_checks_pr_every_five_minutes_while_monitoring_ci(self):
         module = load_module()
         now = 0
