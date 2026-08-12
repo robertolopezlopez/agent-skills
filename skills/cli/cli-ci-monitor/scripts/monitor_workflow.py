@@ -387,7 +387,7 @@ def monitor(
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("workflow")
-    parser.add_argument("--retry-infra", action="store_true")
+    parser.add_argument("--retry-infra", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--timeout-seconds", type=int, default=7200)
     parser.add_argument("--poll-seconds", type=int, default=60)
     parser.add_argument("--pr-branch")

@@ -23,7 +23,7 @@ Monitor one workflow lineage through the bundled deterministic runner.
 - Workflow ID or any CircleCI URL containing `workflowId`.
 - Optional PR URL, number, or branch; resolve its branch with local `gh`, or use the workflow revision only for one matching open PR.
 - Defaults: 2-hour shared deadline and 60-second polling. Never reset deadline after reruns.
-- Monitor-and-retry requests authorize cancel/rerun below; monitor-only requests remain read-only.
+- Retry proven transient/environment failures by default. Only explicit monitor-only or do-not-retry requests add `--no-retry-infra` and remain read-only.
 
 ## First Read
 
@@ -41,8 +41,8 @@ Monitor one workflow lineage through the bundled deterministic runner.
    ```
 
 3. With `--pr-branch`, call `gh-pr-rebase` immediately and every 300 seconds alongside CI. On conflict or `BEHIND`, let it rebase onto the PR target; return `pr_conflict` or `pr_out_of_date` plus `remaining_seconds` so replacement CI can resume within the deadline.
-4. Only when the user authorized monitor-and-retry, add `--retry-infra`. The runner uses the CircleCI CLI for workflow, job, output, cancel, and rerun operations; keeps one two-hour deadline; polls every 60 seconds; sounds the terminal alert when a failure needs attention; follows rerun workflow IDs; and retries only structured `timedout`/`infrastructure_fail` results or narrow transient signatures in failed output (such as a Jest test timeout or temporary network reset), with no code or ambiguous failures. Use `--request-helper <path>` only when CLI output or CircleCI Server compatibility is insufficient.
-5. As soon as any job fails, inspect its output without waiting for unrelated running jobs. The runner immediately retries proven transient/environment failures when authorized; otherwise it returns `failing` with classification, current workflow, and remaining deadline. Run `cli-technical-analysis` immediately on those completed failures. If analysis proves a transient/environment cause and monitor-and-retry was authorized, cancel the current workflow, wait for `canceled`, rerun from failed, and resume within the original deadline; never retry code or ambiguous failures.
+4. The runner retries by default. Add `--no-retry-infra` only when the user explicitly requests monitor-only or no retries. It uses the CircleCI CLI for workflow, job, output, cancel, and rerun operations; keeps one two-hour deadline; polls every 60 seconds; sounds the terminal alert when a failure needs attention; follows rerun workflow IDs; and retries only structured `timedout`/`infrastructure_fail` results or narrow transient signatures in failed output (such as a Jest test timeout or temporary network reset), with no code or ambiguous failures. Use `--request-helper <path>` only when CLI output or CircleCI Server compatibility is insufficient.
+5. As soon as any job fails, inspect its output without waiting for unrelated running jobs. Unless retries were explicitly disabled, immediately cancel and rerun from failed when the runner or `cli-technical-analysis` proves a transient/environment cause, then resume within the original deadline. Otherwise return `failing` with classification, current workflow, and remaining deadline; never retry code or ambiguous failures.
 6. After `gh-pr-rebase` updates the branch, stop the obsolete workflow, run `cli-contributor`, resolve replacement CI, and resume with its `remaining_seconds` and the same branch; never guess ambiguous matches.
 7. On a final non-transient failure, present the diagnosis, then stop.
 8. If a failed job remains ambiguous but CircleCI output explicitly proves timeout, missing heartbeat, executor startup failure, or runner loss, inspect via `circleci` and apply the same retry boundary manually. Never infer a transient failure from an ordinary nonzero exit.
