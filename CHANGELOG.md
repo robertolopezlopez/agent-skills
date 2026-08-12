@@ -17,6 +17,8 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 ### Changed
 
+- **PR conflict rebasing** — `private-ci-monitor` calls `gh-pr-rebase` every five
+  minutes; confirmed conflicts rebase onto the PR target while preserving both sides.
 - **`private-ci-monitor` diagnosis** — analyze final non-transient failures directly,
   present the diagnosis, then stop.
 - **CircleCI CLI-first monitoring** — route `private-ci-monitor` workflow, job,
