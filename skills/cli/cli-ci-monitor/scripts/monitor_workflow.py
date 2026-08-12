@@ -297,9 +297,11 @@ def monitor(
     fetch_pr=None,
     clock=None,
     sleep=None,
+    alert=None,
 ):
     clock = clock or time.monotonic
     sleep = sleep or time.sleep
+    alert = alert or (lambda: sys.stderr.write("\a"))
     fetch_pr = fetch_pr or inspect_pr
     started = clock()
     deadline = started + timeout
@@ -345,14 +347,17 @@ def monitor(
             and not classification["ambiguous"]
         )
         if status in FAILED - {"failing"} or (
-            status == "failing" and classification["code"]
+            status == "failing" and any(classification.values()) and not retryable
         ):
             if not retryable:
+                alert()
                 return {
                     "status": status,
                     "attempts": attempt,
                     "workflow_ids": lineage,
                     "classification": classification,
+                    "current_workflow": workflow_id,
+                    "remaining_seconds": max(0, int(deadline - clock())),
                 }
             workflow_id = rerun_workflow(client, workflow_id, rerun_body)
             lineage.append(workflow_id)

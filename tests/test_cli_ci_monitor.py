@@ -439,6 +439,74 @@ class MonitorWorkflowTest(unittest.TestCase):
         self.assertEqual(result["status"], "success")
         self.assertEqual(result["workflow_ids"], ["old", "new"])
 
+    def test_alerts_once_when_failing_state_needs_attention(self):
+        module = load_module()
+        alerts = []
+
+        class FakeClient:
+            def fetch_workflow(self, _workflow_id):
+                return {"status": "failing"}
+
+            def fetch_jobs(self, _workflow_id):
+                return [{"id": "job", "name": "test", "status": "failed"}]
+
+            def fetch_job_detail(self, _job):
+                return {"id": "job", "outcome": "failed"}
+
+            def fetch_failed_output(self, _detail):
+                return "assertion failed"
+
+        result = module.monitor(
+            FakeClient(),
+            "workflow",
+            False,
+            timeout=5,
+            poll=0,
+            alert=lambda: alerts.append("alert"),
+        )
+
+        self.assertEqual(result["status"], "failing")
+        self.assertEqual(alerts, ["alert"])
+
+    def test_returns_early_for_failed_job_while_other_job_runs(self):
+        module = load_module()
+        now = 100
+
+        class FakeClient:
+            def fetch_workflow(self, _workflow_id):
+                return {"status": "failing"}
+
+            def fetch_jobs(self, _workflow_id):
+                return [
+                    {"id": "failed", "name": "Linux arm64", "status": "failed"},
+                    {"id": "running", "name": "Windows", "status": "running"},
+                ]
+
+            def fetch_job_detail(self, _job):
+                return {"id": "failed", "outcome": "infrastructure_fail"}
+
+            def fetch_failed_output(self, _detail):
+                return ""
+
+        def sleep(seconds):
+            nonlocal now
+            now += seconds
+
+        result = module.monitor(
+            FakeClient(),
+            "workflow",
+            False,
+            timeout=120,
+            poll=60,
+            clock=lambda: now,
+            sleep=sleep,
+            alert=lambda: None,
+        )
+
+        self.assertEqual(result["status"], "failing")
+        self.assertEqual(result["classification"]["environment"], ["Linux arm64"])
+        self.assertEqual(result["remaining_seconds"], 120)
+
 
 if __name__ == "__main__":
     unittest.main()
