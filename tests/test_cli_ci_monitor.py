@@ -219,7 +219,7 @@ class MonitorWorkflowTest(unittest.TestCase):
         url = f"https://app.circleci.com/pipelines/gh/snyk/cli/38962/details?job=x&workflowId={workflow_id}"
         self.assertEqual(module.resolve_workflow_id(url), workflow_id)
 
-    def test_resolves_pr_from_branch_with_local_gh(self):
+    def test_uses_gh_pr_rebase_helper(self):
         module = load_module()
         calls = []
 
@@ -228,13 +228,13 @@ class MonitorWorkflowTest(unittest.TestCase):
             return subprocess.CompletedProcess(
                 command,
                 0,
-                stdout=json.dumps({"number": 123, "url": "https://github.com/snyk/cli/pull/123"}),
+                stdout=json.dumps({"number": 123, "status": "clean"}),
             )
 
-        result = module.resolve_pr("feature/branch", run=run)
+        result = module.inspect_pr("feature/branch", Path("/monitor-pr"), run=run)
 
         self.assertEqual(result["number"], 123)
-        self.assertEqual(calls[0][0][:4], ["gh", "pr", "view", "feature/branch"])
+        self.assertEqual(calls[0][0], ["/monitor-pr", "feature/branch"])
 
     def test_returns_pr_conflict_with_remaining_deadline(self):
         module = load_module()
@@ -248,7 +248,7 @@ class MonitorWorkflowTest(unittest.TestCase):
             fetch_pr=lambda _branch: {
                 "number": 123,
                 "url": "https://github.com/snyk/cli/pull/123",
-                "mergeable": "CONFLICTING",
+                "status": "conflict",
             },
             clock=lambda: 100,
         )
@@ -279,7 +279,7 @@ class MonitorWorkflowTest(unittest.TestCase):
 
         def fetch_pr(branch):
             checks.append((now, branch))
-            return {"number": 123, "mergeable": "MERGEABLE"}
+            return {"number": 123, "status": "clean"}
 
         result = module.monitor(
             FakeClient(),

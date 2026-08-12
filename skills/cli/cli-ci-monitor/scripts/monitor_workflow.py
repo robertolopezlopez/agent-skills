@@ -17,7 +17,6 @@ UUID_RE = re.compile(r"^[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$")
 FAILED = {"failed", "failing", "error", "timedout", "infrastructure_fail"}
 IGNORED = {"canceled", "not_run"}
 ENVIRONMENT = {"timedout", "infrastructure_fail"}
-PR_FIELDS = "number,url,headRefName,baseRefName,mergeable,mergeStateStatus"
 TRANSIENT_OUTPUT_RE = re.compile(
     r"Exceeded timeout of \d+ ms for a test|"
     r"\b(?:ECONNRESET|ETIMEDOUT|EAI_AGAIN)\b|"
@@ -36,9 +35,17 @@ def resolve_workflow_id(value: str) -> str:
     raise ValueError("expected a workflow UUID or CircleCI URL containing workflowId")
 
 
-def resolve_pr(branch: str, run=subprocess.run):
+def find_pr_rebase() -> Path:
+    for parent in Path(__file__).resolve().parents:
+        candidate = parent / "gh-pr-rebase/scripts/check_pr.py"
+        if candidate.is_file():
+            return candidate
+    raise RuntimeError("gh-pr-rebase not found; sync the gh-pr-rebase skill")
+
+
+def inspect_pr(branch: str, helper=None, run=subprocess.run):
     completed = run(
-        ["gh", "pr", "view", branch, "--json", PR_FIELDS],
+        [str(helper or find_pr_rebase()), branch],
         check=True,
         capture_output=True,
         text=True,
@@ -293,7 +300,7 @@ def monitor(
 ):
     clock = clock or time.monotonic
     sleep = sleep or time.sleep
-    fetch_pr = fetch_pr or resolve_pr
+    fetch_pr = fetch_pr or inspect_pr
     started = clock()
     deadline = started + timeout
     next_pr_check = started
@@ -307,7 +314,7 @@ def monitor(
         if pr_branch and now >= next_pr_check:
             pr = fetch_pr(pr_branch)
             next_pr_check = now + pr_poll
-            if pr.get("mergeable") == "CONFLICTING" or pr.get("mergeStateStatus") == "DIRTY":
+            if pr.get("status") == "conflict":
                 return {
                     "status": "pr_conflict",
                     "attempts": attempt,

@@ -54,6 +54,14 @@ skills:
     type: core
     repo_scope: generic
     release_group: core
+  - name: gh-pr-rebase
+    path: skills/core/gh-pr-rebase
+    status: stable
+    type: core
+    repo_scope: generic
+    release_group: core
+    companion_skills:
+      - git-rebase-conflict-resolver
   - name: github-pr-comment-analysis
     path: skills/core/github-pr-comment-analysis
     status: stable
@@ -171,6 +179,7 @@ skills:
     release_group: cli
     companion_skills:
       - circleci
+      - gh-pr-rebase
       - cli-technical-analysis
   - name: cli-technical-analysis
     path: skills/cli/technical-analysis
