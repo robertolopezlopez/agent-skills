@@ -33,6 +33,7 @@ Accept a shift window, queue snapshot, issue list, or handoff. Research/triage/r
    - new support `Triage Status` items
    - CLI/Hammerhead alerts, `main` failures in [snyk/cli CircleCI](https://app.circleci.com/pipelines/gh/snyk/cli), redirected requests, and PR asks
    - acceptance failures where documented `TEST_SNYK_IGNORE_LIST` may unblock an out-of-scope spec, never a CLI regression
+   - batch authoritative local reads first (`acli`/`JIRA-ACCESS.md`, `circleci`, `gh`); after deduplication, use one bounded `twg context` or `twg responsibility` lookup only when ownership or related work is unclear; never enrich every item or use TWG search as coverage proof
 2. For observable alerts, CI errors, or performance symptoms, discover and load the matching Datadog guide; query the narrowest useful identifier/service/error/time window. Record query, range, link, and whether evidence confirms or suggests. Skip Datadog when no signal exists or other evidence answers the item.
 3. Classify each Ask:
    - simple question/update: draft answer; advise close, or `#ask-cli` follow-up if unclear
