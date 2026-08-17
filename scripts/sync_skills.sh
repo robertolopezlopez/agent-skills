@@ -175,6 +175,19 @@ copy_shared_file() {
   fi
 }
 
+sync_skill_dir() {
+  local src="$1"
+  local dest="$2"
+
+  [[ "$dry_run" == false ]] || return 0
+  mkdir -p "$dest"
+  while IFS= read -r -d '' installed; do
+    relative="${installed#"$dest"/}"
+    [[ -e "$src/$relative" || -L "$src/$relative" ]] || rm -rf "$installed"
+  done < <(find "$dest" -depth -mindepth 1 -print0)
+  cp -R "$src/." "$dest"
+}
+
 sync_to_destination() {
   local dest_root="$1"
 
@@ -208,8 +221,7 @@ sync_to_destination() {
         [[ "$match" == true ]] || continue
       fi
 
-      run_or_print rm -rf "$dest_root/$skill_name"
-      run_or_print cp -R "$skill_dir" "$dest_root/$skill_name"
+      sync_skill_dir "$skill_dir" "$dest_root/$skill_name"
     done < <(collect_skill_entries)
 
     if [[ ${#manifest_filter_args[@]} -gt 0 ]]; then
