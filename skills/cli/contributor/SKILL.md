@@ -38,6 +38,11 @@ Do not use outside CLI or for read-only transport with no local change.
 7. Before finishing, inspect full diff, remove out-of-scope/debug/redundant code, preserve required tests and cross-package fixes, then rerun validation if production code changed.
 8. Follow `ARTIFACTS.md`: read existing context first, refresh against current code/CI, extend existing artifacts, and preserve schema.
 
+## Git Staging and Commits
+
+- Stage only durable tests that add necessary, non-redundant regression protection. Keep diagnostic, refactoring-only, or build/package-automation-redundant tests in the local working tree and out of Git; do not add ignore rules solely to hide them.
+- When commits are requested for multiple independent features, fixes, or optimizations, make one functional commit per task. Include its necessary tests and explain why the change exists in each commit message.
+
 ## Merge Request Summaries
 
 1. Compare committed branch changes against agreed base, default `origin/main`.
