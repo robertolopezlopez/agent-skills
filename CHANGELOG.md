@@ -17,6 +17,8 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 ### Changed
 
+- **Race-free skill sync** — update installed skill directories in place so
+  `SKILL.md` remains readable while Codex or Cursor scans during synchronization.
 - **PR conflict rebasing** — `cli-ci-monitor` calls `gh-pr-rebase` every five
   minutes; confirmed conflicts rebase onto the PR target while preserving both sides.
 - **`cli-ci-monitor` diagnosis** — analyze final non-transient failures directly,

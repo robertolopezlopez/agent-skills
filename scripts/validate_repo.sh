@@ -41,6 +41,9 @@ python3 "$repo_root/scripts/validate_skill.py"
 echo "==> Validating rule synchronization"
 bash "$repo_root/tests/test_sync_codex_rules.sh"
 
+echo "==> Validating skill synchronization"
+bash "$repo_root/tests/test_sync_skills.sh"
+
 artifact_paths=()
 while IFS= read -r path; do
   [[ -n "$path" ]] && artifact_paths+=("$path")
