@@ -156,6 +156,7 @@ skills:
     release_group: cli
     companion_skills:
       - tdd
+      - ponytail
       - diagnose
       - repository-technical-analysis
       - circleci
