@@ -26,7 +26,7 @@ scripts/check_skill_config.sh github       # gh auth login
 
 Alias: **`check_skill_prereqs.sh github-access`** → same **`github`** group.
 
-If **`gh`** is missing, **ask the user** to install using the OS-appropriate **`suggest (...)`** line — do not install unless asked. If auth is missing, guide **`gh auth login`** before MCP fallback.
+If **`gh`** is missing, **ask the user** to install using the OS-appropriate **`suggest (...)`** line — do not install unless asked. A failed **`gh auth status`** is ambiguous because restricted network or credential-store access can look like invalid auth. Retry with both available and probe **`gh api user`**; guide **`gh auth login`** only when that unrestricted retry confirms missing or invalid credentials.
 
 ## Path resolution
 
