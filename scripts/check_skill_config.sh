@@ -196,8 +196,9 @@ check_gh_auth() {
     printf 'ok   gh auth logged in\n'
     return 0
   fi
-  printf 'NEEDS gh auth\n'
-  printf '       setup: gh auth login\n'
+  printf 'UNVERIFIED gh auth\n'
+  printf '       retry: gh auth status with network and credential-store access\n'
+  printf '       setup: run gh auth login only if that retry confirms missing or invalid credentials\n'
   printf '       docs:   https://cli.github.com/manual/gh_auth_login\n'
   return 1
 }
@@ -341,7 +342,7 @@ done
 
 if [[ "$total_issues" -gt 0 ]]; then
   echo ""
-  echo "Config or auth is incomplete. Help the user finish setup before continuing (see AGENTS.md)."
+  echo "Config or auth is incomplete or could not be verified. Resolve reported checks before continuing (see AGENTS.md)."
   exit 1
 fi
 
