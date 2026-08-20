@@ -17,6 +17,12 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 ### Changed
 
+- **Confluence transport order** — prefer authenticated `acli confluence`, use
+  Basic-auth REST helpers when ACLI is unavailable or unsupported, and use
+  Confluence/Atlassian MCP only when both local transports cannot perform the operation.
+- **Atlassian auth fallback** — Jira and Confluence config checks prefer their
+  authenticated ACLI sessions and accept `ATLASSIAN_API_TOKEN` only when the
+  Basic-auth REST helper path is needed.
 - **Race-free skill sync** — update installed skill directories in place so
   `SKILL.md` remains readable while Codex or Cursor scans during synchronization.
 - **PR conflict rebasing** — `cli-ci-monitor` calls `gh-pr-rebase` every five

@@ -16,8 +16,8 @@ Custom agent skills tracked in git. They install to **Codex** (`~/.codex/skills`
 - `skills/core/gitlab-mr-comment-analysis/`: reusable GitLab merge request comment-analysis workflow for any GitLab repository
 - `skills/core/github-pr-comment-analysis/`: reusable GitHub pull request comment-analysis workflow (**`GITHUB-ACCESS.md`** + `gh` transport)
 - **`JIRA-ACCESS.md`** + **`acli`** for Jira Cloud issue access (resolve policy with **`scripts/agent_config.py --jira-access-policy`**; helpers: **`--jira-scripts-dir`**)
-- `skills/core/confluence/`: generic Confluence Cloud wiki access and updates through the Confluence REST API
-  See `skills/core/confluence/README.md` for `atlassian.env` defaults shared with Jira transport, auth expectations, and helper usage.
+- `skills/core/confluence/`: Confluence Cloud access through authenticated `acli`, Basic-auth REST helper fallback, then MCP
+  See `skills/core/confluence/SKILL.md` for transport order and `references/commands.md` for exact commands.
 - `skills/core/multi-spawn-agent/`: reusable template for spawning parallel worker agents with disjoint ownership
 - `skills/core/prepare-daily-status/`: consolidated local standup and team-status logging
 - `skills/core/git-rebase-conflict-resolver/`: rebase and conflict-resolution workflow
@@ -48,7 +48,7 @@ Overlays for the **CLI product** source repository (agent- and IDE-agnostic: wor
 
 The guided-experience-service and **CLI product** (`skills/cli/`) skills are overlays. Use them with the matching generic skills when working in those repositories.
 Use **`JIRA-ACCESS.md`** + **`acli`** for Jira Cloud issue access (resolve policy with **`scripts/agent_config.py --jira-access-policy`**).
-Use `confluence` for Confluence Cloud wiki access with the same runtime defaults file (see `skills/core/confluence/README.md`).
+Use `confluence` for Confluence Cloud wiki access; prefer `acli confluence auth`, then Basic-auth REST helpers, then MCP.
 Likewise, `gitlab-mr-comment-analysis` is an overlay on `gitlab`: use `gitlab` for generic MR fetch and discussion inspection, and `gitlab-mr-comment-analysis` for grouped unresolved-comment analysis and reporting.
 `github-pr-comment-analysis` is the GitHub analogue: fetch per synced **`GITHUB-ACCESS.md`** (`gh` / `gh api`), then use **`github-pr-comment-analysis`** to group unresolved review threads **inside** `review_pr_<number>.md` or `analysis_pr_<number>.md`.
 Use `codex-multi-agent-template/` when you want fixed lead/developer/reviewer/tester scaffolding. Use `multi-spawn-agent` when you want dynamic worker splits driven by a work definition file.
@@ -253,11 +253,11 @@ Synced copies: `~/.cursor/skills/scripts/check_skill_prereqs.sh` and `~/.codex/s
 |------|----------|---------|----------------|
 | **gh** | yes | `GITHUB-ACCESS.md`, `github-pr-comment-analysis`, `github-issue-triage` | `gh auth login` — `check_skill_config.sh github` |
 | **glab** | yes | `gitlab`, `gitlab-mr-comment-analysis` | `glab auth login` — `check_skill_config.sh gitlab` |
-| **acli** | yes | `JIRA-ACCESS.md`, Jira helpers | `acli jira auth login` — `check_skill_config.sh jira` |
+| **acli** | yes | `JIRA-ACCESS.md`, `confluence` | `acli jira auth login` / `acli confluence auth login` |
 | **jq** | optional | Jira, Confluence, investigation JSON filtering | — |
 | **circleci** | yes | `circleci` skill | `CIRCLE_TOKEN` / `circleci.env` — `check_skill_config.sh circleci` |
 
-Confluence uses bundled **`confluence-api`** / **`confluence-request`** helpers with **`atlassian.env`** (`ATLASSIAN_API_BASE_URL`, `ATLASSIAN_API_TOKEN`, `git config user.email`). See `skills/core/confluence/README.md`.
+Confluence prefers authenticated **`acli confluence`**, then bundled **`confluence-api`** / **`confluence-request`** Basic-auth helpers, then MCP. See `skills/core/confluence/SKILL.md`.
 
 ### Gmail (`GMAIL-ACCESS.md`)
 
@@ -346,17 +346,17 @@ Cursor also ships built-in skills under `~/.cursor/skills-cursor/`; this reposit
 ## Skill Docs
 
 - **`JIRA-ACCESS.md`**: Jira Cloud transport, **`acli`**, synced **`scripts/jira/`** helpers, auth, and bootstrap (see `docs/jira-access-migration.md`)
-- `skills/core/confluence/README.md`: Confluence Cloud setup via **`atlassian.env`**, auth expectations, and REST helpers
+- `skills/core/confluence/SKILL.md`: Confluence Cloud transport order and auth expectations
 - `ARTIFACTS.md`: shared schema, naming, and section order for local workflow artifacts
 
 ## Local Defaults Files
 
 Use home-local env files for non-secret skill defaults when a skill documents that behavior.
 
-See the relevant skill `README.md` or policy doc for the supported variables and precedence rules:
+See the relevant skill reference or policy doc for supported variables and precedence rules:
 
 - **`JIRA-ACCESS.md`** + `templates/atlassian.env.example` (Jira)
-- `skills/core/confluence/README.md`
+- `skills/core/confluence/references/commands.md`
 - `skills/guided-experience-service/contributor/README.md`
 - `skills/guided-experience-service/technical-analysis/README.md`
 - `skills/guided-experience-service/parallel-tests/README.md`

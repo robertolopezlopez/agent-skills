@@ -72,8 +72,8 @@ See `docs/skill-schema.md` for the preferred section order and migration guidanc
 
 Transport skills (GitHub, GitLab, Jira, Confluence, CircleCI, and similar) use this order unless a skill documents a narrower exception:
 
-1. **Local CLI tools** — `git`, `gh`, `glab`, `circleci`, and other documented host CLIs
-2. **Bundled shell helpers** — repository-synced scripts such as `jira-api`, `confluence-api`, and `circleci-request`
+1. **Local CLI tools** — authenticated official or documented CLIs such as `git`, `gh`, `glab`, `acli`, `circleci`, and `twg` when its workflow applies
+2. **Bundled shell helpers** — repository-synced scripts such as `jira-api`, `confluence-api`, and `circleci-request`; use `ATLASSIAN_API_TOKEN` only here as Basic-auth fallback
 3. **MCP** — configured Model Context Protocol servers **last**, when local tools and helpers are missing or insufficient
 
 Do not issue raw assistant `curl` where a skill routes HTTP through helpers. Keep the same normalized output contract regardless of transport path.

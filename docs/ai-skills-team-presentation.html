@@ -429,7 +429,7 @@
       <div class="card">
         <h3 style="margin-top: 0">Typical patterns</h3>
         <ul style="margin-bottom: 0">
-          <li><strong style="color: var(--text)">Atlassian (Jira + Confluence)</strong> — <code style="color: var(--success)">~/.cursor/atlassian.env</code> or <code style="color: var(--success)">~/.codex/atlassian.env</code> with e.g. <code style="color: var(--success)">ATLASSIAN_API_TOKEN</code> and site base URL (see each skill’s README).</li>
+          <li><strong style="color: var(--text)">Atlassian (Jira + Confluence)</strong> — prefer authenticated <code style="color: var(--success)">acli</code>; keep <code style="color: var(--success)">ATLASSIAN_API_TOKEN</code> and site base URL in <code style="color: var(--success)">~/.cursor/atlassian.env</code> or <code style="color: var(--success)">~/.codex/atlassian.env</code> only for Basic-auth REST fallback.</li>
           <li><strong style="color: var(--text)">GitHub / GitLab</strong> — host or CLI auth (<code style="color: var(--success)">gh</code>, <code style="color: var(--success)">glab</code>) or tokens in env, as documented for MCP and fallbacks.</li>
           <li><strong style="color: var(--text)">CircleCI</strong> — API token in env (e.g. <code style="color: var(--success)">CIRCLE_TOKEN</code>) for the <code style="color: var(--success)">circleci</code> skill and MCP.</li>
           <li><strong style="color: var(--text)">Project-only secrets</strong> — a gitignored <code style="color: var(--success)">.env</code> at repo root if policy allows; do not commit it; align with your secret manager if the org requires it.</li>
@@ -466,7 +466,7 @@ repository-technical-analysis — in this repo, tie findings to CLI-1234 and wri
       <div class="card">
         <h3 style="margin-top: 0">MCP servers (transport)</h3>
         <p style="margin: 0 0 0.75rem"><strong style="color: var(--text)">Model Context Protocol</strong> servers give agents structured access to external systems. Transport skills in this catalog <strong style="color: var(--text)">prefer local tools and bundled helpers first</strong> (<code style="color: var(--success)">gh</code>, <code style="color: var(--success)">glab</code>, <code style="color: var(--success)">jira-api</code>, …), then use MCP when local access is missing or insufficient.</p>
-        <p style="margin: 0; font-size: 0.95rem">Examples: <code style="color: var(--success)">github</code> and <code style="color: var(--success)">gitlab</code> start with <code style="color: var(--success)">gh</code> / <code style="color: var(--success)">glab</code>; <code style="color: var(--success)">jira</code> and <code style="color: var(--success)">confluence</code> start with bundled REST helpers. Configure MCP servers your team trusts as a last-resort transport layer; workflow skills stay the same.</p>
+        <p style="margin: 0; font-size: 0.95rem">Examples: <code style="color: var(--success)">github</code> and <code style="color: var(--success)">gitlab</code> start with <code style="color: var(--success)">gh</code> / <code style="color: var(--success)">glab</code>; <code style="color: var(--success)">confluence</code> starts with authenticated <code style="color: var(--success)">acli</code>, then Basic-auth REST helpers. Configure MCP servers your team trusts as a last-resort transport layer; workflow skills stay the same.</p>
       </div>
       <div class="card" style="margin-top: 1rem">
         <h3 style="margin-top: 0">Caveman</h3>
