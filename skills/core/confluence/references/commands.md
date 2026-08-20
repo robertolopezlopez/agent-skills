@@ -6,10 +6,17 @@ Read only when exact command or configuration details are needed.
 
 ```bash
 acli confluence auth status
+acli confluence auth login
 acli confluence page view --id <PAGE_ID> --body-format storage --json
 ```
 
+Use an authenticated ACLI command whenever it supports the operation. Continue
+to the helpers only when ACLI or its authentication is unavailable, or ACLI
+does not support the operation.
+
 ## Bundled helpers
+
+These are the Basic-auth fallback after ACLI.
 
 Resolve both helpers relative to the installed `confluence` skill:
 
@@ -50,3 +57,6 @@ Resolve the defaults path with `agent_config.py --atlassian-env`; let helpers re
 5. Call `confluence-request`; report returned page ID and canonical wiki URL.
 
 Consult the runtime `confluence-rest-v2` cache for payload fields rather than guessing.
+
+Use Confluence/Atlassian MCP only when neither ACLI nor these helpers support
+the operation.

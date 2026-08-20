@@ -1,11 +1,11 @@
 ---
 name: confluence
-description: Fetch, summarize, search, create, or update Confluence pages/spaces from URLs or IDs; diagnose access using `acli confluence`, bundled helpers, then MCP.
+description: Fetch, summarize, search, create, or update Confluence pages/spaces from URLs or IDs; prefer authenticated `acli confluence`, use Basic-auth REST helpers as fallback, and MCP last.
 ---
 
 # Confluence Access
 
-Use local CLI/helpers as the transport boundary; return normalized page or space data.
+Prefer authenticated `acli confluence`; fall back to local REST helpers, then MCP. Return normalized page or space data.
 
 ## When to Use
 
@@ -23,16 +23,16 @@ Do not use for Jira workitems or unrelated websites.
 
 ## Workflow
 
-1. Run `scripts/check_skill_prereqs.sh confluence` and `scripts/check_skill_config.sh confluence`. Prefer authenticated `acli confluence`; help finish one supported setup path before fallback.
+1. Run `scripts/check_skill_prereqs.sh confluence` and `scripts/check_skill_config.sh confluence`. Check `acli confluence auth status` first; when unauthenticated, help the user run `acli confluence auth login` before using fallback credentials.
 2. Use `acli confluence` when it supports the operation. For a page read, prefer `acli confluence page view --id <ID> --body-format storage --json`.
-3. Otherwise resolve `scripts/confluence-api` or `scripts/confluence-request` relative to this skill. Helpers own runtime URL/token resolution; never read defaults files directly unless debugging was requested.
+3. If ACLI is unavailable, its authentication cannot be completed, or it does not support the operation, resolve `scripts/confluence-api` or `scripts/confluence-request` relative to this skill. Helpers use Basic auth and own runtime URL/token resolution; never read defaults files directly unless debugging was requested.
 4. Use `confluence-api` for one page and `confluence-request` for arbitrary REST v2 operations. Summarize JSON, not HTML login responses.
-5. Use Confluence/Atlassian MCP only when local transports cannot perform the operation; preserve the same normalized result.
-6. Read [references/commands.md](references/commands.md) only for exact helper syntax, config precedence, or create/update flow.
+5. Use Confluence/Atlassian MCP only when neither ACLI nor the Basic-auth REST helpers can perform the operation; preserve the same normalized result.
+6. Read [references/commands.md](references/commands.md) only for exact ACLI auth, helper syntax, config precedence, or create/update flow.
 
 ## Validation
 
-- Prefer the narrowest supported local command.
+- Preserve transport order: authenticated ACLI, Basic-auth REST helpers, then MCP.
 - Route helper HTTP through bundled scripts, never raw `curl`.
 - Stop clearly on auth/permission failures without exposing tokens.
 - For uncertain fields or endpoints, consult the runtime `confluence-rest-v2` cache per `AGENTS.md`.
