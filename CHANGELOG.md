@@ -17,6 +17,7 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 ### Changed
 
+- **`prepare-daily-status` rollover** — update the latest workday entry until an explicit `carry over` request creates the current-date entry with unfinished work.
 - **Confluence transport order** — prefer authenticated `acli confluence`, use
   Basic-auth REST helpers when ACLI is unavailable or unsupported, and use
   Confluence/Atlassian MCP only when both local transports cannot perform the operation.
@@ -76,6 +77,7 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 ### Added
 
+- **`cli-caretaker-monitor`**: continuously claim support Asks, parallel-review PR requests, conditionally approve clean reviews, log outcomes, update daily status, and emit terminal `BEL` notifications.
 - **`cli-ci-monitor`**: monitor CLI CircleCI workflow lineages for up to two
   hours, conservatively classify environment failures, cancel active workflows,
   and rerun from failed jobs until success.

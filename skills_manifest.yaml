@@ -172,6 +172,17 @@ skills:
       - circleci
       - cli-branch-change-reviewer
       - cli-technical-analysis
+  - name: cli-caretaker-monitor
+    path: skills/cli/cli-caretaker-monitor
+    status: stable
+    type: overlay
+    repo_scope: cli
+    release_group: cli
+    companion_skills:
+      - cli-caretaker
+      - prepare-daily-status
+      - multi-spawn-agent
+      - cli-branch-change-reviewer
   - name: cli-ci-monitor
     path: skills/cli/cli-ci-monitor
     status: stable
