@@ -11,6 +11,7 @@ from typing import Any
 
 
 GROUPED_HEADER = "## Grouped unresolved comments"
+RESOLVED_HEADER = "## Resolved threads"
 
 
 def runtime_scripts_dir(infer_from: Path) -> Path:
@@ -88,26 +89,39 @@ def render_issue_block(index: int, thread: dict[str, Any], pr: dict[str, Any]) -
         body_lines.append(f"- [{author}]({url}): {body}" if url else f"- {author}: {body}")
     comment_block = "\n".join(body_lines) or "- "
     canonical = pr.get("canonical_url") or ""
+    resolved = bool(thread.get("is_resolved"))
+    thread_state = "resolved" if resolved else "open"
+    workflow_status = "" if resolved else "- Workflow status: pending\n"
+    analysis = "not required (resolved)" if resolved else "pending (pair with repository-technical-analysis when code-aware)"
+    proposed_changes = "none" if resolved else "pending"
+    verdict = f"{thread_state} review thread"
+    next_action = (
+        "none; retained as resolved history"
+        if resolved
+        else f"inspect `{location}` and respond on-thread"
+    )
     return f"""### {issue_label(index)} — {title}
 
 - PR: {canonical}
 - Thread anchor: {anchor}
+- Thread state: {thread_state} (live refresh)
 - Location: `{location}`
 - Authors: {authors}
-- Reply/waiting status: unresolved (live refresh)
-- Grouped comment summary:
+{workflow_status}- Grouped comment summary:
 {comment_block}
-- Technical analysis: pending (pair with repository-technical-analysis when code-aware)
-- Verdict: unresolved review thread
-- Proposed changes: pending
-- Recommended next action: inspect `{location}` and respond on-thread
+- Technical analysis: {analysis}
+- Verdict: {verdict}
+- Proposed changes: {proposed_changes}
+- Recommended next action: {next_action}
 - Confidence: high (transport refresh)
 - Open questions: none from transport layer
 """
 
 
 def build_grouped_section(pr: dict[str, Any]) -> str:
-    threads = [thread for thread in (pr.get("review_threads") or []) if not thread.get("is_resolved")]
+    indexed_threads = list(enumerate(pr.get("review_threads") or [], start=1))
+    open_threads = [(index, thread) for index, thread in indexed_threads if not thread.get("is_resolved")]
+    resolved_threads = [(index, thread) for index, thread in indexed_threads if thread.get("is_resolved")]
     unresolved = pr.get("unresolved_review_thread_count")
     total = pr.get("review_thread_count")
     pr_number = pr.get("pr_number") or pr.get("object_number") or "?"
@@ -115,17 +129,20 @@ def build_grouped_section(pr: dict[str, Any]) -> str:
         GROUPED_HEADER,
         "",
         f"Live refresh via `gh-fetch pr {pr_number} --full`.",
-        f"Unresolved review threads: {len(threads)}"
+        f"Thread states: open {len(open_threads)}"
+        + (f"; resolved {total - unresolved}" if unresolved is not None and total is not None else "")
         + (f" (reported {unresolved}/{total})" if unresolved is not None and total is not None else "")
         + ".",
         "",
     ]
-    if not threads:
-        header.extend(["No unresolved review threads in the last `--full` fetch.", ""])
-        return "\n".join(header)
-
-    blocks = [render_issue_block(index, thread, pr) for index, thread in enumerate(threads, start=1)]
-    return "\n".join(header + blocks) + "\n"
+    open_blocks = [render_issue_block(index, thread, pr) for index, thread in open_threads]
+    if not open_blocks:
+        open_blocks = ["No unresolved review threads in the last `--full` fetch.\n"]
+    resolved = [RESOLVED_HEADER, "", f"Resolved review threads: {len(resolved_threads)}.", ""]
+    resolved_blocks = [render_issue_block(index, thread, pr) for index, thread in resolved_threads]
+    if not resolved_blocks:
+        resolved_blocks = ["No resolved review threads in the last `--full` fetch.\n"]
+    return "\n".join(header + open_blocks + resolved + resolved_blocks) + "\n"
 
 
 def strip_grouped_section(text: str) -> str:

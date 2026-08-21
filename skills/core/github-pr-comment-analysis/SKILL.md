@@ -25,7 +25,7 @@ Use this skill when the user wants to:
 
 - analyze a GitHub PR comment-by-comment
 - group actionable unresolved review threads **inside the main PR artifact**
-- preserve grouped-issue history and reply/waiting state in that same file
+- preserve grouped-issue history and workflow status in that same file
 - run quick-fix analysis for selected grouped issues **by subsection**
 
 ## When Not to Use
@@ -77,11 +77,12 @@ Stable `### issue_*` headings anchor reruns and quick-fix mode.
 For each grouped issue subsection keep:
 
 - stable issue label
+- explicit thread state: `open`, `resolved`, or `unknown`; for grouped threads use `open` when any live thread remains unresolved, `resolved` only when all are resolved, and `unknown` when live state cannot be matched
 - PR link and direct comment/review links when available
 - authors
 - short problem statement
 - short proposed solution when inferable
-- reply/waiting status (`answered_waiting_for_author_feedback` when applicable)
+- workflow status for each open grouped issue: `pending` (needs analysis/action), `to close` (addressed; ready to resolve), `dismiss` (no action warranted, with reason), `waiting for author`, or `waiting for reviewer`; never use workflow status as a proxy for live thread state
 - affected files or modules when known
 - grouped comment summary
 - technical analysis (concise; defer deeper repo analysis to overlays when paired)
@@ -92,6 +93,12 @@ For each grouped issue subsection keep:
 - optional durable extras on reruns: Follow-up Findings, Improvement Candidates, Reviewer Pattern Notes, Common Fix Shapes, Thread Outcome
 
 Add compact **History** bullets when prior snapshots must remain inspectable.
+
+Workflow status records analysis only; `to close` or `dismiss` never authorizes a GitHub write.
+
+## Resolved threads
+
+Move resolved `### issue_*` blocks here, below `## Grouped unresolved comments`. Preserve their stable labels and useful history; do not leave resolved blocks mixed with open work.
 
 ```
 
@@ -128,10 +135,10 @@ Common pairings:
 5. Filter to actionable unresolved items unless asked otherwise.
 6. Group related threads/comments sharing one issue.
 7. If legacy split files exist (`work_plan_pr_<PR>.md`, `analysis_pr_<PR>_issue_*.md`, `pr_<PR>_comment_report.md`), merge durable notes into `### issue_*`, then remove legacy files after successful merge.
-8. Upsert `## Grouped unresolved comments` and subsections **only in the main artifact**.
-9. Preserve or mark stale bullets intentionally on reruns.
+8. Upsert `## Grouped unresolved comments`, followed by `## Resolved threads`, **only in the main artifact**.
+9. On reruns, update every retained subsection's explicit thread state and open-thread workflow status. Move live resolved blocks to `## Resolved threads`; keep useful history and stable labels. Mark unmatched prior threads `unknown` rather than implying they closed.
 10. Skip automation noise unless requested.
-11. Finish with on-screen summary citing the **full path** to the single main artifact (e.g. `$ARTIFACTS/pr-336/review_pr_336.md`).
+11. Finish with on-screen summary linking the pull request and citing the **full path** to the single main artifact (e.g. `$ARTIFACTS/pr-336/review_pr_336.md`).
 
 ## Parallel Worker Template
 
@@ -163,6 +170,8 @@ Deliver selections, summaries, next actions, and confirm updates landed in the *
 
 - Refresh via **`gh`** per **`GITHUB-ACCESS.md`** before rewriting grouped sections.
 - Stable `### issue_*` headings across reruns.
+- Section summary reports live open and resolved counts; every retained `### issue_*` block has explicit thread state, and every open block has one allowed workflow status.
+- Resolved blocks appear only under `## Resolved threads`, immediately below the unresolved section.
 - Exactly one PR Markdown carries grouped-comment results unless user directs otherwise.
 
 ## Outputs / Artifacts
@@ -172,7 +181,7 @@ Creates or updates **only** the single main artifact:
 - `$ARTIFACTS/<meaningful_id>/review_pr_<PR>.md` **or** `$ARTIFACTS/<meaningful_id>/analysis_pr_<PR>.md` (preferred for new sessions)
 - legacy root-level `review_pr_<PR>.md` or `analysis_pr_<PR>.md` when that file is already the working artifact
 
-Return grouped summaries on-screen plus the artifact’s full path.
+Return grouped summaries on-screen plus the pull-request link and artifact’s full path.
 
 ## Artifact-Aware Behavior
 
