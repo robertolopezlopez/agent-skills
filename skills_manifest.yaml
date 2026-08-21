@@ -172,6 +172,17 @@ skills:
       - circleci
       - private-branch-change-reviewer
       - private-technical-analysis
+  - name: private-support-monitor
+    path: skills/cli/private-support-monitor
+    status: stable
+    type: overlay
+    repo_scope: cli
+    release_group: cli
+    companion_skills:
+      - private-support-triage
+      - prepare-daily-status
+      - multi-spawn-agent
+      - private-branch-change-reviewer
   - name: private-ci-monitor
     path: skills/cli/private-ci-monitor
     status: stable
