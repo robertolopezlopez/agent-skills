@@ -41,6 +41,8 @@ Do not use outside CLI or for transport-only work without local code analysis.
 
 Start reports with `Analysis date: YYYY-MM-DD` and `Analyzed commit: <full git SHA>` from `git rev-parse HEAD`.
 
+In artifacts and on-screen output, link every `PR #<number>` reference. Use the existing review artifact when it is the active evidence source; otherwise use the canonical GitHub PR URL from normalized context. Resolve repository identity rather than guessing from the PR number.
+
 ## Companion Skills
 
 `repository-technical-analysis` (required), `circleci` for CI facts, `diagnose` for concrete failures, and optional Slack after local/bundled evidence.

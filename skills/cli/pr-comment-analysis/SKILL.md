@@ -25,7 +25,7 @@ Read `AGENTS.md`, `GITHUB-ACCESS.md`, `github-pr-comment-analysis`, existing mai
 
 ## Workflow
 
-1. Work from CLI repo root. Refresh normalized PR context and `## Grouped unresolved comments` when stale/missing.
+1. Work from CLI repo root. On every requested refresh, update normalized PR context, comments, and commits, then apply `github-pr-comment-analysis` reconciliation so newly resolved issues move automatically from `## Grouped unresolved comments` to `## Resolved threads`.
 2. For each `### issue_*`, inspect relevant packages with both analysis skills; write verdict, risks, and prerequisites inside that subsection.
 3. Record proposed diffs/commands using `cli-contributor`, tests first for regressions.
 4. Use optional Slack only when PR, code, and Jira lack referenced rationale, incident, rollout, or customer context. Follow `cli-technical-analysis` search/thread flow; record query, channel/date, short redacted snippet, and confirmed vs suggestive status in the issue subsection. Skip when unnecessary/unavailable.
