@@ -141,6 +141,11 @@ class CLIClient:
             for job in workflow.get("jobs", [])
         ]
 
+    def fetch_latest_run(self, branch: str):
+        return self.command(
+            "run", "get", "--branch", branch, "--no-interactive", "--json"
+        )
+
     def fetch_job_detail(self, job):
         job_id = job.get("id")
         if not job_id:
@@ -286,6 +291,48 @@ def cancel_workflow(client: Client, workflow_id: str):
     return client.request("POST", f"/workflow/{workflow_id}/cancel")
 
 
+def resume_after_rebase(
+    client: CLIClient,
+    workflow_id: str,
+    pr: dict,
+    timeout: int,
+    poll: int,
+    clock=None,
+    sleep=None,
+):
+    clock = clock or time.monotonic
+    sleep = sleep or time.sleep
+    branch = pr.get("headRefName")
+    revision = pr.get("headRefOid")
+    if pr.get("status") != "clean" or not branch or not revision:
+        raise RuntimeError("PR must be clean and include its head branch and revision")
+    if not hasattr(client, "fetch_latest_run"):
+        raise RuntimeError("replacement workflow discovery requires the CircleCI CLI")
+
+    obsolete = fetch_workflow(client, workflow_id)
+    workflow_name = obsolete.get("name")
+    if str(obsolete.get("status", "")).lower() in {"running", "failing"}:
+        cancel_workflow(client, workflow_id)
+
+    deadline = clock() + timeout
+    while clock() < deadline:
+        run = client.fetch_latest_run(branch)
+        if run.get("revision") == revision:
+            candidates = [
+                workflow
+                for workflow in run.get("workflows", [])
+                if workflow.get("id")
+                and workflow.get("id") != workflow_id
+                and (not workflow_name or workflow.get("name") == workflow_name)
+            ]
+            if len(candidates) > 1:
+                raise RuntimeError("ambiguous replacement workflow")
+            if candidates:
+                return candidates[0]["id"], max(0, int(deadline - clock()))
+        sleep(min(poll, max(0, deadline - clock())))
+    raise RuntimeError("replacement workflow not found before deadline")
+
+
 def monitor(
     client: Client,
     workflow_id: str,
@@ -390,18 +437,39 @@ def main() -> int:
     parser.add_argument("--retry-infra", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--timeout-seconds", type=int, default=7200)
     parser.add_argument("--poll-seconds", type=int, default=60)
-    parser.add_argument("--pr-branch")
+    parser.add_argument("--pr", "--pr-branch", dest="pr")
+    parser.add_argument("--resume-after-rebase", action="store_true")
+    parser.add_argument("--deadline-epoch", type=float)
     parser.add_argument("--request-helper", type=Path)
     args = parser.parse_args()
     try:
+        if args.deadline_epoch is None:
+            timeout = args.timeout_seconds
+            deadline_epoch = time.time() + timeout
+        else:
+            deadline_epoch = args.deadline_epoch
+            timeout = max(0, int(deadline_epoch - time.time()))
+        client = build_client(args.request_helper)
+        workflow_id = resolve_workflow_id(args.workflow)
+        if args.resume_after_rebase:
+            if not args.pr:
+                raise ValueError("--resume-after-rebase requires --pr")
+            workflow_id, timeout = resume_after_rebase(
+                client,
+                workflow_id,
+                inspect_pr(args.pr),
+                timeout,
+                args.poll_seconds,
+            )
         result = monitor(
-            build_client(args.request_helper),
-            resolve_workflow_id(args.workflow),
+            client,
+            workflow_id,
             args.retry_infra,
-            args.timeout_seconds,
+            timeout,
             args.poll_seconds,
-            pr_branch=args.pr_branch,
+            pr_branch=args.pr,
         )
+        result["deadline_epoch"] = int(deadline_epoch)
     except (OSError, ValueError, RuntimeError, subprocess.SubprocessError, json.JSONDecodeError) as error:
         print(str(error), file=sys.stderr)
         return 2

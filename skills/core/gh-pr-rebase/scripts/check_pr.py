@@ -6,7 +6,7 @@ import json
 import subprocess
 
 
-FIELDS = "number,url,headRefName,baseRefName,mergeable,mergeStateStatus"
+FIELDS = "number,url,headRefName,headRefOid,baseRefName,mergeable,mergeStateStatus"
 
 
 def inspect_pr(ref, run=subprocess.run):

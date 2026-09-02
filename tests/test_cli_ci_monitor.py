@@ -202,6 +202,110 @@ class MonitorWorkflowTest(unittest.TestCase):
             ],
         )
 
+    def test_cli_client_fetches_latest_branch_run(self):
+        module = load_module()
+        calls = []
+
+        def run(command, **_kwargs):
+            calls.append(command)
+            return subprocess.CompletedProcess(
+                command,
+                0,
+                stdout=json.dumps({"id": "run", "revision": "head", "workflows": []}),
+            )
+
+        client = module.CLIClient(Path("/circleci-cli"), run=run)
+
+        result = client.fetch_latest_run("feature/branch")
+
+        self.assertEqual(result["revision"], "head")
+        self.assertEqual(
+            calls,
+            [[
+                "/circleci-cli",
+                "run",
+                "get",
+                "--branch",
+                "feature/branch",
+                "--no-interactive",
+                "--json",
+            ]],
+        )
+
+    def test_resumes_matching_replacement_workflow_after_rebase(self):
+        module = load_module()
+        now = 0
+
+        class FakeClient:
+            def __init__(self):
+                self.reads = 0
+                self.canceled = []
+
+            def fetch_workflow(self, _workflow_id):
+                return {"id": "old", "name": "test", "status": "running"}
+
+            def cancel_workflow(self, workflow_id):
+                self.canceled.append(workflow_id)
+
+            def fetch_latest_run(self, branch):
+                self.reads += 1
+                self.branch = branch
+                revision = "old-head" if self.reads == 1 else "new-head"
+                return {
+                    "revision": revision,
+                    "workflows": [
+                        {"id": "new", "name": "test"},
+                        {"id": "other", "name": "lint"},
+                    ],
+                }
+
+        def sleep(seconds):
+            nonlocal now
+            now += seconds
+
+        client = FakeClient()
+        workflow_id, remaining = module.resume_after_rebase(
+            client,
+            "old",
+            {"status": "clean", "headRefName": "feature/branch", "headRefOid": "new-head"},
+            timeout=120,
+            poll=10,
+            clock=lambda: now,
+            sleep=sleep,
+        )
+
+        self.assertEqual(workflow_id, "new")
+        self.assertEqual(remaining, 110)
+        self.assertEqual(client.branch, "feature/branch")
+        self.assertEqual(client.canceled, ["old"])
+
+    def test_rejects_ambiguous_replacement_workflows(self):
+        module = load_module()
+
+        class FakeClient:
+            def fetch_workflow(self, _workflow_id):
+                return {"id": "old", "name": "test", "status": "failed"}
+
+            def fetch_latest_run(self, _branch):
+                return {
+                    "revision": "new-head",
+                    "workflows": [
+                        {"id": "one", "name": "test"},
+                        {"id": "two", "name": "test"},
+                    ],
+                }
+
+        with self.assertRaisesRegex(RuntimeError, "ambiguous replacement workflow"):
+            module.resume_after_rebase(
+                FakeClient(),
+                "old",
+                {"status": "clean", "headRefName": "feature/branch", "headRefOid": "new-head"},
+                timeout=120,
+                poll=10,
+                clock=lambda: 0,
+                sleep=lambda _seconds: None,
+            )
+
     def test_build_client_defaults_to_cli_and_keeps_explicit_request_fallback(self):
         module = load_module()
 

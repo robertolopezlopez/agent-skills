@@ -39,8 +39,8 @@ Use commit history for routine wording, cleanup, and implementation-only changes
   `SKILL.md` while loading exact helper commands and config details only on demand.
 - **GitLab transport** — add a normalized `gl-fetch` wrapper over `glab api` and
   shrink MR access/comment skills around its paginated discussion contract.
-- **`cli-ci-monitor` runner** — move polling, conservative failure classification,
-  cancellation, and rerun lineage into a tested local command to reduce agent tool churn.
+- **`cli-ci-monitor` runner** — move polling, failure classification, retry lineage,
+  PR checks, and exact post-rebase workflow resumption into a tested local command.
 - **`cli-ci-monitor` transient retries** — inspect failed action output and retry
   narrow, high-confidence test-timeout and temporary-network signatures without
   treating ordinary assertion failures as infrastructure.
