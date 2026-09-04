@@ -111,6 +111,14 @@ Downstream workflow skills expect stable field names whether data came from **`a
 
 Phase B **`jira-fetch`** / **`jira_context.py`** emit this contract as JSON (mirrors **`gh-fetch`**). See **Synced helpers** below.
 
+## Writing style
+
+Write Jira descriptions and comments in the user's natural writing style:
+short, direct, and informal-professional, usually 1–3 sentences or bullets.
+Lead with the change, question, or result. Avoid AI-style summaries, repeated
+context, excessive explanation, generic headings, and filler. Include longer
+reproduction, acceptance, safety, or dependency details only when required.
+
 ## Workflow
 
 1. Parse issue key or URL from the user request.
