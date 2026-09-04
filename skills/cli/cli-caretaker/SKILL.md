@@ -65,7 +65,14 @@ Accept a shift window, queue snapshot, issue list, or handoff. Research/triage/r
 
 Write non-trivial work to the user path or `$ARTIFACTS/cli-caretaker-YYYY-MM-DD/analysis_cli_caretaker.md`. Resolve via `ARTIFACTS.md`; extend same-day report.
 
-For each item record identifier/source, classification, advised action/rationale, owner/blocker/follow-up, and links. End with counts, evidence gaps, prioritized advice, and share-ready handoff; separate observation from advice.
+Record each item as one line: linked identifier and advised action. Append
+classification, owner, blocker, rationale, or follow-up only when material and
+not evident from the source. Add counts, evidence gaps, or handoff text only when
+useful; keep observations distinct from advice.
+
+In the caretaker artifact, make every recognized Jira issue-key mention a
+Markdown link using the normalized Jira `url`, regardless of project prefix.
+Resolve missing URLs through `JIRA-ACCESS.md`; never guess the Jira host.
 
 ## Companion Skills
 

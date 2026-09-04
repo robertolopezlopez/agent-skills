@@ -74,23 +74,17 @@ Short-lived session index (optional): numbered picks → stable labels (`issue_0
 
 Stable `### issue_*` headings anchor reruns and quick-fix mode.
 
-For each grouped issue subsection keep:
+For each grouped issue subsection keep the stable label, explicit thread state
+(`open`, `resolved`, or `unknown`), relevant links, verdict, and one next-action
+line. Each open issue also needs one workflow status: `pending`, `to close`,
+`dismiss`, `waiting for author`, or `waiting for reviewer`; never use workflow
+status as a proxy for live thread state. Add authors, files, rationale, proposed
+changes, confidence, questions, or durable rerun notes only when material. Do not
+repeat the same point as problem, summary, analysis, verdict, and next action.
 
-- stable issue label
-- explicit thread state: `open`, `resolved`, or `unknown`; for grouped threads use `open` when any live thread remains unresolved, `resolved` only when all are resolved, and `unknown` when live state cannot be matched
-- PR link and direct comment/review links when available
-- authors
-- short problem statement
-- short proposed solution when inferable
-- workflow status for each open grouped issue: `pending` (needs analysis/action), `to close` (addressed; ready to resolve), `dismiss` (no action warranted, with reason), `waiting for author`, or `waiting for reviewer`; never use workflow status as a proxy for live thread state
-- affected files or modules when known
-- grouped comment summary
-- technical analysis (concise; defer deeper repo analysis to overlays when paired)
-- verdict
-- proposed changes (high level)
-- recommended next action
-- confidence and open questions
-- optional durable extras on reruns: Follow-up Findings, Improvement Candidates, Reviewer Pattern Notes, Common Fix Shapes, Thread Outcome
+For grouped threads use `open` when any live thread remains unresolved,
+`resolved` only when all are resolved, and `unknown` when live state cannot be
+matched. `dismiss` needs a reason.
 
 Add compact **History** bullets when prior snapshots must remain inspectable.
 
@@ -164,7 +158,7 @@ Always map to stable `issue_*` labels before editing.
 
 ## Quick-Fix Output
 
-Deliver selections, summaries, next actions, and confirm updates landed in the **single main artifact path**.
+Return one action line per selection and the **single main artifact path**.
 
 ## Validation
 
@@ -181,7 +175,7 @@ Creates or updates **only** the single main artifact:
 - `$ARTIFACTS/<meaningful_id>/review_pr_<PR>.md` **or** `$ARTIFACTS/<meaningful_id>/analysis_pr_<PR>.md` (preferred for new sessions)
 - legacy root-level `review_pr_<PR>.md` or `analysis_pr_<PR>.md` when that file is already the working artifact
 
-Return grouped summaries on-screen plus the pull-request link and artifact’s full path.
+Return one action line per group, the pull-request link, and artifact’s full path.
 
 ## Artifact-Aware Behavior
 

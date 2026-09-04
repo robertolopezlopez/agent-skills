@@ -30,7 +30,7 @@ Read `AGENTS.md`, `GITHUB-ACCESS.md`, `github-pr-comment-analysis`, existing mai
 3. Record proposed diffs/commands using `cli-contributor`, tests first for regressions.
 4. Use optional Slack only when PR, code, and Jira lack referenced rationale, incident, rollout, or customer context. Follow `cli-technical-analysis` search/thread flow; record query, channel/date, short redacted snippet, and confirmed vs suggestive status in the issue subsection. Skip when unnecessary/unavailable.
 5. If `multi-spawn-agent` is explicitly authorized, give workers disjoint `### issue_*` ownership; never edit one subsection concurrently.
-6. Return short summary and full main-artifact path.
+6. Return one action line per thread group and the full main-artifact path.
 
 ## Validation
 
@@ -40,7 +40,7 @@ Read `AGENTS.md`, `GITHUB-ACCESS.md`, `github-pr-comment-analysis`, existing mai
 
 ## Outputs / Artifacts
 
-Enrich only the main `$ARTIFACTS/<meaningful_id>/{review,analysis}_pr_<PR>.md` grouped subsections; extend legacy root file only when already active. Return per-thread summary and full path.
+Enrich only the main `$ARTIFACTS/<meaningful_id>/{review,analysis}_pr_<PR>.md` grouped subsections; extend legacy root file only when already active. Return one action line per thread group and the full path.
 
 ## Companion Skills
 
