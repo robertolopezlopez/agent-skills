@@ -17,6 +17,9 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 ### Changed
 
+- **Concise output** — use Ponytail ultra for implementation and Caveman lite
+  for generated prose; default plans, tickets, comments, artifacts, statuses,
+  and documents to one or two concise sentences or short bullets per item.
 - **`prepare-daily-status` rollover** — update the latest workday entry until an explicit `carry over` request creates the current-date entry with unfinished work.
 - **Confluence transport order** — prefer authenticated `acli confluence`, use
   Basic-auth REST helpers when ACLI is unavailable or unsupported, and use

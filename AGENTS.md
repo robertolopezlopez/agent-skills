@@ -221,6 +221,7 @@ Repo overlays add language- and stack-specific patterns; this block is the share
 ## Design rules
 
 - Prefer the smallest implementation and instruction footprint that preserves behavior, safety, compatibility, and validation. Reuse local CLIs, repository helpers, and standard-library features before adding prose, wrappers, dependencies, or remote tool calls.
+- Default generated prose—comments, tickets, plans, artifacts, summaries, status updates, and documents—to one or two concise sentences or short bullets per item. Include purpose, approach, and expected result when useful; omit restatement, obvious rationale, repeated metadata, empty placeholders, and optional headings. Expand when the user asks or when evidence, safety, ambiguity, or a fixed external schema requires it; preserve user-authored content and required document structure.
 - Keep skills modular. Prefer a small focused skill over a large mixed-purpose skill.
 - Separate transport/access skills from workflow/analysis skills when practical.
 - Put repo-specific behavior in overlay skills instead of polluting general skills.
