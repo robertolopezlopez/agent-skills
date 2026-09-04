@@ -51,26 +51,24 @@ Accept any of:
 2. Refuse to decompose until the goal is clear enough to split confidently.
 3. Identify the smallest useful vertical slices.
 4. Prefer slices that cut through the necessary layers end-to-end rather than grouping work by technical layer.
-5. For each slice, define:
-   - title
-   - what to build or change
-   - why it is separate
-   - dependencies or blockers
-   - whether it is suitable for an agent or needs human input
+5. Write each slice as one or two concise action sentences. Example: `Extract
+   the existing test data into reusable fixtures, then add focused tests for the
+   affected behavior. Keep the change limited to test organization and coverage.`
+   Add dependencies, blockers, or validation only when non-obvious or required.
 6. Review the breakdown for:
    - unnecessary coupling
    - overly large slices
    - hidden blockers
    - missing validation expectations
 7. Produce the ordered work plan.
-8. Suggest follow-on execution paths, such as `multi-spawn-agent`, `tdd`, or repository-specific contributor skills.
+8. Suggest a follow-on skill only when the user needs it to execute the plan.
 
 ## Planning Rules
 
 - Prefer vertical slices over horizontal slices.
 - Prefer many thin executable slices over a few large ambiguous ones.
 - Keep dependencies explicit.
-- Mark human-needed decisions separately from agent-suitable execution work.
+- Mark human-needed decisions only when they block execution.
 - Do not invent precision when the scope is still unclear.
 - If decomposition reveals missing understanding, stop and recommend clarification before continuing.
 
@@ -83,14 +81,9 @@ Accept any of:
 
 ## Outputs / Artifacts
 
-Return:
-
-1. summary of the scoped change
-2. ordered work items
-3. dependencies and blockers
-4. human-needed vs agent-suitable notes
-5. recommended execution order
-6. recommended follow-on skills
+Return ordered items with one or two concise action sentences each. Add
+dependencies, blockers, validation, or a follow-on skill only when material. Do
+not restate the request or explain why each slice is separate.
 
 When the work is non-trivial, this skill may also write:
 
