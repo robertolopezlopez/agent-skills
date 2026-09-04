@@ -60,25 +60,18 @@ customized runtime file.
    ## YYYY-MM-DD (updates)
 
    ### Done since last log
-   None.
 
    ### In progress
-   None.
 
    ### In review
-   None.
 
    ### Blocked / risks
-   None.
 
    ### Next
-   None.
 
    ### Needs help / decisions
-   None.
 
    ### Links
-   None.
    ```
 
 5. Keep exactly one `## YYYY-MM-DD (updates)` section. If a legacy file uses
@@ -90,8 +83,7 @@ customized runtime file.
      `- **11:15** — CLI-1667 hotfix done, finished.`
    - Keep active work under `In progress` and submitted work under `In review`.
    - Update blockers, next steps, decisions, and links only from stated facts.
-   - Remove `None.` when adding content; restore it when a subsection becomes
-     empty.
+   - Keep every bullet to one short fact or action. Leave empty subsections empty.
    - Avoid duplicate bullets and multiple same-day status sections.
 7. Return the consolidated status section for review or sharing.
 

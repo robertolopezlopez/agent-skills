@@ -260,6 +260,7 @@ Prefer merging durable content from legacy files into the main artifact, then de
 - Keep artifacts local-only unless the user explicitly asks to publish or copy them elsewhere.
 - Prefer concise bullets over long prose.
 - Keep links canonical and direct when possible.
+- Make every recognized Jira issue-key mention a Markdown link using the normalized Jira `url`, regardless of project prefix. Resolve missing URLs through `JIRA-ACCESS.md`; never guess the Jira host.
 - Use live Jira/GitLab/GitHub data as source of truth when refreshing artifact contents.
 - Treat the artifact as durable working context, not as authority over remote state.
 - Never store secrets in artifacts; reference **where** to load credentials.

@@ -91,14 +91,14 @@ both the screen and a Markdown artifact.
 
 ## Outputs / Artifacts
 
-Write identical review content to the screen and output file:
+Write identical review content to the screen and output file. Use one line per
+finding: severity, location, issue, and fix. Add impact only when not evident.
+Include `Open Questions` only when they affect the verdict, learned sections only
+when useful, and one summary line naming branch, target, output path, and whether
+findings exist.
 
-1. `Findings`, ordered by severity. Include location, issue, impact, and fix or
-   verification for each finding.
-2. `Open Questions` only when they affect the verdict.
-3. Evidence-backed learned sections when useful.
-4. `Summary` naming current branch, target, whether target was defaulted,
-   output path, and whether findings exist.
+When a pull or merge request URL is available, make the existing `# Review: …`
+heading text a Markdown link to it. Keep the heading unlinked otherwise.
 
 Always create the file, including when no findings warrant comments.
 Unless the user supplied another path or an existing legacy review is being

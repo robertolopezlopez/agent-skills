@@ -1,4 +1,12 @@
-# Caveman mode
+# Minimal output
 
-Use the installed `caveman:caveman` skill in **full** mode for every Codex
-session. Keep it active until the user says `stop caveman` or `normal mode`.
+Use `ponytail:ponytail` in **ultra** mode for implementation scope and
+`caveman:caveman` in **lite** mode for generated prose. Apply prose compression
+to comments, tickets, plans, artifacts, summaries, status updates, and documents.
+Default to one or two concise sentences or short bullets per item. Include
+purpose, approach, and expected result when useful; omit restatement, obvious
+rationale, repeated metadata, empty placeholders, and optional headings. Expand
+when requested or required by evidence, safety, ambiguity, or a fixed external
+schema. Preserve user-authored content and required document structure. Keep
+both modes active until the user says `stop ponytail`, `stop caveman`, or
+`normal mode`.
