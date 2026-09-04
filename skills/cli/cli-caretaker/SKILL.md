@@ -59,6 +59,8 @@ Accept a shift window, queue snapshot, issue list, or handoff. Research/triage/r
 - Cover all visible non-Done Asks, new triage items, and shift-window group mentions, or state gaps.
 - Record source type, ownership, classification, customer origin, priority, and decision branch where applicable.
 - Keep over-30-minute work out of Ask; cite evidence; exclude On Caller.
+- Follow the report order below. Put full details in one section only; use internal Markdown links elsewhere.
+- Give every deferred item a next trigger and every closed item closure evidence.
 - Verify Jira, Slack, GitHub, CircleCI, and Datadog remained unchanged unless explicitly requested.
 
 ## Outputs
@@ -70,9 +72,34 @@ classification, owner, blocker, rationale, or follow-up only when material and
 not evident from the source. Add counts, evidence gaps, or handoff text only when
 useful; keep observations distinct from advice.
 
-In the caretaker artifact, make every recognized Jira issue-key mention a
-Markdown link using the normalized Jira `url`, regardless of project prefix.
-Resolve missing URLs through `JIRA-ACCESS.md`; never guess the Jira host.
+Use this report order:
+
+```markdown
+# CLI Ask Caretaker — YYYY-MM-DD
+Analysis window: ...
+
+## Summary
+## Urgent Alerts / CircleCI Failures
+## Prioritized Advice
+## Share-ready Handoff
+## Evidence Gaps and Safety
+## External Actions / Side Effects
+## Ask Queue
+## Shift-window Slack Coverage and Rotation
+## Support Triage and SLOs
+## Routine Alerts / Main CircleCI
+## Live Policy
+## Deferred Items
+## Closed Items
+```
+
+- In `Summary`, mention urgent items and external actions only by name with an
+  internal link to their detail section.
+- Put actionable urgent alert or CircleCI details immediately below `Summary`.
+- Put PR asks and redirects in `Ask Queue`.
+- Keep routine or healthy alert and CircleCI status in its later section.
+- Omit empty urgent, external-action, deferred, and closed sections.
+- Never duplicate detailed items; link to their single detailed location.
 
 ## Companion Skills
 
