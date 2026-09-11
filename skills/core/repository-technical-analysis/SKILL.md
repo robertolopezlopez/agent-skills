@@ -32,8 +32,8 @@ Do not use this skill when:
 - Accept an optional local workflow artifact such as `$ARTIFACTS/…/task_<issue>.md`, `review_mr_<MR>.md`, or `analysis_mr_<MR>.md`.
 - If the user provides an output file, use it.
 - If the user does not provide one and the investigation is non-trivial, write per repository `ARTIFACTS.md`:
-  - default basename: `analysis_<relevant_name>.md` (ticket slug, failure surface, branch topic, subsystem slug, or similar)
-  - **ticket/session-scoped** (tracker key, PR/MR, branch fix, concrete failure): `$ARTIFACTS/<meaningful_id>/analysis_<relevant_name>.md` — default `meaningful_id`: tracker key from a provided task artifact or user input when present; else `pr-<n>` / `mr-<iid>` when PR/MR context is clear; else a sanitized branch or topic slug aligned with `<relevant_name>`
+  - basename: `<ticket-key>_analysis_<relevant_name>.md` when a tracker key is available; otherwise `analysis_<relevant_name>.md`
+  - **ticket/session-scoped** (tracker key, PR/MR, branch fix, concrete failure): `$ARTIFACTS/<meaningful_id>/<basename>` — default `meaningful_id`: tracker key from a provided task artifact or user input when present; else `pr-<n>` / `mr-<iid>` when PR/MR context is clear; else a sanitized branch or topic slug aligned with `<relevant_name>`
   - **general knowledge** (architecture, subsystem, or dependency reference not tied to a ticket/session): `$KNOWLEDGE/analysis_<relevant_name>.md` — store root under `$AGENT_ARTIFACTS_HOME/knowledge/`; **never** `$ARTIFACTS/<repo-key>/knowledge/`
 - **Legacy:** an existing root-level `analysis_<relevant_name>.md` (or other user path) already present remains valid—open and extend it instead of relocating unless the user asks to migrate.
 
@@ -60,7 +60,7 @@ Use this loop for technical analysis tasks:
 4. Use any relevant local material as research input, including repositories, notes, logs, and prior analysis files.
 5. Fetch online material when needed, including documentation or API references.
 6. Run the tests, scripts, benchmarks, or reproduction steps that best isolate the issue.
-7. When rerunning or extending an existing analysis artifact (`$ARTIFACTS/…/analysis_<relevant_name>.md` or `$KNOWLEDGE/analysis_<relevant_name>.md` by preference, or a legacy root-level file when already in use), preserve durable learned sections such as `Follow-up Findings`, `Improvement Candidates`, `Root Cause Lessons`, `Known Patterns`, `Dead Ends Tried`, `Fastest Reliable Repro`, or `Next-Time Checks` when they still match current evidence, explicitly mark stale heuristics, and promote repeated confirmed observations into reusable checks.
+7. When rerunning or extending an existing analysis artifact (`$ARTIFACTS/…/<ticket-key>_analysis_<relevant_name>.md` or `$KNOWLEDGE/analysis_<relevant_name>.md` by preference, or a legacy file when already in use), preserve durable learned sections such as `Follow-up Findings`, `Improvement Candidates`, `Root Cause Lessons`, `Known Patterns`, `Dead Ends Tried`, `Fastest Reliable Repro`, or `Next-Time Checks` when they still match current evidence, explicitly mark stale heuristics, and promote repeated confirmed observations into reusable checks.
 8. Write the analysis incrementally to the chosen path when the investigation is non-trivial and no explicit or legacy path is already in use.
 9. Iterate until the findings are confirmed, reduced to a small set of defensible hypotheses, or blocked by a clearly stated dependency.
 10. **When the task includes approved code changes** — after validation passes, **shrink the diff** as the final step before finishing:
@@ -100,7 +100,7 @@ Technical analysis output should usually include:
 
 When the work is non-trivial, this skill may also write or enrich:
 
-- `$ARTIFACTS/<meaningful_id>/analysis_<relevant_name>.md` for ticket/session-scoped runs
+- `$ARTIFACTS/<meaningful_id>/<ticket-key>_analysis_<relevant_name>.md` when a tracker key is available; otherwise `$ARTIFACTS/<meaningful_id>/analysis_<relevant_name>.md`
 - `$KNOWLEDGE/analysis_<relevant_name>.md` for general knowledge reference (legacy root-level `analysis_<relevant_name>.md` paths remain valid when already in use)
 
 ## General Notes
@@ -139,7 +139,7 @@ This is additive only and does not replace the normal evidence-first analysis wo
 
 When rerunning analysis for the same problem or artifact:
 
-- read the existing analysis artifact first (`$ARTIFACTS/…/analysis_<relevant_name>.md` or `$KNOWLEDGE/analysis_<relevant_name>.md` by preference, or a legacy root-level file when that is where prior work lives)
+- read the existing analysis artifact first (`$ARTIFACTS/…/<ticket-key>_analysis_<relevant_name>.md` or `$KNOWLEDGE/analysis_<relevant_name>.md` by preference, or a legacy file when that is where prior work lives)
 - preserve local learned sections such as `## Follow-up Findings`, `## Improvement Candidates`, and optional `## Root Cause Lessons` when they still match current evidence
 - preserve optional reusable sections such as `## Known Patterns`, `## Dead Ends Tried`, `## Fastest Reliable Repro`, and `## Next-Time Checks` when they still match current evidence
 - refresh live evidence from the repository, logs, tests, traces, and documents before concluding

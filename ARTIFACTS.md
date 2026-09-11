@@ -224,7 +224,7 @@ Resolution order for **new writes**:
 - GitHub issue investigation bootstrap: `analysis_issue_<number>.md`
 - GitHub PR review bootstrap: `review_pr_<number>.md`
 - GitHub PR investigation bootstrap: `analysis_pr_<number>.md`
-- Repository / branch investigations: existing patterns such as `analysis_<relevant_name>.md` or `review_<sanitized-branch>.md` — place them under **`$ARTIFACTS/<meaningful_id>/`** unless the artifact already exists elsewhere
+- Repository / branch investigations: use `<ticket-key>_analysis_<relevant_name>.md` when a tracker key is available; otherwise `analysis_<relevant_name>.md` or `review_<sanitized-branch>.md` — place them under **`$ARTIFACTS/<meaningful_id>/`** unless the artifact already exists elsewhere
 - General knowledge from **`repository-technical-analysis`** or a repo overlay: **`$KNOWLEDGE/analysis_<relevant_name>.md`** (and optional slide companions in the same folder)
 - Informal working drafts: `fix_draft_<topic>.md` (same folder; not validated by default)
 
@@ -236,6 +236,7 @@ Full examples (external store; home and repo-key vary by machine):
 - `$GLOBAL/snyk-repo-ownership/repo-snyk-docker-registry-v2-client.md`
 - `$GLOBAL/NEXT_TIME_CHECKS.md`
 - `$ARTIFACTS/github.com-snyk-cli/CLI-123/task_CLI-123.md`
+- `$ARTIFACTS/github.com-snyk-cli/CLI-123/CLI-123_analysis_auth_failure.md`
 - `$ARTIFACTS/mr-1447/review_mr_1447.md`
 - `$ARTIFACTS/issue-16/triage_issue_16.md`
 - `$ARTIFACTS/pr-336/review_pr_336.md`
