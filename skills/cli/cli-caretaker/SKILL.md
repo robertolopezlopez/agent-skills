@@ -67,10 +67,9 @@ Accept a shift window, queue snapshot, issue list, or handoff. Research/triage/r
 
 Write non-trivial work to the user path or `$ARTIFACTS/cli-caretaker-YYYY-MM-DD/analysis_cli_caretaker.md`. Resolve via `ARTIFACTS.md`; extend same-day report.
 
-Record each item as one line: linked identifier and advised action. Append
-classification, owner, blocker, rationale, or follow-up only when material and
-not evident from the source. Add counts, evidence gaps, or handoff text only when
-useful; keep observations distinct from advice.
+Keep the report tight: one line per item with linked ID, advised action, and
+only a material blocker or follow-up. Omit recap, classification, owner, and
+rationale when the action is clear.
 
 Use this report order:
 
@@ -97,6 +96,8 @@ Analysis window: ...
   internal link to their detail section.
 - Put actionable urgent alert or CircleCI details immediately below `Summary`.
 - Put PR asks and redirects in `Ask Queue`.
+- In `Ask Queue`, put **Close** immediately after the linked ID when closure is advised: `[ASK-ID](https://…) — **Close** — …`.
+- Omit already-closed Asks unless they still require action.
 - Keep routine or healthy alert and CircleCI status in its later section.
 - Omit empty urgent, external-action, deferred, and closed sections.
 - Never duplicate detailed items; link to their single detailed location.
