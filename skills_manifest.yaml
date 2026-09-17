@@ -193,6 +193,19 @@ skills:
       - circleci
       - gh-pr-rebase
       - cli-technical-analysis
+  - name: cli-gaf-propagate
+    path: skills/cli/gaf-propagate
+    status: stable
+    type: overlay
+    repo_scope: cli
+    release_group: cli
+    companion_skills:
+      - gh-pr-rebase
+      - git-rebase-conflict-resolver
+      - cli-contributor
+      - tdd
+      - cli-parallel-tests
+      - cli-ci-monitor
   - name: cli-technical-analysis
     path: skills/cli/technical-analysis
     status: stable
