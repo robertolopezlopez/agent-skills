@@ -5,18 +5,20 @@ Read only when exact command or configuration details are needed.
 ## Local CLI
 
 ```bash
+twg help describe "confluence content update"
+twg confluence content get <CONTENT_ID>
+twg confluence content update <CONTENT_ID> [options]
 acli confluence auth status
 acli confluence auth login
 acli confluence page view --id <PAGE_ID> --body-format storage --json
 ```
 
-Use an authenticated ACLI command whenever it supports the operation. Continue
-to the helpers only when ACLI or its authentication is unavailable, or ACLI
-does not support the operation.
+Use TWG first. Continue to authenticated ACLI, then helpers, only when the
+preceding transport is unavailable or does not support the operation.
 
 ## Bundled helpers
 
-These are the Basic-auth fallback after ACLI.
+These are the Basic-auth fallback after TWG and ACLI.
 
 Resolve both helpers relative to the installed `confluence` skill:
 
@@ -50,13 +52,11 @@ Resolve the defaults path with `agent_config.py --atlassian-env`; let helpers re
 
 ## Create/update
 
-1. Resolve title, space, parent, and body format.
-2. For updates, fetch the current page and version first.
-3. Build the smallest REST v2 JSON payload.
-4. Confirm when the target or overwrite is consequential.
-5. Call `confluence-request`; report returned page ID and canonical wiki URL.
+Use `twg confluence content create|update`; inspect live help first. For fallback
+REST updates, fetch the current version, build the smallest JSON payload, call
+`confluence-request`, and report the returned page ID and URL.
 
 Consult the runtime `confluence-rest-v2` cache for payload fields rather than guessing.
 
-Use Confluence/Atlassian MCP only when neither ACLI nor these helpers support
-the operation.
+Use Confluence/Atlassian MCP only when TWG, ACLI, and these helpers cannot
+perform the operation.
