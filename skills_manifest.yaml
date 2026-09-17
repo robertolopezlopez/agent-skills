@@ -279,6 +279,18 @@ skills:
     type: core
     repo_scope: generic
     release_group: core
+  - name: contributor-team
+    path: skills/core/contributor-team
+    status: stable
+    type: core
+    repo_scope: generic
+    release_group: core
+    companion_skills:
+      - repository-technical-analysis
+      - branch-change-reviewer
+      - tdd
+      - multi-spawn-agent
+      - plan-issues
   - name: plan-issues
     path: skills/core/plan-issues
     status: stable
