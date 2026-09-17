@@ -21,9 +21,8 @@ Use commit history for routine wording, cleanup, and implementation-only changes
   for generated prose; default plans, tickets, comments, artifacts, statuses,
   and documents to one or two concise sentences or short bullets per item.
 - **`prepare-daily-status` rollover** — update the latest workday entry until an explicit `carry over` request creates the current-date entry with unfinished work.
-- **Confluence transport order** — prefer authenticated `acli confluence`, use
-  Basic-auth REST helpers when ACLI is unavailable or unsupported, and use
-  Confluence/Atlassian MCP only when both local transports cannot perform the operation.
+- **Confluence transport order** — use `twg confluence`, then authenticated
+  ACLI, Basic-auth REST helpers, and Confluence/Atlassian MCP.
 - **Atlassian auth fallback** — Jira and Confluence config checks prefer their
   authenticated ACLI sessions and accept `ATLASSIAN_API_TOKEN` only when the
   Basic-auth REST helper path is needed.

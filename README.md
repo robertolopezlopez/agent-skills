@@ -48,7 +48,7 @@ Overlays for the **CLI product** source repository (agent- and IDE-agnostic: wor
 
 The guided-experience-service and **CLI product** (`skills/cli/`) skills are overlays. Use them with the matching generic skills when working in those repositories.
 Use **`JIRA-ACCESS.md`** + **`acli`** for Jira Cloud issue access (resolve policy with **`scripts/agent_config.py --jira-access-policy`**).
-Use `confluence` for Confluence Cloud wiki access; prefer `acli confluence auth`, then Basic-auth REST helpers, then MCP.
+Use `confluence` for Confluence Cloud wiki access; prefer `twg confluence`, then ACLI, Basic-auth REST helpers, and MCP.
 Likewise, `gitlab-mr-comment-analysis` is an overlay on `gitlab`: use `gitlab` for generic MR fetch and discussion inspection, and `gitlab-mr-comment-analysis` for grouped unresolved-comment analysis and reporting.
 `github-pr-comment-analysis` is the GitHub analogue: fetch per synced **`GITHUB-ACCESS.md`** (`gh` / `gh api`), then use **`github-pr-comment-analysis`** to group unresolved review threads **inside** `review_pr_<number>.md` or `analysis_pr_<number>.md`.
 Use `codex-multi-agent-template/` when you want fixed lead/developer/reviewer/tester scaffolding. Use `multi-spawn-agent` when you want dynamic worker splits driven by a work definition file.
@@ -257,7 +257,7 @@ Synced copies: `~/.cursor/skills/scripts/check_skill_prereqs.sh` and `~/.codex/s
 | **jq** | optional | Jira, Confluence, investigation JSON filtering | — |
 | **circleci** | yes | `circleci` skill | `CIRCLE_TOKEN` / `circleci.env` — `check_skill_config.sh circleci` |
 
-Confluence prefers authenticated **`acli confluence`**, then bundled **`confluence-api`** / **`confluence-request`** Basic-auth helpers, then MCP. See `skills/core/confluence/SKILL.md`.
+Confluence uses **`twg confluence`**, then authenticated **`acli confluence`**, bundled Basic-auth REST helpers, and MCP. See `skills/core/confluence/SKILL.md`.
 
 ### Gmail (`GMAIL-ACCESS.md`)
 
