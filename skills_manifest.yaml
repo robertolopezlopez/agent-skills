@@ -228,7 +228,7 @@ skills:
     path: skills/cli/pr-comment-analysis
     status: stable
     type: overlay
-    repo_scope: cli
+    repo_scope: snyk
     release_group: cli
     companion_skills:
       - github-pr-comment-analysis
