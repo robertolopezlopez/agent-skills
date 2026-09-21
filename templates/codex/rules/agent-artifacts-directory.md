@@ -1,9 +1,9 @@
 # Artifacts directory
 
-When the user says **"the artifacts directory"** (or similar), resolve the
+For plans, analyses, reviews, and other generated artifacts, resolve the
 relevant path under **`$AGENT_ARTIFACTS_HOME`** with the synced
-`resolve_artifact_path.py` helper. Do not create a new in-repository
-`_artifacts_/` directory unless the user explicitly asks for it.
+`resolve_artifact_path.py` helper. Do not create repository-local artifact
+directories unless the user explicitly asks for it.
 
 - Ticket/session work: `$ARTIFACTS/<meaningful_id>/`
 - General technical-analysis reference: `$KNOWLEDGE/`
