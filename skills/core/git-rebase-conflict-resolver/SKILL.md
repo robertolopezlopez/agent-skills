@@ -1,11 +1,11 @@
 ---
 name: git-rebase-conflict-resolver
-description: Rebase onto a requested target (default `origin/main`), resolve or complete conflicts while preserving compatible intent, and verify the rewritten branch with repository commands.
+description: Rebase onto a requested target, the current branch's PR/MR target, or `origin/main`, resolve or complete conflicts while preserving compatible intent, and verify the rewritten branch with repository commands.
 ---
 
 # Git Rebase Conflict Resolver
 
-Take an optional target branch input. Default to `origin/main`. Rebase carefully. Merge intent, not markers.
+Take an optional target branch input. If omitted, use the current branch's open PR/MR target when available; otherwise use `origin/main`. Rebase carefully. Merge intent, not markers.
 
 ## When to Use
 
@@ -28,7 +28,8 @@ Do not use this skill when:
 
 - Accept an optional target branch.
 - If the user provides a target branch, use it.
-- If the user does not provide one, use `origin/main`.
+- Otherwise inspect the current branch for an open GitHub PR or GitLab MR and use its target branch.
+- If no PR/MR is found, use `origin/main`.
 
 ## First read
 
@@ -39,6 +40,8 @@ Do not use this skill when:
 
 - Run `git status --short --branch`.
 - Detect whether a rebase is already in progress before starting a new one.
+- Unless the user supplied a target, check the current branch for an open PR/MR before choosing the target (`gh pr view --json baseRefName` or `glab mr view --json target_branch`).
+- Record whether the target came from the user, an open PR/MR, or the fallback default.
 - If the worktree is dirty, separate unrelated user changes from rebase work.
 - Do not overwrite or discard unrelated local changes.
 - Refresh the chosen target branch with `git fetch` before rebasing.
@@ -118,7 +121,7 @@ Use the repository's real validation flow.
 State:
 
 - which branch was rebased onto which target branch
-- whether the target branch was user-provided or defaulted to `origin/main`
+- whether the target branch was user-provided, detected from an open PR/MR, or defaulted to `origin/main`
 - which files required manual conflict resolution
 - how the important conflicts were merged
 - which validation commands were run
