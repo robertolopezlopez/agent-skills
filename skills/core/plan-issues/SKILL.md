@@ -40,7 +40,7 @@ Accept any of:
 
 ## First Read
 
-- Read `AGENTS.md`, `README.md`, `Makefile`, and repo-specific contributor docs when present.
+- Read `AGENTS.md`, `README.md`, `Makefile`, and repo-specific contributor docs when present. Use repo-local guidance for scope and validation, but use the shared artifact policy for output placement.
 - If a local artifact exists for the task (prefer `$ARTIFACTS/<meaningful_id>/` paths per repo `ARTIFACTS.md`; legacy root-level files remain valid), read it first.
 - Reuse `repository-technical-analysis` first if the problem or scope is still unclear.
 - Reuse transport skills first if the plan depends on remote issue, MR, or CI run context that has not yet been fetched.
@@ -87,7 +87,7 @@ not restate the request or explain why each slice is separate.
 
 When the work is non-trivial, this skill may also write:
 
-- `$ARTIFACTS/<meaningful_id>/work_plan_<relevant_name>.md` for new plans (see repo `ARTIFACTS.md`; extend existing paths in place)
+- `$ARTIFACTS/<meaningful_id>/work_plan_<relevant_name>.md` for new plans (resolve with `resolve_artifact_path.py`; do not create repository-local plan directories unless the user explicitly asks)
 
 ## Companion Skills
 
