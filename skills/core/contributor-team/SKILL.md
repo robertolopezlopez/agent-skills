@@ -15,6 +15,10 @@ Use when the user asks for a team, multi-agent, or lead/reviewer/tester run on o
 
 - Small tasks a single contributor skill finishes faster than one review round.
 
+## Fast Path
+
+For one implementation scope with low risk, approve the lead design directly; skip separate design review and run one parallel reviewer/tester audit after implementation. Use the full phased workflow only when the task has multiple disjoint scopes or material risk.
+
 ## Inputs
 
 - Task statement (required).
@@ -37,7 +41,7 @@ Subagents share no memory and may not auto-discover skills: pass the design text
 ## Workflow
 
 1. **Design (lead).** Explore read-only with `repository-technical-analysis`; write a design: scope, acceptance criteria, risks, open questions, files likely touched, with path:line evidence. Keep it under ~40 lines. Use `plan-issues` when splitting into disjoint scopes; pass the approved design/work definition to `multi-spawn-agent`.
-2. **Design review (parallel).** Use `multi-spawn-agent` to run reviewer and tester workers, plus extra disjoint reviewers when the design has independent risk areas. Each returns blocker/warning/nit findings with evidence.
+2. **Design review (parallel, when warranted).** For multi-scope or material-risk work, use `multi-spawn-agent` to run reviewer and tester workers, plus extra disjoint reviewers when the design has independent risk areas. Each returns blocker/warning/nit findings with evidence. Otherwise approve the design directly.
 3. **Approve (lead).** Resolve feedback; on material disagreement run the `multi-spawn-agent` Team Sync Pattern in-thread; record the approved design. Nothing is implemented before this step.
 4. **Implement (parallel when useful).** Use `multi-spawn-agent` for one developer per disjoint approved scope, each with the contributor skill, `tdd`, and `ponytail`. Keep one developer when scopes are coupled. Developers return summary, files changed, commands run with exit codes, assumptions.
 5. **Audit (parallel).** Use `multi-spawn-agent` for reviewer/tester workers and additional disjoint reviewers when useful. Reviewers run `branch-change-reviewer` (or its repo overlay) including uncommitted changes plus `ponytail-review`; testers run the narrowest documented tests/lint (repo parallel-tests overlay for broad runs) and report commands, pass/fail, gaps.
