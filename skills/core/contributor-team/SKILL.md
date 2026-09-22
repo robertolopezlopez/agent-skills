@@ -1,11 +1,11 @@
 ---
 name: contributor-team
-description: Run a lead/developer/reviewer/tester team for one task — design, parallel design review, approval, implementation, parallel audit, bounded fix loop, final summary — with a ponytail-driven reviewer, on Cursor or Codex.
+description: Run a lead/developer/reviewer/tester team for one task — design, parallel multi-worker review, approval, implementation, parallel audit, bounded fix loop, final summary — with a ponytail-driven reviewer, on Cursor or Codex.
 ---
 
 # Contributor Team
 
-Fixed-role team workflow from `codex-multi-agent-template`, runtime-independent. The calling agent is **lead**; only **developer** writes files.
+Role-based team workflow from `codex-multi-agent-template`, runtime-independent. The calling agent is **lead**; only **developer** workers write files. Use `multi-spawn-agent` for parallel developer and reviewer work.
 
 ## When to Use
 
@@ -13,13 +13,12 @@ Use when the user asks for a team, multi-agent, or lead/reviewer/tester run on o
 
 ## When Not to Use
 
-- Flexible N-worker splits by file ownership — use `multi-spawn-agent`.
 - Small tasks a single contributor skill finishes faster than one review round.
 
 ## Inputs
 
 - Task statement (required).
-- Optional: repo contributor skill to hand the developer (`cli-contributor`, `python-fastapi-contributor`, …), max fix rounds (default 2).
+- Optional: repo contributor skill to hand developers (`cli-contributor`, `python-fastapi-contributor`, …), max fix rounds (default 2).
 
 ## First Read
 
@@ -29,20 +28,20 @@ Repo `AGENTS.md`; `references/roles.md` (role prompts). Resolve the skills root 
 
 | Runtime | Spawn | Read-only enforcement |
 |---|---|---|
-| Codex, `.codex/config.toml` defines roles `lead`/`developer`/`reviewer`/`tester` | named roles in multi-agent mode | `sandbox_mode = "read-only"` |
-| Any runtime with generic subagents (Cursor `Task`, Codex without named roles, …) | one subagent per role, prompt block from `references/roles.md` | prompt rule "do not modify files"; lead checks `git status --porcelain` after each read-only phase |
+| Codex, `.codex/config.toml` defines roles `lead`/`developer`/`reviewer`/`tester` | `multi-spawn-agent` using named roles | `sandbox_mode = "read-only"` |
+| Any runtime with generic subagents (Cursor `Task`, Codex without named roles, …) | `multi-spawn-agent`; one worker per disjoint developer/reviewer/tester scope, using prompt blocks from `references/roles.md` | prompt rule "do not modify files" for read-only workers; lead checks `git status --porcelain` after each read-only phase |
 | No subagent spawning | lead runs each role's block in-thread, sequentially, in phase order | same `git status` check; parallel phases become sequential |
 
 Subagents share no memory and may not auto-discover skills: pass the design text verbatim and absolute `SKILL.md` paths for every skill named in a role block.
 
 ## Workflow
 
-1. **Design (lead).** Explore read-only with `repository-technical-analysis`; write a design: scope, acceptance criteria, risks, open questions, files likely touched, with path:line evidence. Keep it under ~40 lines. Use `plan-issues` only when splitting into disjoint developer scopes.
-2. **Design review (parallel).** Spawn reviewer (`ponytail-review` ladder: needed at all? exists already? stdlib? one line?) and tester (testability, missing criteria, CI, edge cases). Each returns blocker/warning/nit findings with evidence.
+1. **Design (lead).** Explore read-only with `repository-technical-analysis`; write a design: scope, acceptance criteria, risks, open questions, files likely touched, with path:line evidence. Keep it under ~40 lines. Use `plan-issues` when splitting into disjoint scopes; pass the approved design/work definition to `multi-spawn-agent`.
+2. **Design review (parallel).** Use `multi-spawn-agent` to run reviewer and tester workers, plus extra disjoint reviewers when the design has independent risk areas. Each returns blocker/warning/nit findings with evidence.
 3. **Approve (lead).** Resolve feedback; on material disagreement run the `multi-spawn-agent` Team Sync Pattern in-thread; record the approved design. Nothing is implemented before this step.
-4. **Implement (developer).** Spawn developer with the approved design, the contributor skill, `tdd`, and `ponytail`. Developer returns summary, files changed, commands run with exit codes, assumptions. Split into several developers only via `multi-spawn-agent`.
-5. **Audit (parallel).** Reviewer runs `branch-change-reviewer` (or its repo overlay) including uncommitted changes, chat output only, plus `ponytail-review` on the diff; tester runs the narrowest documented tests/lint (repo parallel-tests overlay for broad runs) and reports commands, pass/fail, gaps.
-6. **Fix loop.** On blockers, developer fixes and reviewer re-reviews, at most `max fix rounds`; then escalate to the user with the open blockers.
+4. **Implement (parallel when useful).** Use `multi-spawn-agent` for one developer per disjoint approved scope, each with the contributor skill, `tdd`, and `ponytail`. Keep one developer when scopes are coupled. Developers return summary, files changed, commands run with exit codes, assumptions.
+5. **Audit (parallel).** Use `multi-spawn-agent` for reviewer/tester workers and additional disjoint reviewers when useful. Reviewers run `branch-change-reviewer` (or its repo overlay) including uncommitted changes plus `ponytail-review`; testers run the narrowest documented tests/lint (repo parallel-tests overlay for broad runs) and report commands, pass/fail, gaps.
+6. **Fix loop.** On blockers, use `multi-spawn-agent` for disjoint developer fixes and reviewer re-reviews; keep coupled fixes with one developer/reviewer pair. Stop at `max fix rounds`, then escalate to the user with the open blockers.
 7. **Summary (lead).** Changed files, validation run, risks, next steps, plus `ponytail-review` net-lines metric or `Lean already. Ship.`
 
 ## Validation
