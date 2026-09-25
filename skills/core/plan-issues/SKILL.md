@@ -50,24 +50,30 @@ Accept any of:
 1. Confirm the scope of the change.
 2. Refuse to decompose until the goal is clear enough to split confidently.
 3. Identify the smallest useful vertical slices.
-4. Prefer slices that cut through the necessary layers end-to-end rather than grouping work by technical layer.
-5. Write each slice as one or two concise action sentences. Example: `Extract
+4. Map dependencies and disjoint write ownership before ordering slices.
+5. Group independent slices into parallel batches; serialize only shared-file or dependency-bound work.
+6. Prefer slices that cut through the necessary layers end-to-end rather than grouping work by technical layer.
+7. Write each slice as one or two concise action sentences. Example: `Extract
    the existing test data into reusable fixtures, then add focused tests for the
    affected behavior. Keep the change limited to test organization and coverage.`
    Add dependencies, blockers, or validation only when non-obvious or required.
-6. Review the breakdown for:
+8. Review the breakdown for:
    - unnecessary coupling
    - overly large slices
    - hidden blockers
    - missing validation expectations
-7. Produce the ordered work plan.
-8. Suggest a follow-on skill only when the user needs it to execute the plan.
+   - overlapping write scopes that would cause merge conflicts
+9. Produce the ordered work plan with parallel batches and integration order.
+10. Suggest a follow-on skill only when the user needs it to execute the plan.
 
 ## Planning Rules
 
 - Prefer vertical slices over horizontal slices.
 - Prefer many thin executable slices over a few large ambiguous ones.
 - Keep dependencies explicit.
+- Assign every slice a `depends_on` list, disjoint `write_scope`, `parallel_batch`, and validation command or check.
+- Use the fewest workers that cover genuinely independent scopes; do not split tightly coupled work.
+- Make the first batch runnable without another worker's unfinished output; put shared-file integration last.
 - Mark human-needed decisions only when they block execution.
 - Do not invent precision when the scope is still unclear.
 - If decomposition reveals missing understanding, stop and recommend clarification before continuing.
@@ -88,6 +94,8 @@ not restate the request or explain why each slice is separate.
 When the work is non-trivial, this skill may also write:
 
 - `$ARTIFACTS/<meaningful_id>/work_plan_<relevant_name>.md` for new plans (resolve with `resolve_artifact_path.py`; do not create repository-local plan directories unless the user explicitly asks)
+
+The plan is a `multi-spawn-agent` work definition: include each worker's scope, owned files/directories, dependencies, parallel batch, non-goals, validation, and integration order.
 
 ## Companion Skills
 
