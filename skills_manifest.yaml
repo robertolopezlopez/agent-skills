@@ -172,6 +172,7 @@ skills:
       - circleci
       - private-branch-change-reviewer
       - private-technical-analysis
+      - multi-spawn-agent
   - name: private-support-monitor
     path: skills/cli/private-support-monitor
     status: stable
