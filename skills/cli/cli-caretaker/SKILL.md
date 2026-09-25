@@ -32,36 +32,45 @@ Do not use outside CLI Ask Caretaker scope or for On Caller/incident ownership.
 
 ## Inputs
 
-Accept a shift window, queue snapshot, issue list, or handoff. Research/triage/report requests authorize reads only. Require an explicit request for each comment, transition, close, assignment, message, reply, or PR review; confirm destructive, ambiguous, or bulk writes.
+Accept a shift window, queue snapshot, issue list, or handoff. A caretaker invocation authorizes read-only parallel workers for the evidence streams below. Require an explicit request for each comment, transition, close, assignment, message, reply, or PR review; confirm destructive, ambiguous, or bulk writes.
 
 ## Workflow
 
-1. Read and deduplicate:
+1. Run the policy freshness gate, define the shift window, and fetch/deduplicate authoritative IDs before spawning workers.
+2. Use the daily report path as the `multi-spawn-agent` work definition; create its initial split before spawning. Run one read-only worker per independent stream, with disjoint report-section ownership:
+   - Asks and `#ask-cli` / `@ask-cli-caretaker` mentions
+   - Support Board / Jira `Triage Status`
+   - `#cli-alerts`, `#hammerhead-alerts`, and `main` CircleCI
+   - Datadog only when an alert or performance signal needs it
+   - redirected requests and PR asks
+   - CLI/IDE investigation **only when explicitly requested**; never spawn this stream by default
+   Workers must not edit the main report concurrently. Require each to return evidence, gaps, and the owned section's findings.
+3. Read and deduplicate the resulting evidence:
    - every non-`Done` Ask
    - every visible shift-window `@ask-cli-caretaker`/`S075HU4SREC` question, including parent and thread
    - new support `Triage Status` items
    - CLI/Hammerhead alerts, `main` failures in [snyk/cli CircleCI](https://app.circleci.com/pipelines/gh/snyk/cli), redirected requests, and PR asks
    - acceptance failures where documented `TEST_SNYK_IGNORE_LIST` may unblock an out-of-scope spec, never a CLI regression
    - batch authoritative local reads first (`acli`/`JIRA-ACCESS.md`, `circleci`, `gh`); after deduplication, use one bounded `twg context` or `twg responsibility` lookup only when ownership or related work is unclear; never enrich every item or use TWG search as coverage proof
-2. For observable alerts, CI errors, or performance symptoms, discover and load the matching Datadog guide; query the narrowest useful identifier/service/error/time window. Record query, range, link, and whether evidence confirms or suggests. Skip Datadog when no signal exists or other evidence answers the item.
-3. Classify each Ask:
+4. For observable alerts, CI errors, or performance symptoms, discover and load the matching Datadog guide; query the narrowest useful identifier/service/error/time window. Record query, range, link, and whether evidence confirms or suggests. Skip Datadog when no signal exists or other evidence answers the item.
+5. Classify each Ask:
    - simple question/update: draft answer; advise close, or `#ask-cli` follow-up if unclear
    - feature: advise Aha! entry, then close after capture
    - customer bug: advise Zendesk ticket/link with logs, screenshots, repro; then close Ask and follow support flow
    - non-customer bug: advise CLI/IDE Jira bug, Ask link, and KLO/Cooldown prioritization
    - documentation debt: advise tech-debt ticket; if urgent, `Cycle <X> Cooldown candidate`
    - PR ask: inspect read-only; advise review/closure, never submit or close
-4. Apply 30-minute Ask gate: route longer work into tracked flow instead of continuing channel investigation.
-5. Perform initial SUP triage in 5–10 minutes and within 1–3 days by priority:
+6. Apply 30-minute Ask gate: route longer work into tracked flow instead of continuing channel investigation.
+7. Perform initial SUP triage in 5–10 minutes and within 1–3 days by priority:
    - decide CLI ownership; otherwise advise owner assignment and project move
    - confirmed CLI bug: advise `Backlog`; for `Highest (Critical)`, also current sprint and fix
    - surface red breached due dates and yellow breached triage dates
    - feature: advise `Customer Need` with reason; sanity-check priority/missing data
    - declined bug: advise `Won't Fix` with reason
    - do not design solutions, deeply investigate, or promise exact ETA
-6. During planning, flag whether about 30% capacity remains for support and whether SLOs are at risk.
-7. Write report with reminder to update Slack group when appropriate; do not update it.
-8. Perform only separately requested external actions and record resulting URLs.
+8. During planning, flag whether about 30% capacity remains for support and whether SLOs are at risk.
+9. Write the single final report with a reminder to update Slack group when appropriate; do not update it.
+10. Perform only separately requested external actions and record resulting URLs.
 
 ## Validation
 
@@ -113,7 +122,7 @@ Analysis window: ...
 
 ## Companion Skills
 
-Use connected Slack capability read-only when available, `confluence`, `circleci` read-only, `cli-branch-change-reviewer` read-only for PR asks, `cli-technical-analysis` only after explicit deep-investigation request, and discovered Datadog guides. External writes require their write workflow and explicit request.
+Use `multi-spawn-agent` for the parallel read-only evidence pass, connected Slack capability read-only when available, `confluence`, `circleci` read-only, `cli-branch-change-reviewer` read-only for PR asks, `cli-technical-analysis` only after an explicit CLI/IDE or deep-investigation request, and discovered Datadog guides. External writes require their write workflow and explicit request.
 
 ## Safety Notes
 
