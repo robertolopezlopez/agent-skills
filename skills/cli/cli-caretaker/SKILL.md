@@ -17,9 +17,18 @@ Do not use outside CLI Ask Caretaker scope or for On Caller/incident ownership.
 
 ## Sources
 
-- Refresh the [CLI Support page](https://snyksec.atlassian.net/wiki/spaces/CLI/pages/2120417317/Support) with `confluence`; use only `CLI Ask Caretaker` guidance. Live policy wins.
+- Before the caretaker workflow, run the **policy freshness gate** below. Use only the `CLI Ask Caretaker` section of the [CLI Support page](https://snyksec.atlassian.net/wiki/spaces/CLI/pages/2120417317/Support); live policy wins for the current run.
 - Use the [decision diagram](https://miro.com/app/board/uXjVKD3VYxU=/) secondarily, plus [Support Board](https://snyksec.atlassian.net/jira/software/c/projects/CLI/boards/715) and [Support Dashboard](https://snyksec.atlassian.net/jira/dashboards/10913) `Triage Status`.
 - Use `JIRA-ACCESS.md`; any connected Slack capability for group `S075HU4SREC` and `#ask-cli`, `#cli-alerts`, `#hammerhead-alerts`; `circleci`; and connected Datadog skills when relevant. Never assume runtime-specific Slack tool names.
+
+## Policy Freshness Gate
+
+- Baseline: Support page `v:10`, checked `2026-09-25`. Update this line when the skill incorporates a newer policy.
+- State: resolve `$GLOBAL/cli-caretaker-policy/state.md` with `resolve_artifact_path.py`; read it before external work.
+- Check at most once per local calendar day. If `last_checked_date` is today, use the stored state and do not fetch Confluence again.
+- Otherwise fetch the page with `twg confluence content get <URL> --detail full --format markdown --include-metadata`, compare the page version and `CLI Ask Caretaker` section with the baseline, and record the date/version/delta in the state file.
+- If the page changed, learn the delta for the current run, then warn at the start and end: `CLI caretaker skill stale: Support policy changed from <baseline> to <version>; update cli-caretaker/SKILL.md.` Keep warning on later triggers until this skill's baseline and instructions are updated.
+- Do not silently edit this skill or clear the stale state. After updating the skill, set its baseline to the incorporated page version and mark the state current.
 
 ## Inputs
 
