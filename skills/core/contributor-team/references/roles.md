@@ -1,6 +1,6 @@
 # Role prompts
 
-Paste one block per spawned agent, then append the task or approved design. Replace `<…>`; "Load skill X (<path>)" means read that `SKILL.md` first — give absolute paths, subagents may not discover skills. Blocks match `codex-multi-agent-template/.codex/agents/*.toml`; use them when the runtime has no named roles.
+Paste one block per spawned agent, then append the task or approved design. Replace `<…>`; "Load skill X (<path>)" means read that `SKILL.md` first — give absolute paths, subagents may not discover skills. Use these blocks when the runtime has no named roles.
 
 ## reviewer (read-only)
 

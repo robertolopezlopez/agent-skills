@@ -43,7 +43,6 @@ Overlays for the **CLI product** source repository (agent- and IDE-agnostic: wor
 
 ### Other tracked assets
 
-- `codex-multi-agent-template/`: copy-ready multi-agent starter with `.codex/`, `AGENTS.md`, and prompts
 - `git-hooks/post-commit`: copies committed skills into the configured install roots, refreshes Cursor rules under `~/.cursor/rules/`, and refreshes managed Codex rule blocks in `~/.codex/AGENTS.md`
 
 The guided-experience-service and **CLI product** (`skills/cli/`) skills are overlays. Use them with the matching generic skills when working in those repositories.
@@ -51,7 +50,9 @@ Use **`JIRA-ACCESS.md`** + **`acli`** for Jira Cloud issue access (resolve polic
 Use `confluence` for Confluence Cloud wiki access; prefer `twg confluence`, then ACLI, Basic-auth REST helpers, and MCP.
 Likewise, `gitlab-mr-comment-analysis` is an overlay on `gitlab`: use `gitlab` for generic MR fetch and discussion inspection, and `gitlab-mr-comment-analysis` for grouped unresolved-comment analysis and reporting.
 `github-pr-comment-analysis` is the GitHub analogue: fetch per synced **`GITHUB-ACCESS.md`** (`gh` / `gh api`), then use **`github-pr-comment-analysis`** to group unresolved review threads **inside** `review_pr_<number>.md` or `analysis_pr_<number>.md`.
-Use `codex-multi-agent-template/` when you want fixed lead/developer/reviewer/tester scaffolding. Use `multi-spawn-agent` when you want dynamic worker splits driven by a work definition file.
+Use `contributor-team` for the fixed lead/developer/reviewer/tester workflow, and `multi-spawn-agent` for dynamic worker splits driven by a work definition file.
+
+Some `companion_skills` are runtime-provided rather than manifest-installed: `ponytail` and `ponytail-review` come from the Ponytail plugin, `caveman-review` comes from the Caveman plugin, and `slack` comes from the configured Slack connector/plugin. Syncing this repository does not install them; if one is unavailable, use the skill's documented fallback or report the missing capability.
 
 ## Philosophy
 
@@ -65,7 +66,7 @@ This repository aims to provide reusable agent workflows (Codex and Cursor) that
 
 ## When To Use What
 
-- Use `codex-multi-agent-template/` when you want a fixed project-level starter with `lead`, `developer`, `reviewer`, and `tester`.
+- Use `contributor-team` when you want a fixed lead/developer/reviewer/tester workflow.
 - Use `multi-spawn-agent/` when you want dynamic worker counts, explicit file ownership, or non-standard task splits.
 - Use generic skills such as `diagnose`, `tdd`, `gitlab`, **`JIRA-ACCESS.md`**, `confluence`, and `repository-technical-analysis` for reusable cross-repo workflows.
 - Use synced **`GITHUB-ACCESS.md`** + **`gh`** for GitHub issue and pull-request fetch, inspection, and normalization (`agent_config.py --github-access-policy`).
@@ -82,59 +83,6 @@ This repository aims to provide reusable agent workflows (Codex and Cursor) that
 - Use `diagnose` plus `tdd` when a concrete bug has been isolated and the fix should be driven by a regression test first.
 - Use `plan-issues` plus `tdd` when scoped work should be executed slice-by-slice through a test-first loop.
 - Use overlay skills when you need repository-specific commands, conventions, or analysis depth layered on top of a generic workflow.
-
-## Default Multi-Agent Roles
-
-| Role | Access | Responsibility |
-|------|--------|----------------|
-| `lead` | read-only | Explore the repo, write the design, coordinate work, approve the plan, produce the final summary |
-| `developer` | write | Implement the approved design and run validation |
-| `reviewer` | read-only | Review correctness, regressions, security, and missing tests |
-| `tester` | read-only | Validate coverage, CI readiness, and edge cases |
-
-Only the `developer` writes files in the fixed multi-agent template.
-
-## Standard Workflow Phases
-
-The fixed multi-agent template follows this default flow:
-
-1. `lead` explores the repo and writes the design
-2. `reviewer` and `tester` review the design in parallel
-3. `lead` approves the final plan
-4. `developer` implements the approved design
-5. `reviewer` and `tester` audit the implementation in parallel
-6. `lead` summarizes what changed, how it was validated, and any remaining risks
-
-Not every task needs all 4 roles. Use `multi-spawn-agent/` instead when a narrower or non-standard split is a better fit.
-
-## Quick Start
-
-For the fastest fixed-role setup in a target project:
-
-```bash
-cp -r codex-multi-agent-template/.codex/ my-project/.codex/
-cp codex-multi-agent-template/AGENTS.md my-project/
-cp -r codex-multi-agent-template/prompts/ my-project/.codex-prompts/  # optional
-
-cd my-project
-test -f AGENTS.md && echo "ok: AGENTS.md" || echo "MISSING: AGENTS.md"
-test -f .codex/config.toml && echo "ok: config.toml" || echo "MISSING: config.toml"
-ls .codex/agents/*.toml
-```
-
-Then start Codex in that project and use `prompts/standard-multi-agent-prompt.txt`.
-
-For longer tasks, use `prompts/status-dump.txt` to keep a short shared progress snapshot with current status, evidence, blockers, and next step.
-
-Example status snapshot:
-
-```text
-Task: add repo-specific worker split template
-Progress: lead done, design approved, developer in progress, reviewer pending, tester pending
-Evidence: changed README.md, multi-spawn-agent/SKILL.md
-Blockers: none
-Next step: developer finishes docs update, then reviewer and tester audit
-```
 
 ## Install
 
@@ -185,36 +133,6 @@ Optional **install filters** (skip copying whole manifest groups or named skills
 - `AGENT_SKILLS_EXCLUDE_SKILL_NAMES` — comma-separated exact manifest `name` entries.
 
 The `post-commit` hook does not set these; export them in your environment or wrap `sync_skills.sh` if you want narrower installs by default. See `scripts/sync_skills.sh` usage for details.
-
-## Multi-Agent Starter Template
-
-To bootstrap a target project with a fixed Codex multi-agent setup:
-
-```bash
-cp -r codex-multi-agent-template/.codex/ my-project/.codex/
-cp codex-multi-agent-template/AGENTS.md my-project/
-cp -r codex-multi-agent-template/prompts/ my-project/.codex-prompts/  # optional
-```
-
-Verify the copied files:
-
-```bash
-cd my-project
-test -f AGENTS.md && echo "ok: AGENTS.md" || echo "MISSING: AGENTS.md"
-test -f .codex/config.toml && echo "ok: config.toml" || echo "MISSING: config.toml"
-ls .codex/agents/*.toml
-```
-
-Why this layout:
-
-- `AGENTS.md` carries shared workflow rules for the whole project
-- `.codex/config.toml` registers the roles and multi-agent settings
-- `.codex/agents/*.toml` keeps role-specific model and sandbox config close to execution
-- `prompts/` provides paste-ready kickoff and status-tracking helpers
-
-For per-role configuration details and template-specific notes, see `codex-multi-agent-template/README.md`.
-
-For larger tasks, the lead can break work into milestones so review and validation can start on completed slices before the entire implementation is finished.
 
 ## CLI tools
 

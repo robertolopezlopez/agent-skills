@@ -5,7 +5,7 @@ description: Run a lead/developer/reviewer/tester team for one task — design, 
 
 # Contributor Team
 
-Role-based team workflow from `codex-multi-agent-template`, runtime-independent. The calling agent is **lead**; only **developer** workers write files. Use `multi-spawn-agent` for parallel developer and reviewer work.
+Runtime-independent lead/developer/reviewer/tester workflow. The calling agent is **lead**; only **developer** workers write files. Use `multi-spawn-agent` for parallel developer and reviewer work.
 
 ## When to Use
 

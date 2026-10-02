@@ -23,7 +23,7 @@ Do not use outside CLI or for transport-only work without local code analysis.
 ## Workflow
 
 1. Confirm root and package manager from repo metadata.
-2. If a Jira key is provided, or appears in the task/artifact, load `JIRA-ACCESS.md` and fetch the anchor issue with `acli`. By default use `max_depth=1`: enumerate and fetch only its direct parent/epic, child, blocker/blocked-by, relates-to, duplicate, and clone links, preserving link direction, status, summary, description, comments, and acceptance criteria. Do not recursively fetch links from linked issues unless the user explicitly requests a deeper depth. Deduplicate keys and record the fetched key set plus any inaccessible issue as an explicit gap. For example, `CLI-1899` must expand and explain direct links such as `CLI-1732` and `CLI-1679`, not merely cite them.
+2. If a Jira key is provided, or appears in the task/artifact, load `JIRA-ACCESS.md` and consume its normalized issue context through the shared Jira transport workflow. By default use `max_depth=1`: enumerate and fetch only the anchor's direct parent/epic, child, blocker/blocked-by, relates-to, duplicate, and clone links, preserving link direction, status, summary, description, comments, and acceptance criteria. Do not recursively fetch links from linked issues unless the user explicitly requests a deeper depth. Deduplicate keys and record the fetched key set plus any inaccessible issue as an explicit gap. For example, `CLI-1899` must expand and explain direct links such as `CLI-1732` and `CLI-1679`, not merely cite them. Do not duplicate Jira transport or normalization logic in this overlay.
 3. Read the existing task/review/analysis artifact and use the issue graph as investigation anchors.
 4. Choose smallest declared test/lint/typecheck repro; use filtered Turbo for cross-package behavior.
 5. Capture cwd, exact command, exit, and decisive logs.
@@ -47,7 +47,7 @@ In artifacts and on-screen output, link every `PR #<number>` reference. Use the 
 
 ## Companion Skills
 
-`repository-technical-analysis` (required), `JIRA-ACCESS.md` + `acli` for issue context, `circleci` for CI facts, `diagnose` for concrete failures, and optional Slack after local/bundled evidence.
+`repository-technical-analysis` (required), `JIRA-ACCESS.md` for normalized issue context, `circleci` for CI facts, `diagnose` for concrete failures, and optional Slack after local/bundled evidence.
 
 ## Safety Notes
 
