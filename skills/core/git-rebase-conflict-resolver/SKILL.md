@@ -144,13 +144,6 @@ The report should include:
 - validation commands run and results
 - final worktree state
 
-## Safety rules
-
-- Never use destructive resets unless explicitly requested.
-- Never discard unrelated local changes.
-- Never claim both sides were preserved without verifying the merged code path.
-- Never stop after resolving conflicts without running relevant validation.
-
 ## Self-Improving Behavior
 
 When rerunning rebases for the same branch family or recurring conflict area:
