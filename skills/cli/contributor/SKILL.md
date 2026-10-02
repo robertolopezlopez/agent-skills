@@ -22,6 +22,7 @@ Do not use outside CLI or for read-only transport with no local change.
 
 ## Design Principles
 
+- Apply `ponytail` before writing or refactoring code: question every new type, interface, class, or function; prefer extending an existing helper or pattern, pick the simplest approach with the smallest diff, and do not over-engineer. Add an abstraction only when the task requires it.
 - Inject collaborators through constructors, parameters, or explicit context/factories; avoid deep singleton imports.
 - Keep mutable state/config out of module globals and wire it at CLI entrypoints or tests.
 - Keep I/O at edges; make core logic testable with fakes instead of broad mock trees.
