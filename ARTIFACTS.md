@@ -76,18 +76,18 @@ Resolve **`<repo-key>`** in this order:
 1. **`git remote get-url origin`** → sanitized host/org/repo (e.g. `github.com-snyk-cli`)
 2. else sanitized basename of the repository root directory
 
-Helper (installed next to other shared scripts under each skills root). Examples use the Cursor path; on Codex replace with **`~/.codex/skills/scripts/`**:
+Helper (installed next to other shared scripts under each skills root). **`$AGENT_CONFIG_HOME`** is the active runtime's config home — the parent of the `skills/` directory this `ARTIFACTS.md` was read from. Never call another runtime's copy.
 
 ```bash
-python3 ~/.cursor/skills/scripts/resolve_artifact_path.py --global-artifacts-root
-python3 ~/.cursor/skills/scripts/resolve_artifact_path.py --knowledge-artifacts-root
-python3 ~/.cursor/skills/scripts/resolve_artifact_path.py --global-next-time-checks
-python3 ~/.cursor/skills/scripts/resolve_artifact_path.py --scope global --meaningful-id snyk-repo-ownership --basename repo-snyk-docker-registry-v2-client.md
-python3 ~/.cursor/skills/scripts/resolve_artifact_path.py --scope knowledge --basename analysis_ufm_gaf.md
-python3 ~/.cursor/skills/scripts/resolve_artifact_path.py --repo-artifacts-root
-python3 ~/.cursor/skills/scripts/resolve_artifact_path.py --next-time-checks
-python3 ~/.cursor/skills/scripts/resolve_artifact_path.py --meaningful-id mr-1447 --basename review_mr_1447.md
-python3 ~/.cursor/skills/scripts/resolve_artifact_path.py --find-existing --meaningful-id mr-1447 --basename review_mr_1447.md
+python3 $AGENT_CONFIG_HOME/skills/scripts/resolve_artifact_path.py --global-artifacts-root
+python3 $AGENT_CONFIG_HOME/skills/scripts/resolve_artifact_path.py --knowledge-artifacts-root
+python3 $AGENT_CONFIG_HOME/skills/scripts/resolve_artifact_path.py --global-next-time-checks
+python3 $AGENT_CONFIG_HOME/skills/scripts/resolve_artifact_path.py --scope global --meaningful-id snyk-repo-ownership --basename repo-snyk-docker-registry-v2-client.md
+python3 $AGENT_CONFIG_HOME/skills/scripts/resolve_artifact_path.py --scope knowledge --basename analysis_ufm_gaf.md
+python3 $AGENT_CONFIG_HOME/skills/scripts/resolve_artifact_path.py --repo-artifacts-root
+python3 $AGENT_CONFIG_HOME/skills/scripts/resolve_artifact_path.py --next-time-checks
+python3 $AGENT_CONFIG_HOME/skills/scripts/resolve_artifact_path.py --meaningful-id mr-1447 --basename review_mr_1447.md
+python3 $AGENT_CONFIG_HOME/skills/scripts/resolve_artifact_path.py --find-existing --meaningful-id mr-1447 --basename review_mr_1447.md
 ```
 
 Pass **`--repo-root`** when the working directory is not the target repository.
@@ -97,8 +97,8 @@ Pass **`--repo-root`** when the working directory is not the target repository.
 Copy existing in-repo trees into the external store with the shared helper (synced to each skills install root):
 
 ```bash
-python3 ~/.cursor/skills/scripts/migrate_legacy_artifacts.py --search-root ~/go --search-root ~/workspace --dry-run
-python3 ~/.cursor/skills/scripts/migrate_legacy_artifacts.py --search-root ~/go --search-root ~/workspace --remove-source
+python3 $AGENT_CONFIG_HOME/skills/scripts/migrate_legacy_artifacts.py --search-root ~/go --search-root ~/workspace --dry-run
+python3 $AGENT_CONFIG_HOME/skills/scripts/migrate_legacy_artifacts.py --search-root ~/go --search-root ~/workspace --remove-source
 ```
 
 The script resolves **`$ARTIFACTS/`** per repository, skips files that already exist in the external store, and optionally deletes the legacy **`_artifacts_/`** tree after copy.
@@ -108,9 +108,9 @@ The script resolves **`$ARTIFACTS/`** per repository, skips files that already e
 Do **not** write general knowledge under **`$ARTIFACTS/<repo-key>/knowledge/`**. If files landed there, move them to **`$KNOWLEDGE/`**:
 
 ```bash
-REPO_ROOT="$(python3 ~/.cursor/skills/scripts/resolve_artifact_path.py \
+REPO_ROOT="$(python3 $AGENT_CONFIG_HOME/skills/scripts/resolve_artifact_path.py \
   --repo-artifacts-root)"
-DEST="$(python3 ~/.cursor/skills/scripts/resolve_artifact_path.py \
+DEST="$(python3 $AGENT_CONFIG_HOME/skills/scripts/resolve_artifact_path.py \
   --scope knowledge --basename analysis_ufm_gaf.md)"
 mkdir -p "$(dirname "$DEST")"
 mv "$REPO_ROOT/knowledge/analysis_ufm_gaf.md" "$DEST"

@@ -187,6 +187,24 @@ check_circleci_config() {
   return "$issues"
 }
 
+check_mbin_config() {
+  local issues=0
+  local env_file
+  env_file="${PRIVATE_ENV:-$(python3 "$agent_config" --config-home)/private-transport.env}"
+  for var in PRIVATE_INSTANCE_URL PRIVATE_ACCESS_TOKEN; do
+    if [[ -n "${!var:-}" ]] || env_var_set_in_file "$env_file" "$var"; then
+      printf 'ok   %s present\n' "$var"
+    else
+      printf 'NEEDS %s (export or %s)\n' "$var" "$env_file"
+      issues=$((issues + 1))
+    fi
+  done
+  if [[ "$issues" -gt 0 ]]; then
+    printf '       setup: copy templates/private-transport.env.example to %s, set PRIVATE_INSTANCE_URL, then run private-transport-api client create / auth url / auth code\n' "$env_file"
+  fi
+  return "$issues"
+}
+
 check_gh_auth() {
   if ! command -v gh >/dev/null 2>&1; then
     printf 'SKIP gh auth (gh not installed — run check_skill_prereqs.sh github)\n'
@@ -285,6 +303,9 @@ check_group() {
       ;;
     circleci)
       check_circleci_config || issues=$((issues + $?))
+      ;;
+    private-transport)
+      check_mbin_config || issues=$((issues + $?))
       ;;
     *)
       echo "unknown skill/group: $group" >&2
