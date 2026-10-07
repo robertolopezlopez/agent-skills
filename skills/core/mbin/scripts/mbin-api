@@ -1,0 +1,311 @@
+#!/usr/bin/env python3
+"""Mbin REST API helper (stdlib only). Installed under <skills-root>/mbin/scripts/ after sync.
+
+Config: mbin.env in the active runtime config home (override path with MBIN_ENV).
+Shell variables of the same name take precedence over the file.
+
+  MBIN_INSTANCE_URL   https://your.instance
+  MBIN_CLIENT_ID / MBIN_CLIENT_SECRET      from `client create`
+  MBIN_ACCESS_TOKEN / MBIN_REFRESH_TOKEN / MBIN_TOKEN_EXPIRES_AT   from `auth code` / `auth refresh`
+  MBIN_REDIRECT_URI   default http://localhost:8765/cb
+"""
+from __future__ import annotations
+
+import argparse
+import importlib.util
+import json
+import os
+import sys
+import time
+import urllib.error
+import urllib.parse
+import urllib.request
+from pathlib import Path
+
+KEYS = (
+    "MBIN_INSTANCE_URL", "MBIN_CLIENT_ID", "MBIN_CLIENT_SECRET", "MBIN_ACCESS_TOKEN",
+    "MBIN_REFRESH_TOKEN", "MBIN_TOKEN_EXPIRES_AT", "MBIN_REDIRECT_URI",
+)
+DEFAULT_REDIRECT = "http://localhost:8765/cb"
+DEFAULT_SCOPES = "read moderate user:profile:read"
+# content type -> (user listing path suffix, id field, moderate path segment)
+TYPES = {
+    "entry": ("entries", "entryId", "entry"),
+    "post": ("posts", "postId", "post"),
+    "comment": ("comments", "commentId", "comment"),
+    "post-comment": ("post-comments", "commentId", "post-comment"),
+}
+
+
+def env_path() -> Path:
+    if os.environ.get("MBIN_ENV"):
+        return Path(os.environ["MBIN_ENV"]).expanduser()
+    here = Path(__file__).resolve()
+    for parent in here.parents:
+        candidate = parent / "scripts" / "agent_config.py"
+        if candidate.is_file():
+            spec = importlib.util.spec_from_file_location("agent_config", candidate)
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)  # type: ignore[union-attr]
+            return mod.env_file_path("mbin.env", infer_from=here)
+    sys.exit("could not find scripts/agent_config.py; run ./scripts/sync_skills.sh --all or set MBIN_ENV")
+
+
+def load_env() -> dict[str, str]:
+    cfg: dict[str, str] = {}
+    path = env_path()
+    if path.is_file():
+        for line in path.read_text().splitlines():
+            if line.startswith("#") or "=" not in line:
+                continue
+            k, v = line.split("=", 1)
+            if v.strip():
+                cfg[k.strip()] = v.strip()
+    for k in KEYS:
+        if os.environ.get(k):
+            cfg[k] = os.environ[k]
+    return cfg
+
+
+def save_env(updates: dict[str, str]) -> None:
+    path = env_path()
+    lines = path.read_text().splitlines() if path.is_file() else []
+    for k, v in updates.items():
+        lines = [l for l in lines if not l.startswith(f"{k}=")] + [f"{k}={v}"]
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join(lines) + "\n")
+    path.chmod(0o600)
+
+
+def need(cfg: dict[str, str], *keys: str) -> None:
+    missing = [k for k in keys if not cfg.get(k)]
+    if missing:
+        sys.exit(f"missing {', '.join(missing)}; set in shell or {env_path()}")
+
+
+def http(url: str, method: str = "GET", data: bytes | None = None, headers: dict | None = None):
+    req = urllib.request.Request(url, data=data, method=method, headers=headers or {})
+    req.add_header("Accept", "application/json")
+    req.add_header("User-Agent", "mbin-api/1.0 (agent-skills; +https://github.com/MbinOrg/mbin)")
+    try:
+        with urllib.request.urlopen(req, timeout=60) as resp:
+            body = resp.read()
+            return resp.status, (json.loads(body) if body else None)
+    except urllib.error.HTTPError as e:
+        body = e.read()
+        try:
+            return e.code, json.loads(body)
+        except ValueError:
+            return e.code, {"error": body.decode(errors="replace")}
+
+
+def token_request(cfg: dict[str, str], form: dict[str, str]) -> dict:
+    need(cfg, "MBIN_INSTANCE_URL", "MBIN_CLIENT_ID", "MBIN_CLIENT_SECRET")
+    form = {"client_id": cfg["MBIN_CLIENT_ID"], "client_secret": cfg["MBIN_CLIENT_SECRET"], **form}
+    status, body = http(
+        cfg["MBIN_INSTANCE_URL"].rstrip("/") + "/token", "POST",
+        urllib.parse.urlencode(form).encode(), {"Content-Type": "application/x-www-form-urlencoded"},
+    )
+    if status != 200 or not body or "access_token" not in body:
+        sys.exit(f"token request failed ({status}): {json.dumps(body)}")
+    save_env({
+        "MBIN_ACCESS_TOKEN": body["access_token"],
+        "MBIN_REFRESH_TOKEN": body.get("refresh_token", cfg.get("MBIN_REFRESH_TOKEN", "")),
+        "MBIN_TOKEN_EXPIRES_AT": str(int(time.time()) + int(body.get("expires_in", 3600)) - 60),
+    })
+    return body
+
+
+def ensure_token(cfg: dict[str, str]) -> str:
+    need(cfg, "MBIN_INSTANCE_URL", "MBIN_ACCESS_TOKEN")
+    expires = int(cfg.get("MBIN_TOKEN_EXPIRES_AT") or 0)
+    if expires and time.time() >= expires and cfg.get("MBIN_REFRESH_TOKEN"):
+        body = token_request(cfg, {"grant_type": "refresh_token", "refresh_token": cfg["MBIN_REFRESH_TOKEN"]})
+        cfg["MBIN_ACCESS_TOKEN"] = body["access_token"]
+    return cfg["MBIN_ACCESS_TOKEN"]
+
+
+def api(cfg: dict[str, str], method: str, path: str, params: dict | None = None, body: dict | None = None):
+    token = ensure_token(cfg)
+    url = cfg["MBIN_INSTANCE_URL"].rstrip("/") + "/" + path.lstrip("/")
+    if params:
+        url += ("&" if "?" in url else "?") + urllib.parse.urlencode(params)
+    headers = {"Authorization": f"Bearer {token}"}
+    data = None
+    if body is not None:
+        data = json.dumps(body).encode()
+        headers["Content-Type"] = "application/json"
+    status, out = http(url, method, data, headers)
+    if status >= 400:
+        sys.exit(f"{method} {path} -> {status}: {json.dumps(out)}")
+    return out
+
+
+def paginate(cfg: dict[str, str], path: str, params: dict | None = None):
+    page = 1
+    while True:
+        out = api(cfg, "GET", path, {**(params or {}), "p": page, "perPage": 100})
+        items = (out or {}).get("items") or []
+        yield from items
+        pag = (out or {}).get("pagination") or {}
+        if not items or page >= int(pag.get("maxPage") or page):
+            return
+        page += 1
+
+
+def user_content(cfg: dict[str, str], username: str, types: list[str], magazine: str | None):
+    user = api(cfg, "GET", f"/api/users/name/{urllib.parse.quote(username)}")
+    for t in types:
+        suffix, id_field, _ = TYPES[t]
+        for item in paginate(cfg, f"/api/users/{user['userId']}/{suffix}"):
+            mag = (item.get("magazine") or {}).get("name")
+            if magazine and mag != magazine:
+                continue
+            yield {
+                "type": t, "id": item[id_field], "magazine": mag,
+                "createdAt": item.get("createdAt"),
+                "text": (item.get("title") or item.get("body") or "")[:120],
+            }
+
+
+def emit(obj) -> None:
+    print(json.dumps(obj, indent=2, ensure_ascii=False))
+
+
+def main(argv: list[str] | None = None) -> None:
+    ap = argparse.ArgumentParser(prog="mbin-api", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    sub = ap.add_subparsers(dest="cmd", required=True)
+
+    p = sub.add_parser("client", help="OAuth2 client management")
+    ps = p.add_subparsers(dest="sub", required=True)
+    c = ps.add_parser("create", help="POST /api/client and save id/secret to mbin.env")
+    c.add_argument("--name", required=True)
+    c.add_argument("--email", required=True)
+    c.add_argument("--redirect", default=None, help=f"default {DEFAULT_REDIRECT}")
+    c.add_argument("--scopes", default=DEFAULT_SCOPES, help=f"space-separated; default '{DEFAULT_SCOPES}'")
+
+    p = sub.add_parser("auth", help="OAuth2 authorization_code flow")
+    ps = p.add_subparsers(dest="sub", required=True)
+    u = ps.add_parser("url", help="print the browser URL to approve the client")
+    u.add_argument("--scopes", default=DEFAULT_SCOPES)
+    cd = ps.add_parser("code", help="exchange CODE (or the full redirect URL) for tokens")
+    cd.add_argument("code")
+    ps.add_parser("refresh", help="refresh the access token")
+    ps.add_parser("status", help="show config path and which values are set (never prints secrets)")
+
+    r = sub.add_parser("request", help="raw authenticated request; prints JSON")
+    r.add_argument("method")
+    r.add_argument("path")
+    r.add_argument("--data", help="JSON body")
+    r.add_argument("--param", action="append", default=[], metavar="K=V")
+
+    sub.add_parser("me", help="GET /api/users/me")
+    sub.add_parser("user", help="GET /api/users/name/{username}").add_argument("username")
+    sub.add_parser("magazine", help="GET /api/magazine/name/{name}").add_argument("name")
+
+    uc = sub.add_parser("user-content", help="list a user's content as JSON lines")
+    uc.add_argument("username")
+    uc.add_argument("--magazine", help="only this magazine name")
+    uc.add_argument("--types", default=",".join(TYPES), help=f"comma list of {','.join(TYPES)}")
+
+    for name, hlp in (("trash", "soft-delete (moderator)"), ("restore", "undo trash (moderator)")):
+        t = sub.add_parser(name, help=hlp)
+        t.add_argument("type", choices=TYPES)
+        t.add_argument("id", type=int)
+
+    b = sub.add_parser("ban", help="ban user from magazine (moderator)")
+    b.add_argument("magazine")
+    b.add_argument("username")
+    b.add_argument("--reason")
+    b.add_argument("--expires", help="ISO-8601 datetime; omit for permanent")
+    ub = sub.add_parser("unban", help="lift a magazine ban")
+    ub.add_argument("magazine")
+    ub.add_argument("username")
+
+    tu = sub.add_parser("trash-user", help="trash all of a user's content in a magazine; dry-run unless --apply")
+    tu.add_argument("username")
+    tu.add_argument("--magazine", required=True)
+    tu.add_argument("--types", default=",".join(TYPES))
+    tu.add_argument("--apply", action="store_true")
+
+    a = ap.parse_args(argv)
+    cfg = load_env()
+
+    if a.cmd == "client":
+        need(cfg, "MBIN_INSTANCE_URL")
+        redirect = a.redirect or cfg.get("MBIN_REDIRECT_URI") or DEFAULT_REDIRECT
+        payload = {
+            "name": a.name, "contactEmail": a.email, "description": "agent-skills mbin helper",
+            "public": False, "redirectUris": [redirect],
+            "grants": ["authorization_code", "refresh_token"], "scopes": a.scopes.split(),
+        }
+        status, body = http(cfg["MBIN_INSTANCE_URL"].rstrip("/") + "/api/client", "POST",
+                            json.dumps(payload).encode(), {"Content-Type": "application/json"})
+        if status >= 400 or not body or "identifier" not in body:
+            sys.exit(f"client create failed ({status}): {json.dumps(body)}")
+        save_env({"MBIN_CLIENT_ID": body["identifier"], "MBIN_CLIENT_SECRET": body["secret"], "MBIN_REDIRECT_URI": redirect})
+        print(f"saved MBIN_CLIENT_ID/MBIN_CLIENT_SECRET to {env_path()}; next: mbin-api auth url")
+    elif a.cmd == "auth" and a.sub == "url":
+        need(cfg, "MBIN_INSTANCE_URL", "MBIN_CLIENT_ID")
+        q = urllib.parse.urlencode({
+            "response_type": "code", "client_id": cfg["MBIN_CLIENT_ID"],
+            "redirect_uri": cfg.get("MBIN_REDIRECT_URI") or DEFAULT_REDIRECT,
+            "scope": a.scopes, "state": str(int(time.time())),
+        })
+        print(cfg["MBIN_INSTANCE_URL"].rstrip("/") + "/authorize?" + q)
+        print("Open in a browser, approve, then copy the `code` from the redirect URL and run: mbin-api auth code <code-or-url>", file=sys.stderr)
+    elif a.cmd == "auth" and a.sub == "code":
+        code = a.code
+        if "://" in code:
+            code = urllib.parse.parse_qs(urllib.parse.urlparse(code).query).get("code", [""])[0]
+        if not code:
+            sys.exit("no code found")
+        token_request(cfg, {"grant_type": "authorization_code", "code": code,
+                            "redirect_uri": cfg.get("MBIN_REDIRECT_URI") or DEFAULT_REDIRECT})
+        print(f"tokens saved to {env_path()}")
+    elif a.cmd == "auth" and a.sub == "refresh":
+        need(cfg, "MBIN_REFRESH_TOKEN")
+        token_request(cfg, {"grant_type": "refresh_token", "refresh_token": cfg["MBIN_REFRESH_TOKEN"]})
+        print("access token refreshed")
+    elif a.cmd == "auth" and a.sub == "status":
+        print(f"config: {env_path()} ({'exists' if env_path().is_file() else 'missing'})")
+        for k in KEYS:
+            print(f"{'ok  ' if cfg.get(k) else 'MISSING'} {k}")
+        exp = int(cfg.get("MBIN_TOKEN_EXPIRES_AT") or 0)
+        if exp:
+            print("token:", "valid" if time.time() < exp else "expired (auto-refresh on next call)")
+    elif a.cmd == "request":
+        params = dict(kv.split("=", 1) for kv in a.param)
+        emit(api(cfg, a.method.upper(), a.path, params or None, json.loads(a.data) if a.data else None))
+    elif a.cmd == "me":
+        emit(api(cfg, "GET", "/api/users/me"))
+    elif a.cmd == "user":
+        emit(api(cfg, "GET", f"/api/users/name/{urllib.parse.quote(a.username)}"))
+    elif a.cmd == "magazine":
+        emit(api(cfg, "GET", f"/api/magazine/name/{urllib.parse.quote(a.name)}"))
+    elif a.cmd == "user-content":
+        for item in user_content(cfg, a.username, a.types.split(","), a.magazine):
+            print(json.dumps(item, ensure_ascii=False))
+    elif a.cmd in ("trash", "restore"):
+        seg = TYPES[a.type][2]
+        emit(api(cfg, "PUT", f"/api/moderate/{seg}/{a.id}/{a.cmd}"))
+    elif a.cmd in ("ban", "unban"):
+        mag = api(cfg, "GET", f"/api/magazine/name/{urllib.parse.quote(a.magazine)}")
+        user = api(cfg, "GET", f"/api/users/name/{urllib.parse.quote(a.username)}")
+        path = f"/api/moderate/magazine/{mag['magazineId']}/ban/{user['userId']}"
+        if a.cmd == "ban":
+            body = {k: v for k, v in (("reason", a.reason), ("expiredAt", a.expires)) if v}
+            emit(api(cfg, "POST", path, body=body or None))
+        else:
+            emit(api(cfg, "DELETE", path))
+    elif a.cmd == "trash-user":
+        items = list(user_content(cfg, a.username, a.types.split(","), a.magazine))
+        for item in items:
+            print(("TRASH " if a.apply else "would trash ") + json.dumps(item, ensure_ascii=False))
+            if a.apply:
+                api(cfg, "PUT", f"/api/moderate/{TYPES[item['type']][2]}/{item['id']}/trash")
+        print(f"{len(items)} item(s) {'trashed' if a.apply else 'found (dry run; add --apply)'}", file=sys.stderr)
+
+
+if __name__ == "__main__":
+    main()

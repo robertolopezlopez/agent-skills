@@ -185,6 +185,7 @@ When config is **missing or incomplete**:
 | `circleci` | **`CIRCLE_TOKEN`** export and/or **`circleci.env`** |
 | GitHub (`GITHUB-ACCESS.md`) | **`gh auth login`** — see **`GITHUB-ACCESS.md`** |
 | `gitlab`, `git --fetch-id` | **`glab auth login`** |
+| `mbin` | **`mbin.env`** via bundled **`mbin-api client create`** / **`auth code`** (OAuth2 authorization_code) |
 
 ## Git repository identity
 
@@ -204,7 +205,7 @@ Prereqs: check_skill_prereqs.sh git-access  |  GitLab ID: check_skill_prereqs.sh
 
 The installable **`git`** skill was removed in Phase C. **`gitlab`**, **`circleci`**, and **`GITHUB-ACCESS.md`** consume identity from this policy.
 
-Templates: **`templates/atlassian.env.example`**, **`templates/circleci.env.example`**.
+Templates: **`templates/atlassian.env.example`**, **`templates/circleci.env.example`**, **`templates/mbin.env.example`**.
 
 ## Contributor design principles
 

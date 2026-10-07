@@ -252,6 +252,12 @@ skills:
     companion_skills:
       - repository-technical-analysis
       - diagnose
+  - name: mbin
+    path: skills/core/mbin
+    status: stable
+    type: core
+    repo_scope: generic
+    release_group: core
   - name: latex-to-pdf
     path: skills/core/latex-to-pdf
     status: stable

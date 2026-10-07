@@ -48,24 +48,20 @@ When the user says **"the artifacts directory"** (or similar: "artifact path", "
 
 ## Path resolution
 
-From a git checkout (replace the skills root with your runtime install):
+From a git checkout. `$AGENT_CONFIG_HOME` is the active runtime's config home (parent of its synced `skills/` directory). Never call another runtime's copy.
 
 ```bash
-# Cursor — repo-scoped
-python3 ~/.cursor/skills/scripts/resolve_artifact_path.py --repo-artifacts-root
-python3 ~/.cursor/skills/scripts/resolve_artifact_path.py --meaningful-id CLI-1474 --basename analysis_topic.md
+# Repo-scoped
+python3 $AGENT_CONFIG_HOME/skills/scripts/resolve_artifact_path.py --repo-artifacts-root
+python3 $AGENT_CONFIG_HOME/skills/scripts/resolve_artifact_path.py --meaningful-id CLI-1474 --basename analysis_topic.md
 
 # General knowledge (store root)
-python3 ~/.cursor/skills/scripts/resolve_artifact_path.py --knowledge-artifacts-root
-python3 ~/.cursor/skills/scripts/resolve_artifact_path.py --scope knowledge --basename analysis_ufm_gaf.md
-
-# Codex
-python3 ~/.codex/skills/scripts/resolve_artifact_path.py --repo-artifacts-root
-python3 ~/.codex/skills/scripts/resolve_artifact_path.py --meaningful-id mr-1447 --basename review_mr_1447.md
+python3 $AGENT_CONFIG_HOME/skills/scripts/resolve_artifact_path.py --knowledge-artifacts-root
+python3 $AGENT_CONFIG_HOME/skills/scripts/resolve_artifact_path.py --scope knowledge --basename analysis_ufm_gaf.md
 
 # Cross-repo org reference
-python3 ~/.cursor/skills/scripts/resolve_artifact_path.py --global-artifacts-root
-python3 ~/.cursor/skills/scripts/resolve_artifact_path.py --scope global \
+python3 $AGENT_CONFIG_HOME/skills/scripts/resolve_artifact_path.py --global-artifacts-root
+python3 $AGENT_CONFIG_HOME/skills/scripts/resolve_artifact_path.py --scope global \
   --meaningful-id snyk-repo-ownership --basename repo-snyk-docker-registry-v2-client.md
 ```
 
@@ -73,6 +69,6 @@ Read existing files in the target directory before creating duplicates. Prefer e
 
 ## Schema and bootstrap
 
-- Full schema: **`ARTIFACTS.md`** next to your synced skills root (`~/.cursor/skills/ARTIFACTS.md` or `~/.codex/skills/ARTIFACTS.md`)
+- Full schema: **`ARTIFACTS.md`** at `$AGENT_CONFIG_HOME/skills/ARTIFACTS.md`
 - One-time machine setup from the agent-skills repository: **`./scripts/bootstrap_agent_artifacts.sh`**
 - Cursor phrase rule (optional): **`~/.cursor/rules/agent-artifacts-directory.mdc`** (installed by the bootstrap script with **`--cursor-rule`**)
