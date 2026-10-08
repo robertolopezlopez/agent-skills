@@ -470,6 +470,9 @@ def main() -> int:
             pr_branch=args.pr,
         )
         result["deadline_epoch"] = int(deadline_epoch)
+    except KeyboardInterrupt:
+        print("interrupted; monitor stopped", file=sys.stderr)
+        return 130
     except (OSError, ValueError, RuntimeError, subprocess.SubprocessError, json.JSONDecodeError) as error:
         print(str(error), file=sys.stderr)
         return 2

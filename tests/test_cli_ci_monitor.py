@@ -1,7 +1,9 @@
 import importlib.util
 import json
 import subprocess
+import sys
 import unittest
+from unittest import mock
 from pathlib import Path
 
 
@@ -610,6 +612,26 @@ class MonitorWorkflowTest(unittest.TestCase):
         self.assertEqual(result["status"], "failing")
         self.assertEqual(result["classification"]["environment"], ["Linux arm64"])
         self.assertEqual(result["remaining_seconds"], 120)
+
+    def test_main_handles_keyboard_interrupt_without_traceback(self):
+        module = load_module()
+
+        def interrupt(*_args, **_kwargs):
+            raise KeyboardInterrupt()
+
+        with (
+            mock.patch.object(
+                sys,
+                "argv",
+                ["monitor_workflow.py", "097cdb88-f0c2-4c0f-9ec1-163bc860d88e"],
+            ),
+            mock.patch.object(module, "build_client", return_value=object()),
+            mock.patch.object(module, "monitor", side_effect=interrupt),
+            mock.patch("sys.stderr") as stderr,
+        ):
+            self.assertEqual(module.main(), 130)
+
+        stderr.write.assert_any_call("interrupted; monitor stopped")
 
 
 if __name__ == "__main__":
