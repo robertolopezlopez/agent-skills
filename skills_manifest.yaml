@@ -258,6 +258,15 @@ skills:
     type: core
     repo_scope: generic
     release_group: core
+  - name: mbin-purge-user
+    path: skills/core/mbin-purge-user
+    status: stable
+    type: core
+    repo_scope: generic
+    release_group: core
+    companion_skills:
+      - mbin
+      - multi-spawn-agent
   - name: latex-to-pdf
     path: skills/core/latex-to-pdf
     status: stable
