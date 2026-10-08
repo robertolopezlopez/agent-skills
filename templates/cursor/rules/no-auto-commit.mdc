@@ -1,0 +1,12 @@
+---
+description: Do not create commits, tags, or pushes without explicit user approval
+alwaysApply: true
+---
+
+# No Autonomous Git Writes
+
+Never run `git commit`, `git tag`, `git push`, `gh pr merge`, `glab mr merge`, or any equivalent history/publish action unless the user explicitly asks for that exact action in the current conversation.
+
+Preparing changes is allowed: inspect status, edit files, run validation, and show the intended commit command or message. Stop before creating commits or publishing refs until the user confirms.
+
+Do not infer permission from phrases like "fix it", "make it green", "finish up", "ship it", or "take care of it". Those allow code changes and validation, not commits or pushes.
