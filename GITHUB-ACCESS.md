@@ -10,7 +10,7 @@ Workflow skills (`github-pr-comment-analysis`, `github-issue-triage`, …) consu
 1. GIT-ACCESS.md — repository identity and host verification when needed
 2. gh            — issue/PR overview, comments, labels
 3. gh api        — structured reviews, review comments, omitted fields
-4. GitHub MCP    — last resort when local tools missing or insufficient
+4. GitHub MCP    — fallback when `gh` / `gh api` is missing, broken, unauthenticated after quick checks, blocked by network/credential-store issues, or returns unusable errors
 ```
 
 Follow **Transport preference** and **Missing CLI tools — ask before fallback** in **`AGENTS.md`**.
@@ -26,7 +26,7 @@ scripts/check_skill_config.sh github     # gh auth status
 
 Alias: **`check_skill_prereqs.sh github-access`** → same **`github`** group.
 
-If **`gh`** is missing, **ask the user** to install using the OS-appropriate **`suggest (...)`** line — do not install unless asked. A failed **`gh auth status`** can mean restricted network or credential-store access. Retry unrestricted and probe **`gh api user`**; guide **`gh auth login`** only when that confirms missing or invalid credentials.
+If **`gh`** is missing, **ask the user** to install using the OS-appropriate **`suggest (...)`** line — do not install unless asked. A failed **`gh auth status`** can mean restricted network or credential-store access. Retry unrestricted and probe **`gh api user`**; guide **`gh auth login`** only when that confirms missing or invalid credentials. When `gh` still does not work after these quick checks, use GitHub MCP for the requested GitHub read instead of stopping on the local tool failure.
 
 ## Path resolution
 
@@ -113,7 +113,7 @@ Return the same contract whether data came from **`gh`**, **`gh api`**, or GitHu
 4. When repository identity is unknown, use synced **`GIT-ACCESS.md`** + **`git-repo-identity`** on remotes; stop if not hosted on GitHub.
 5. Resolve issue vs PR ambiguity before fetching.
 6. Run **`gh`** for common reads; escalate to **`gh api`** for structured review data.
-7. Use GitHub MCP only when local tools fail after prereq/config checks.
+7. Use GitHub MCP when `gh` / `gh api` does not work after quick prereq/config checks; do not repeatedly retry a broken local tool.
 8. Normalize output to the contract above.
 
 ## Local commands
