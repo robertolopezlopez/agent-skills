@@ -343,3 +343,13 @@ skills:
     type: core
     repo_scope: generic
     release_group: core
+  - name: job-search-parallel
+    path: skills/core/job-search-parallel
+    status: stable
+    type: core
+    repo_scope: generic
+    release_group: core
+    companion_skills:
+      - multi-spawn-agent
+      - contributor-team
+      - plan-issues
