@@ -126,7 +126,7 @@ In IDE runtimes with Shell available, read **`fast-grep.env`** and use host CLI 
 Routine GitHub issue and PR fetch uses synced **`GITHUB-ACCESS.md`** at **`$AGENT_CONFIG_HOME/skills/`** (resolve: **`agent_config.py --github-access-policy`**).
 
 ```text
-GIT-ACCESS.md (repo identity) → gh → gh api → GitHub MCP (last)
+GIT-ACCESS.md (repo identity) → gh → gh api → GitHub MCP when `gh` / `gh api` does not work
 Prereqs: check_skill_prereqs.sh github  |  Auth: check_skill_config.sh github → gh auth login
 ```
 
