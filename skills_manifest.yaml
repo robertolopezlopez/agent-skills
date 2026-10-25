@@ -267,6 +267,14 @@ skills:
     companion_skills:
       - mbin
       - multi-spawn-agent
+  - name: cv-tailor
+    path: skills/core/cv-tailor
+    status: experimental
+    type: core
+    repo_scope: generic
+    release_group: core
+    companion_skills:
+      - latex-to-pdf
   - name: latex-to-pdf
     path: skills/core/latex-to-pdf
     status: stable
