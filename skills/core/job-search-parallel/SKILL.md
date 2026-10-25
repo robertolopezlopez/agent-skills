@@ -63,9 +63,13 @@ Hunters write nothing; they return JSON in chat.
 
 Merge hunter JSON and drop cross-slice duplicates first (same URL or company+title — aggregator portals re-list the same posting across slices, so dedupe before any detail call, not after). Run the checkout candidates helper on the merged pool, then fetch detail (portal CLI detail command or WebFetch) only for selected high/medium-signal hits; lows stay snippet-only for the deferred list. Pass the enriched pool to Verify.
 
+### 2c. Trim to run cap (lead, in-thread)
+
+Sort the enriched pool by hunter fit-signal (high first, then medium), tie-break by freshest posted_date. Keep the top-K, where K is the run cap (default ~10), and mark the rest deferred without scoring — they keep their signals for promotion in a later run. Pass only the top-K pool to Verify.
+
 ### 3. Verify (single verifier, read-only, via multi-spawn-agent)
 
-Pass the merged hunter JSON plus the rubric inline (no file re-reads). Prompt block:
+Pass the top-K pool from 2c plus the rubric inline (no file re-reads). Prompt block:
 
 ```text
 You are the verifier. Do not modify files. Score each posting 0-100 on technical, experience, behavioral, career fit; apply location and language gates (FAIL excludes, FLAG stays with visible marker); mark expired (positive closed evidence) vs unreachable (fetch failed, one-line fetch_error); flag mass-posting spreads and stale posted_dates; never invent posting content.
