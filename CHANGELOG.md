@@ -17,6 +17,8 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 ### Changed
 
+- **`cv-tailor`** — tailor source-grounded CVs in the candidate's voice, build and inspect PDFs, and provide patches when repository writes are blocked.
+
 - **Concise output** — use Ponytail ultra for implementation and Caveman lite
   for generated prose; default plans, tickets, comments, artifacts, statuses,
   and documents to one or two concise sentences or short bullets per item.
