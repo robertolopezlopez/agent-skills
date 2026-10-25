@@ -102,6 +102,7 @@ When the runtime provides **Shell** and an **agent Grep tool**, the order above 
 2. When **`PREFERRED_SEARCH_TOOL`** is set and the binary is on **`PATH`**, run **`fast-grep --literal`** or the preferred host CLI through **Shell**.
 3. **Empty search output with exit 0** means no matches — do not treat that as tool failure and do not fall back to the agent Grep tool.
 4. Use the **agent Grep tool** only on **`fast-grep`** exit **4** (no host CLI on PATH), when Shell is unavailable, or when the user explicitly asks for agent Grep.
+5. In multi-agent runs, the lead resolves the tool once per session (items 1–2 above) and passes the exact command to workers; workers use it verbatim and never re-run discovery or prefs writes.
 
 ### Exit codes (`fast-grep` runner)
 
