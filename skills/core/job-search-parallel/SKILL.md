@@ -80,7 +80,7 @@ No company research, no salary lookup here; that depth belongs to the per-postin
 
 ### 4. Combine (lead, sole writer)
 
-Compute the overall score with the weighting and bands recorded in the work definition (read from the fit framework at slice time), apply FAIL vetoes, add urgency markers for deadlines within 7 days, run the expiry sweep over already-ranked entries. Write new postings to the seen-jobs store with canonical keys from the checkout key helper, then write the ranked shortlist artifact (ranked table, excluded with reasons, closing soon, deferred beyond the run cap, suggested next apply pick). Present the shortlist in chat; the user picks one posting for the standard apply workflow.
+Compute the overall score with the weighting and bands recorded in the work definition (read from the fit framework at slice time), apply FAIL vetoes, add urgency markers for deadlines within 7 days, run the expiry sweep over already-ranked entries. Write new postings to the seen-jobs store with canonical keys from the checkout key helper, then write the ranked shortlist artifact: rank the full eligible pool — newly scored plus previously ranked postings still open, excluding applied, discarded, expired and unreachable — top-N by overall score (ranked table, new top matches from this run, excluded with reasons, closing soon, deferred beyond the run cap, suggested next apply pick). Present the shortlist in chat; the user picks one posting for the standard apply workflow.
 
 ### Runtime mapping
 
