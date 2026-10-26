@@ -21,7 +21,7 @@ Use when the user asks for a parallel job hunt, a faster scrape/rank run, or mul
 
 - Candidate profile source (required): ai-job-search checkout root, or pasted CV plus preferences when no checkout exists yet.
 - Job preferences (required): target roles, locations, deal-breakers, deadlines sensitivity. Defaults come from the checkout profile when present.
-- Optional: checkout root override (default: existing local ai-job-search clone), focus area, broad flag, per-call cap (~20), run cap (~10 jobs scored), shortlist size (default 5), max hunters (default 3).
+- Optional: checkout root override (default: existing local ai-job-search clone), focus area, broad flag, per-call cap (~20), run cap (~10 jobs scored), shortlist size (default 5), max hunters (default 3), `update` flag to refresh the setup first (default: read-only search, never mutates the checkout).
 
 ## First Read
 
@@ -33,12 +33,14 @@ Use when the user asks for a parallel job hunt, a faster scrape/rank run, or mul
 
 ### 0. Setup (lead, in-thread)
 
+Mode gate: default search mode is read-only — resolve paths, read files, record checkout HEAD plus strategy snapshot date in the work definition, and proceed; never stash, pull, install, or refresh caches. A checkout behind upstream is normal in this mode, not a failure: stamp the versions and search. The update path (items 2, 3, 5, and profile creation in 6) runs only with the `update` flag or an explicit refresh request; it needs git metadata writes, so in a sandbox that blocks them stop and tell the user to run the update unsandboxed instead of searching silently on a stale setup.
+
 1. Resolve the checkout root (user flag, else existing local clone, else ask where to place it).
-2. If missing: clone the upstream ai-job-search repo into the agreed path (private repo when it will hold personal profile data; a public fork leaks tracked profile files).
-3. If present: update it in place; never create snapshot copies in /tmp. Check freshness first: compare `git rev-parse HEAD` against `git ls-remote origin HEAD`. If they match, skip the update entirely — no stash, no pull. If upstream is ahead: stash local edits first (`git stash push -m "job-search-parallel pre-update <date>"`, adding `-u` only when untracked profile files exist), then fast-forward only (`git pull --ff-only`; on divergence stop and ask), then `git stash pop`. Verify all stashed files are restored and no unmerged paths remain; on a pop conflict stop and escalate with the conflicting paths. Report commits pulled plus files restored. If the runtime blocks git metadata writes (sandbox): verify freshness via `ls-remote` and proceed read-only, marking the run `stale-checkout` when behind instead of failing.
+2. (Update path only.) If missing: clone the upstream ai-job-search repo into the agreed path (private repo when it will hold personal profile data; a public fork leaks tracked profile files).
+3. (Update path only.) If present: update it in place; never create snapshot copies in /tmp. Check freshness first: compare `git rev-parse HEAD` against `git ls-remote origin HEAD`. If they match, skip the update entirely — no stash, no pull. If upstream is ahead: stash local edits first (`git stash push -m "job-search-parallel pre-update <date>"`, adding `-u` only when untracked profile files exist), then fast-forward only (`git pull --ff-only`; on divergence stop and ask), then `git stash pop`. Verify all stashed files are restored and no unmerged paths remain; on a pop conflict stop and escalate with the conflicting paths. Report commits pulled plus files restored. If the runtime blocks git metadata writes (sandbox): verify freshness via `ls-remote` and proceed read-only, marking the run `stale-checkout` when behind instead of failing.
 4. Check host tools: bun, python3. On missing tools follow the ask-before-install rule (OS-appropriate suggestion, no silent install; bundled repo scripts need no install).
-5. Install or refresh portal CLIs with the checkout install script (dry-run first on fresh clones; skip entries whose package manifest declares install-time lifecycle scripts, report them).
-6. Verify profile files exist (identity plus candidate profile, search strategy). If absent, run the checkout setup flow (documents-folder, single-CV, or interview path) before searching.
+5. (Update path only.) Install or refresh portal CLIs with the checkout install script (dry-run first on fresh clones; skip entries whose package manifest declares install-time lifecycle scripts, report them).
+6. Verify profile files exist (identity plus candidate profile, search strategy). If absent on the update path, run the checkout setup flow (documents-folder, single-CV, or interview path) before searching; in search mode, stop and report instead.
 7. Probe the checkout contract (lead, read-only). Discover by role, never by hardcoded path: glob for the candidate profile, fit framework, search strategy, seen-jobs store, tracker CSV, key helper, install script, and portal skill directories. Read the scoring weights and fit bands from the fit framework file itself and record them in the work definition. If a piece is missing or renamed upstream, stop and report exactly which role is unmapped and where you looked; do not guess paths or run a degraded search.
 
 ### 1. Slice (lead, read-only)
