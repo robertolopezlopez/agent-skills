@@ -17,6 +17,8 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 ### Changed
 
+- **Issue-led technical analysis** — inspect attached PRs/MRs, their diffs, reviews, and checks; compare fixes with the analyzed checkout and record lookup gaps in both generic and CLI investigations.
+
 - **`cv-tailor`** — tailor source-grounded CVs in the candidate's voice, build and inspect PDFs, and provide patches when repository writes are blocked.
 
 - **Concise output** — use Ponytail ultra for implementation and Caveman lite
