@@ -51,6 +51,10 @@ Do not use this skill when:
 Use this loop for technical analysis tasks:
 
 1. Start from the user's task and gather the repositories, documents, tickets, URLs, or artifacts they provided. Read any local artifact first.
+   - When a Jira or similar tracker issue anchors the investigation, check its development links, remote links, description, and comments for attached PRs/MRs before forming a hypothesis. Include directly linked issues already fetched within the investigation's depth limit.
+   - Use the applicable issue transport and `GITHUB-ACCESS.md` or `gitlab` to fetch PR/MR context. If issue context exposes no PR/MR links or development links are unavailable, search relevant repositories by the exact issue key; deduplicate canonical URLs and include open, merged, and closed results.
+   - Inspect each relevant PR/MR's status, target, description, changed files/diff, review discussions, and checks for prior fixes, regressions, or incomplete work. Compare its changes with the analyzed checkout; a linked or merged PR alone does not prove the fix is present or effective.
+   - Cite the inspected PRs/MRs and their effect on the findings. Record unavailable links, searches, or evidence as gaps; distinguish no matches from an inaccessible development panel.
 2. Identify the narrowest reliable reproduction. Expand to broader coverage only when the failure surface is still unclear.
 3. **Repository code search** — when you need literal anchors in the codebase (failure strings, symbols, imports, feature flags, config keys):
    - Follow synced **`LITERAL-CODE-SEARCH.md`** (resolve with **`agent_config.py --literal-search-policy`**). Read **`fast-grep.env`** when set; else discover once. Run helpers under **`agent_config.py --literal-search-dir`** (`fast-grep`, `fast-grep-prefs.sh`, …) or direct host **`rg`**/`ag`/…. On exit **5**, show **OS-appropriate** **`install_cmd`** from **`fast-grep-resolve --missing`** or **`check_skill_prereqs.sh literal-search`** — ask before installing (never Homebrew-only); do not install unless the user asks; on decline **`fast-grep-prefs.sh decline <tool>`**; on tool change **`fast-grep-prefs.sh use <tool>`** — until success, exit **4** (**agent Grep tool** when runtime provides it), or clear failure on headless runtimes.
@@ -86,6 +90,7 @@ Use this loop for technical analysis tasks:
 - For codebase text search during analysis, validate that **literal search policy** (**`LITERAL-CODE-SEARCH.md`**) or **agent Grep tool** was used instead of unbounded manual file walks.
 - After approved code changes, run the lint, format, and test commands that are relevant to the fix.
 - Prefer the smallest validation set that proves or disproves the hypothesis before expanding coverage.
+- For issue-led investigations, verify that linked PRs/MRs were inspected and compared with the analyzed checkout, or record the lookup result and access gaps.
 - When code changes are part of the task, complete workflow **step 10** (shrink the diff) after validation passes and before handoff.
 
 ## Outputs / Artifacts
