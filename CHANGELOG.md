@@ -17,6 +17,8 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 ### Changed
 
+- **`job-search-parallel`** — discover recently funded companies via FinSMEs, delegate careers-page and LinkedIn searches with a shared hunter prompt and a 20-company run budget, and select candidates before detail fetches. Retain profile scoring, company leads, and access gaps.
+
 - **Issue-led technical analysis** — inspect attached PRs/MRs, their diffs, reviews, and checks; compare fixes with the analyzed checkout and record lookup gaps in both generic and CLI investigations.
 
 - **`cv-tailor`** — tailor source-grounded CVs in the candidate's voice, build and inspect PDFs, and provide patches when repository writes are blocked.
