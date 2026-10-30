@@ -242,11 +242,13 @@ If a new common rule appears in multiple skills, move it here unless there is a 
 
 ## Runtime config home (Cursor vs Codex)
 
-Skills synced under **`~/.cursor/skills/`** use **`~/.cursor/`** for local defaults files (`atlassian.env`, `circleci.env`, …). Codex installs use **`~/.codex/`**. Bundled helpers detect the runtime from the helper script path; override with **`AGENT_SKILLS_RUNTIME=cursor`** or **`codex`**, or set **`AGENT_CONFIG_HOME`**.
+Skills synced under **`~/.cursor/skills/`** use **`~/.cursor/`** for local defaults files (`atlassian.env`, `circleci.env`, …). Codex installs use **`~/.codex/`**. OpenCode installs use **`~/.config/opencode/`**. Bundled helpers detect the runtime from the helper script path; override with **`AGENT_SKILLS_RUNTIME=cursor`**, **`codex`**, or **`opencode`**, or set **`AGENT_CONFIG_HOME`**.
 
 **Agents must not read defaults files directly** — invoke bundled helpers (`jira-api`, `confluence-api`, `circleci-request`, …) or bootstrap scripts, which load the runtime-appropriate file via **`scripts/agent-config.sh`**. Do not probe the other runtime's config home unless the user is debugging cross-runtime setup.
 
 Resolve runtime config paths with **`scripts/agent_config.py`** (synced next to **`scripts/resolve_artifact_path.py`**): **`--atlassian-env`**, **`--circleci-env`**, **`--fast-grep-env`**, **`--skills-root`**, **`--literal-search-dir`**, **`--literal-search-policy`**, **`--github-access-policy`**, **`--gitlab-scripts-dir`**, **`--jira-access-policy`**, **`--config-home`**, **`--runtime`**, **`--defaults-hint atlassian.env`**, **`--api-docs-root`**, or **`--api-docs-dir <slug>`**. Shell equivalent: **`scripts/agent-config.sh`** with the same flags.
+
+OpenCode installs use **`~/.config/opencode/`** (or `OPENCODE_CONFIG_HOME` / `XDG_CONFIG_HOME`). Bundled helpers detect it from an installed path under `.../.config/opencode/skills/...` or via `AGENT_SKILLS_RUNTIME=opencode`.
 
 ## REST API reference cache
 
