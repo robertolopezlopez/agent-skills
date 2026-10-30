@@ -6,6 +6,7 @@ repo_root="$(cd -- "$script_dir/.." && pwd)"
 manifest_reader="$repo_root/scripts/skill_manifest.py"
 codex_skills_root="${CODEX_HOME:-$HOME/.codex}/skills"
 cursor_skills_root="${CURSOR_AGENT_SKILLS_HOME:-$HOME/.cursor}/skills"
+opencode_skills_root="${OPENCODE_CONFIG_HOME:-${XDG_CONFIG_HOME:-$HOME/.config}/opencode}/skills"
 
 manifest_filter_args=()
 if [[ -n "${AGENT_SKILLS_EXCLUDE_RELEASE_GROUPS:-}" ]]; then
@@ -18,17 +19,19 @@ fi
 usage() {
   cat <<'EOH'
 Usage: sync_skills.sh [--all] [--changed] [--dry-run] [--verify] [--delete-missing]
-                      [--codex-only | --cursor-only]
+                      [--codex-only | --cursor-only | --opencode-only]
 
 Sync manifest-declared skills from this repository into installed skill directories.
 
 Default destinations (override with flags or AGENT_SKILLS_SYNC_TARGETS):
-  - Codex:  ${CODEX_HOME:-~/.codex}/skills
-  - Cursor: ${CURSOR_AGENT_SKILLS_HOME:-~/.cursor}/skills
+  - Codex:     ${CODEX_HOME:-~/.codex}/skills
+  - Cursor:    ${CURSOR_AGENT_SKILLS_HOME:-~/.cursor}/skills
+  - OpenCode:  ${OPENCODE_CONFIG_HOME:-${XDG_CONFIG_HOME:-~/.config}/opencode}/skills
 
 Environment:
   CODEX_HOME                  Base for Codex config (default: ~/.codex)
   CURSOR_AGENT_SKILLS_HOME    Parent of skills/ for Cursor (default: ~/.cursor)
+  OPENCODE_CONFIG_HOME        Base for OpenCode config (default: ${XDG_CONFIG_HOME:-~/.config}/opencode)
   AGENT_SKILLS_SYNC_TARGETS   Codex-and-Cursor sync scope when no target flags:
                               codex | cursor | codex,cursor | all | both
                               (default: codex,cursor)
@@ -45,6 +48,7 @@ Options:
   --delete-missing  Remove installed copied skills that no longer exist in the manifest.
   --codex-only      Sync only to the Codex skills directory.
   --cursor-only     Sync only to the Cursor agent skills directory.
+  --opencode-only   Sync only to the OpenCode skills directory.
   -h, --help        Show this help.
 EOH
 }
@@ -90,10 +94,18 @@ while [[ $# -gt 0 ]]; do
       ;;
     --cursor-only)
       if [[ -n "$cli_target" && "$cli_target" != cursor ]]; then
-        echo "use only one of --codex-only or --cursor-only" >&2
+        echo "use only one of --codex-only, --cursor-only, or --opencode-only" >&2
         exit 2
       fi
       cli_target=cursor
+      shift
+      ;;
+    --opencode-only)
+      if [[ -n "$cli_target" && "$cli_target" != opencode ]]; then
+        echo "use only one of --codex-only, --cursor-only, or --opencode-only" >&2
+        exit 2
+      fi
+      cli_target=opencode
       shift
       ;;
     -h|--help)
@@ -111,7 +123,7 @@ done
 if [[ -n "$cli_target" ]]; then
   target_mode="$cli_target"
 else
-  case "${AGENT_SKILLS_SYNC_TARGETS:-codex,cursor}" in
+  case "${AGENT_SKILLS_SYNC_TARGETS:-codex,cursor,opencode}" in
     codex)
       target_mode=codex
       ;;
@@ -119,6 +131,9 @@ else
       target_mode=cursor
       ;;
     codex,cursor | all | both)
+      target_mode=all
+      ;;
+    codex,cursor,opencode)
       target_mode=all
       ;;
     *)
@@ -130,11 +145,12 @@ fi
 
 dest_roots=()
 if [[ "$target_mode" == all ]]; then
-  dest_roots+=("$codex_skills_root" "$cursor_skills_root")
+  dest_roots+=("$codex_skills_root" "$cursor_skills_root" "$opencode_skills_root")
 else
   case "$target_mode" in
     codex) dest_roots=("$codex_skills_root") ;;
     cursor) dest_roots=("$cursor_skills_root") ;;
+    opencode) dest_roots=("$opencode_skills_root") ;;
   esac
 fi
 
@@ -190,6 +206,15 @@ sync_skill_dir() {
 
 sync_to_destination() {
   local dest_root="$1"
+  local parent
+
+  if [[ "$dest_root" == "$opencode_skills_root" ]]; then
+    parent="$(dirname "$dest_root")"
+    if [[ ! -d "$parent" && -z "${OPENCODE_CONFIG_HOME:-}" ]]; then
+      echo "skip: OpenCode config home not found: $parent"
+      return 0
+    fi
+  fi
 
   run_or_print mkdir -p "$dest_root"
 
@@ -311,9 +336,10 @@ print_summary() {
 
   echo "mode: $mode_label"
   case "$target_mode" in
-    all) echo "targets: codex+cursor" ;;
+    all) echo "targets: codex+cursor+opencode" ;;
     codex) echo "targets: codex" ;;
     cursor) echo "targets: cursor" ;;
+    opencode) echo "targets: opencode" ;;
   esac
   for dest_root in "${dest_roots[@]}"; do
     echo "destination: $dest_root"

@@ -1,6 +1,6 @@
 # Agent Skills
 
-Custom agent skills tracked in git. They install to **Codex** (`~/.codex/skills`) and **Cursor** (`~/.cursor/skills` for personal agent skills) via `scripts/sync_skills.sh` unless you limit targets with flags or `AGENT_SKILLS_SYNC_TARGETS`.
+Custom agent skills tracked in git. They install to **Codex** (`~/.codex/skills`), **Cursor** (`~/.cursor/skills` for personal agent skills), and **OpenCode** (`~/.config/opencode/skills`) via `scripts/sync_skills.sh` unless you limit targets with flags or `AGENT_SKILLS_SYNC_TARGETS`.
 
 ## Layout
 

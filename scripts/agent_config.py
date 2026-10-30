@@ -14,7 +14,7 @@ API_DOCS_SEGMENT = "api-docs"
 
 def detect_runtime(infer_from: Path | None = None) -> str:
     override = (os.environ.get("AGENT_SKILLS_RUNTIME") or "").strip().lower()
-    if override in {"cursor", "codex"}:
+    if override in {"cursor", "codex", "opencode"}:
         return override
 
     if infer_from is not None:
@@ -22,12 +22,18 @@ def detect_runtime(infer_from: Path | None = None) -> str:
         for idx, part in enumerate(parts):
             if part in {".cursor", ".codex"} and idx + 1 < len(parts) and parts[idx + 1] == "skills":
                 return "cursor" if part == ".cursor" else "codex"
+            if part == "opencode" and idx > 0 and parts[idx - 1] == ".config" and idx + 1 < len(parts) and parts[idx + 1] == "skills":
+                return "opencode"
+            if part == ".opencode" and idx + 1 < len(parts) and parts[idx + 1] == "skills":
+                return "opencode"
 
     if os.environ.get("CODEX_THREAD_ID") or os.environ.get("CODEX_CI"):
         return "codex"
 
     if (Path.home() / ".cursor").is_dir():
         return "cursor"
+    if (Path.home() / ".config" / "opencode").is_dir() or (Path.home() / ".opencode").is_dir():
+        return "opencode"
     return "codex"
 
 
@@ -36,7 +42,15 @@ def config_home(runtime: str | None = None, infer_from: Path | None = None) -> P
     if override:
         return Path(override).expanduser()
     resolved = runtime or detect_runtime(infer_from)
-    return Path.home() / (".cursor" if resolved == "cursor" else ".codex")
+    if resolved == "cursor":
+        return Path.home() / ".cursor"
+    if resolved == "opencode":
+        override = (os.environ.get("OPENCODE_CONFIG_HOME") or "").strip()
+        if override:
+            return Path(override).expanduser()
+        base = (os.environ.get("XDG_CONFIG_HOME") or "").strip()
+        return (Path(base).expanduser() if base else Path.home() / ".config") / "opencode"
+    return Path.home() / ".codex"
 
 
 def env_file_path(basename: str, infer_from: Path | None = None) -> Path:

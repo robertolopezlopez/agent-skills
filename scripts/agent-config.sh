@@ -36,6 +36,10 @@ agent_config_default_runtime() {
     AGENT_CONFIG_RUNTIME=cursor
     return 0
   fi
+  if [ -d "${HOME}/.config/opencode" ] || [ -d "${HOME}/.opencode" ]; then
+    AGENT_CONFIG_RUNTIME=opencode
+    return 0
+  fi
   AGENT_CONFIG_RUNTIME=codex
 }
 
@@ -44,12 +48,13 @@ agent_config_init() {
 
   if [ -n "${AGENT_CONFIG_HOME:-}" ]; then
     case "${AGENT_SKILLS_RUNTIME:-}" in
-      cursor|codex)
+      cursor|codex|opencode)
         AGENT_CONFIG_RUNTIME=$AGENT_SKILLS_RUNTIME
         ;;
       *)
         case "$AGENT_CONFIG_HOME" in
           */.codex) AGENT_CONFIG_RUNTIME=codex ;;
+          */opencode) AGENT_CONFIG_RUNTIME=opencode ;;
           *) AGENT_CONFIG_RUNTIME=cursor ;;
         esac
         ;;
@@ -59,7 +64,7 @@ agent_config_init() {
   fi
 
   case "${AGENT_SKILLS_RUNTIME:-}" in
-    cursor|codex)
+    cursor|codex|opencode)
       AGENT_CONFIG_RUNTIME=$AGENT_SKILLS_RUNTIME
       ;;
     *)
@@ -70,6 +75,9 @@ agent_config_init() {
             ;;
           */.codex/skills/*|*/.codex/skills)
             AGENT_CONFIG_RUNTIME=codex
+            ;;
+          */.config/opencode/skills/*|*/.config/opencode/skills|*/.opencode/skills/*|*/.opencode/skills)
+            AGENT_CONFIG_RUNTIME=opencode
             ;;
           *)
             agent_config_default_runtime
@@ -82,8 +90,18 @@ agent_config_init() {
   esac
 
   case "$AGENT_CONFIG_RUNTIME" in
-    codex) AGENT_CONFIG_HOME=$HOME/.codex ;;
-    *) AGENT_CONFIG_RUNTIME=cursor; AGENT_CONFIG_HOME=$HOME/.cursor ;;
+    codex) AGENT_CONFIG_HOME=${HOME}/.codex ;;
+    cursor) AGENT_CONFIG_HOME=${HOME}/.cursor ;;
+    opencode)
+      if [ -n "${OPENCODE_CONFIG_HOME:-}" ]; then
+        AGENT_CONFIG_HOME=$OPENCODE_CONFIG_HOME
+      elif [ -n "${XDG_CONFIG_HOME:-}" ]; then
+        AGENT_CONFIG_HOME=$XDG_CONFIG_HOME/opencode
+      else
+        AGENT_CONFIG_HOME=$HOME/.config/opencode
+      fi
+      ;;
+    *) AGENT_CONFIG_RUNTIME=cursor; AGENT_CONFIG_HOME=${HOME}/.cursor ;;
   esac
 
   export AGENT_CONFIG_RUNTIME AGENT_CONFIG_HOME
