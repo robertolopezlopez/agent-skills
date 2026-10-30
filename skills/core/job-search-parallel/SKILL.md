@@ -75,14 +75,17 @@ Pass the top-K pool from 2c plus the rubric inline (no file re-reads). Prompt bl
 
 ```text
 You are the verifier. Do not modify files. Score each posting 0-100 on technical, experience, behavioral, career fit; apply location and language gates (FAIL excludes, FLAG stays with visible marker); mark expired (positive closed evidence) vs unreachable (fetch failed, one-line fetch_error); flag mass-posting spreads and stale posted_dates; never invent posting content.
-Return: one JSON object per job with scores, verdicts, strengths (1-3), gaps (1-3), deadline, language.
+Return: one JSON object per job with scores, verdicts, strengths (1-3), gaps (1-3), deadline, language, salary_posted (verbatim range or null, never estimated).
 ```
+No company research, no salary estimation here; the lead estimates missing salaries centrally in Combine.
 
-No company research, no salary lookup here; that depth belongs to the per-posting apply step.
+### 3b. Salary estimation (lead, in-thread)
+
+For any top-N or good-fit-band posting with no salary_posted, research one estimation per posting (portal salary tab, company career page, WebSearch market range for role plus location plus seniority). Add `salary_estimated` with range, currency, period, source URL, and confidence low/medium/high; keep `salary_posted: null`. Never present an estimate as posted. If no credible range found, leave estimated null with one-line why.
 
 ### 4. Combine (lead, sole writer)
 
-Compute the overall score with the weighting and bands recorded in the work definition (read from the fit framework at slice time), apply FAIL vetoes, add urgency markers for deadlines within 7 days, run the expiry sweep over already-ranked entries. Write new postings to the seen-jobs store with canonical keys from the checkout key helper, then write the ranked shortlist artifact: rank the full eligible pool — newly scored plus previously ranked postings still open, excluding applied, discarded, expired and unreachable — top-N by overall score (ranked table, new top matches from this run, excluded with reasons, closing soon, deferred beyond the run cap, suggested next apply pick). Present the shortlist in chat; the user picks one posting for the standard apply workflow.
+Compute the overall score with the weighting and bands recorded in the work definition (read from the fit framework at slice time), apply FAIL vetoes, add urgency markers for deadlines within 7 days, run the expiry sweep over already-ranked entries. Run 3b salary estimation for missing salaries, then write new postings to the seen-jobs store with canonical keys from the checkout key helper, then write the ranked shortlist artifact: rank the full eligible pool — newly scored plus previously ranked postings still open, excluding applied, discarded, expired and unreachable — top-N by overall score (ranked table with salary_posted vs salary_estimated columns, new top matches from this run, excluded with reasons, closing soon, deferred beyond the run cap, suggested next apply pick). Present the shortlist in chat; the user picks one posting for the standard apply workflow.
 
 ### Runtime mapping
 
@@ -99,6 +102,7 @@ Subagents share no memory: pass rubric plus slice text verbatim and absolute SKI
 - git status unchanged after hunt and verify phases (lead is the sole writer).
 - Every presented posting cites a resolving posting URL, never a listing-page fragment link.
 - Every score traces to fetched posting text plus the rubric; gaps stated, never smoothed over.
+- Salary shows source: posted verbatim or estimated with URL plus confidence; never mix.
 - Canonical dedup keys used; tracker-listed company plus role never re-presented.
 
 ## Outputs / Artifacts
