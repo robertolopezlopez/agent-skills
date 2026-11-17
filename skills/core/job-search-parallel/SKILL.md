@@ -115,7 +115,22 @@ Exactly one of the two is non-null per job: `salary_posted` is the posting's own
 
 ### 4. Combine (lead, sole writer)
 
-Compute the overall score with the weighting and bands recorded in the work definition (read from the fit framework at slice time), apply FAIL vetoes, add urgency markers for deadlines within 7 days, run the expiry sweep over ranked entries that could enter the top-N or the closing-soon band and drop newly expired ones from the pool, sweeping older entries only when they re-enter consideration. Run 3b salary estimation for missing salaries, then write new postings to the seen-jobs store with canonical keys from the checkout key helper, then write the ranked shortlist artifact: rank the full eligible pool — newly scored plus previously ranked postings still open, excluding applied, discarded, expired and unreachable — top-N by overall score; never place applied or expired postings in the top list — they appear only in the excluded section with reasons (ranked table with salary_posted vs salary_estimated columns, new top matches from this run, excluded with reasons, closing soon, deferred beyond the run cap, suggested next apply pick). Present the shortlist in chat; the user picks one posting for the standard apply workflow.
+Compute the overall score with the weighting and bands recorded in the work definition (read from the fit framework at slice time), apply FAIL vetoes, add urgency markers for deadlines within 7 days, run the expiry sweep over ranked entries that could enter the top-N or the closing-soon band and drop newly expired ones from the pool, sweeping older entries only when they re-enter consideration. Run 3b salary estimation for missing salaries, build the top-N overviews in 4b, then write new postings to the seen-jobs store with canonical keys from the checkout key helper, then write the ranked shortlist artifact: rank the full eligible pool — newly scored plus previously ranked postings still open, excluding applied, discarded, expired and unreachable — top-N by overall score; never place applied or expired postings in the top list — they appear only in the excluded section with reasons (ranked table with salary_posted vs salary_estimated columns, new top matches from this run, excluded with reasons, closing soon, deferred beyond the run cap, suggested next apply pick). Present the shortlist in chat; the user picks one posting for the standard apply workflow.
+
+### 4b. Top-N role overviews (lead, in-thread)
+
+After ranking, add one short overview block per top-N role (default top 10, or the configured shortlist size when smaller) to the ranked shortlist artifact. Sources are evidence already in hand: fetched posting text, verifier strengths and gaps, and company pages or coverage already collected this run. For a company with no such evidence, run one lightweight lookup of its site or careers page, one per unique company, deduplicated across roles and issued in one parallel round; a blocked or empty lookup marks the field `unknown` and never blocks the artifact. Never invent company facts, stack details or architecture.
+
+Each block is 5-8 bullets, no prose paragraphs, and ends the ranked table section:
+
+- **Company business**: what it sells, market and customer type, size or stage when stated.
+- **Tech and architecture**: stack, platform, product or system architecture, engineering practices — only when the posting or company pages state them.
+- **My fit**: overall score and fit band, one line on why.
+- **My strong points**: 2-3 rubric-linked matches.
+- **My weak points**: 2-3 gaps, missing requirements or drain factors, with unknown requirements flagged.
+- **Other relevant info**: salary posted vs estimated, remote or hybrid terms, funding, deadline or urgency, red flags.
+
+Place labeled fields inside each block; link the company source when a claim comes from a company page rather than the posting.
 
 For funding-led runs, include company coverage and a separate company-leads section in the run artifact: relevant companies without matching openings, checked date, funding/careers source URLs, status, and reason to revisit. Keep blocked or partial searches visible; company leads are not scored jobs or entries in the seen-jobs store. No scheduled monitoring is implied.
 
@@ -138,11 +153,12 @@ Subagents share no memory: pass rubric plus slice text verbatim and absolute SKI
 - Canonical dedup keys used; tracker-listed company plus role never re-presented.
 - Top list contains no applied or expired postings; both appear only under excluded with reasons.
 - Funding-led batches are disjoint, use the shared profile/preferences, and cover at most 20 companies total. Selection precedes detail fetches; only failed or closed selections trigger replacements. Scores use posting evidence; blocked sources never establish absence of openings.
+- Every top-N role has an overview block; company business, tech and architecture fields cite the posting or a company page, and unknown fields stay `unknown` rather than guessed. One company lookup per unique company.
 - A rate-limited portal is scanned by one hunter, one scan at a time, and a surviving 429 is recorded as partial coverage rather than retried within the run.
 
 ## Outputs / Artifacts
 
-Ranked shortlist in chat plus one artifact per run under the resolved $ARTIFACTS run directory: work definition (slices plus rubric), hunters-merged JSON, verifier scores, final ranked list. The checkout seen-jobs store and tracker remain the system of record; the artifact is the run report.
+Ranked shortlist in chat plus one artifact per run under the resolved $ARTIFACTS run directory: work definition (slices plus rubric), hunters-merged JSON, verifier scores, final ranked list (`ranked-shortlist.md`) with one overview block per top-N role. The checkout seen-jobs store and tracker remain the system of record; the artifact is the run report.
 
 ## Companion Skills
 
