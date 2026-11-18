@@ -121,8 +121,9 @@ Compute the overall score with the weighting and bands recorded in the work defi
 
 After ranking, add one short overview block per top-N role (default top 10, or the configured shortlist size when smaller) to the ranked shortlist artifact. Sources are evidence already in hand: fetched posting text, verifier strengths and gaps, and company pages or coverage already collected this run. For a company with no such evidence, run one lightweight lookup of its site or careers page, one per unique company, deduplicated across roles and issued in one parallel round; a blocked or empty lookup marks the field `unknown` and never blocks the artifact. Never invent company facts, stack details or architecture.
 
-Each block is 5-8 bullets, no prose paragraphs, and ends the ranked table section:
+Each block is 5-8 bullets, no prose paragraphs, and ends the ranked table section. Head the block with the live role link (the canonical posting URL from the ranked table), title and company:
 
+- **Live role**: posting URL, plus company careers link when it is a different, resolving page.
 - **Company business**: what it sells, market and customer type, size or stage when stated.
 - **Tech and architecture**: stack, platform, product or system architecture, engineering practices — only when the posting or company pages state them.
 - **My fit**: overall score and fit band, one line on why.
@@ -153,7 +154,7 @@ Subagents share no memory: pass rubric plus slice text verbatim and absolute SKI
 - Canonical dedup keys used; tracker-listed company plus role never re-presented.
 - Top list contains no applied or expired postings; both appear only under excluded with reasons.
 - Funding-led batches are disjoint, use the shared profile/preferences, and cover at most 20 companies total. Selection precedes detail fetches; only failed or closed selections trigger replacements. Scores use posting evidence; blocked sources never establish absence of openings.
-- Every top-N role has an overview block; company business, tech and architecture fields cite the posting or a company page, and unknown fields stay `unknown` rather than guessed. One company lookup per unique company.
+- Every top-N role has an overview block; each block links the live role with the same resolving posting URL as the ranked table row, and company business, tech and architecture fields cite the posting or a company page. Unknown fields stay `unknown` rather than guessed. One company lookup per unique company.
 - A rate-limited portal is scanned by one hunter, one scan at a time, and a surviving 429 is recorded as partial coverage rather than retried within the run.
 
 ## Outputs / Artifacts
