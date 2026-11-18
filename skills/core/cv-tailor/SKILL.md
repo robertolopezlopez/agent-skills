@@ -17,6 +17,8 @@ Job searches, cover letters, submissions or application tracking unless separate
 
 Use the supplied posting and base CV. Resolve the base CV path from the `CV_BASE_PATH` environment variable; if it is unset or empty, stop and tell the user to set it. Read its repository guidance and build command. Follow available candidate-profile pointers. When a `STYLE.md` sits beside the base CV, read it: voice rules, banned patterns and a few exemplars in the candidate's own words. It and the base CV are the style source of truth; its numbers describe past drafts, they are not targets. Start each new role from that base, not another tailored CV or variant; continue the current draft for revisions.
 
+When this skill runs alongside a job-search, evaluation or application skill, this skill owns every CV file and path. The other skill supplies the posting and the requirement inventory, then records the path this skill produced. It must not create, edit or overwrite a CV in its own repository, and any CV folder it holds is archive material, not a build source. When the two disagree on location, template or page budget, this skill and the repository beside `CV_BASE_PATH` win.
+
 ## Agents
 
 Invoking this skill authorizes two subagents for the tailoring loop. If the runtime cannot spawn subagents, run the same two roles sequentially in-thread with separate passes and say so.
@@ -51,7 +53,7 @@ Invoking this skill authorizes two subagents for the tailoring loop. If the runt
 
 ## Outputs
 
-Return PDF and source, changes, checks, material gaps and the final reviewer verdict. Distinguish branch checkout, file edits, builds, copies and commits. Do not claim one proves another.
+Return PDF and source, changes, checks, material gaps and the final reviewer verdict. Report the archive directory named by the CV repository's `AGENTS.md` when a copy was placed there. Distinguish branch checkout, file edits, builds, copies and commits. Do not claim one proves another.
 
 ## Companion Skills
 
