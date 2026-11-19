@@ -404,7 +404,7 @@ check_group() {
       check_tool jq jq "JSON filter (optional)" "https://jqlang.org/" || true
       printf 'note: repository text search — LITERAL-CODE-SEARCH.md (agent_config.py --literal-search-policy; check_skill_prereqs.sh literal-search)\n'
       ;;
-    parallel-tests|private-parallel-tests|private-service-parallel-tests)
+    parallel-tests)
       check_tool parallel parallel "GNU parallel (optional)" "https://www.gnu.org/software/parallel/" || true
       ;;
     fast-grep|literal-search)
@@ -483,7 +483,6 @@ for raw in "${targets[@]}"; do
   case "$raw" in
     github-pr-comment-analysis|github-issue-triage) group=github ;;
     gitlab-mr-comment-analysis) group=gitlab ;;
-    private-parallel-tests|private-service-parallel-tests) group=parallel-tests ;;
     repository-technical-analysis|diagnose) group=investigate ;;
   esac
   case " $seen " in

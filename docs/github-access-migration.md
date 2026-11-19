@@ -10,7 +10,7 @@ Remove the **`github`** installable skill; keep **`GITHUB-ACCESS.md`** + **`gh` 
 |------|--------|-------|
 | 1. Canonical policy in **`GITHUB-ACCESS.md`** + **`AGENTS.md`** | done | Synced via `shared_files` |
 | 2. **`agent_config.py --github-access-policy`** | done | Shell: **`agent-config.sh --github-access-policy`** |
-| 3. Workflow skills point to policy + `gh`, not skill | done | `github-pr-comment-analysis`, `github-issue-triage`, `private-pr-comment-analysis`, … |
+| 3. Workflow skills point to policy + `gh`, not skill | done | `github-pr-comment-analysis`, `github-issue-triage`, … |
 | 4. **`github/SKILL.md`** → deprecation stub | done | Removed in Phase C |
 | 5. Helpers in **`scripts/github/`** | done | **`gh-fetch`**, **`gh_context.py`**, **`bootstrap_github_artifact.py`**; **`--github-scripts-dir`** |
 | 6. **`bootstrap_github_artifact.py`** | done | **`--fetch`**, **`--json`**, external **`$ARTIFACTS/pr-<n>/`** defaults |

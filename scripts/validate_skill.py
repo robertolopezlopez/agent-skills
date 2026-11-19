@@ -88,6 +88,7 @@ def validate_skill_dir(
     skill_dir: Path,
     repo_root: Path,
     expected_name: str | None = None,
+    reference_roots: tuple[Path, ...] = (),
 ) -> list[str]:
     errors: list[str] = []
     warnings: list[str] = []
@@ -140,7 +141,9 @@ def validate_skill_dir(
             "expected at least one operational section: ## Workflow, ## First Read, ## Inputs, or ## Input"
         )
 
-    errors.extend(validate_relative_references(skill_dir, repo_root, text, expected_name))
+    errors.extend(
+        validate_relative_references(skill_dir, repo_root, text, expected_name, reference_roots)
+    )
     warnings.extend(validate_recommended_sections(body))
     return prefix_errors(skill_dir, errors + [f"WARNING: {warning}" for warning in warnings])
 
@@ -150,6 +153,7 @@ def validate_relative_references(
     repo_root: Path,
     text: str,
     expected_name: str | None,
+    reference_roots: tuple[Path, ...] = (),
 ) -> list[str]:
     errors: list[str] = []
 
@@ -172,6 +176,9 @@ def validate_relative_references(
 
         repo_shared_candidate = (repo_root / normalized).resolve(strict=False)
         if repo_shared_candidate.exists():
+            continue
+
+        if any((root / normalized).resolve(strict=False).exists() for root in reference_roots):
             continue
 
         if expected_name:
@@ -241,14 +248,36 @@ def main() -> None:
         help="Treat missing recommended sections as hard failures for explicit path targets.",
     )
     parser.add_argument(
+        "--repo-root",
+        default=None,
+        help="Repository root to validate. Defaults to this script's repository.",
+    )
+    parser.add_argument(
+        "--manifest",
+        default=None,
+        help="Manifest file to read. Defaults to <repo-root>/skills_manifest.yaml.",
+    )
+    parser.add_argument(
+        "--reference-root",
+        action="append",
+        default=[],
+        help=(
+            "Extra root used to resolve referenced paths, for example a tooling "
+            "repository that provides shared scripts (repeatable)."
+        ),
+    )
+    parser.add_argument(
         "paths",
         nargs="*",
         help="Optional skill directories or SKILL.md files to validate. Defaults to all manifest-declared skills.",
     )
     args = parser.parse_args()
 
-    repo_root = Path(__file__).resolve().parents[1]
-    manifest_path = repo_root / "skills_manifest.yaml"
+    repo_root = Path(args.repo_root).resolve() if args.repo_root else Path(__file__).resolve().parents[1]
+    manifest_path = (
+        Path(args.manifest).resolve() if args.manifest else repo_root / "skills_manifest.yaml"
+    )
+    reference_roots = tuple(Path(root).resolve() for root in args.reference_root)
     manifest = load_manifest(manifest_path)
     manifest_entries = manifest["skills"]
     manifest_paths = {Path(skill["path"]) for skill in manifest_entries}
@@ -277,7 +306,7 @@ def main() -> None:
         manifest_entry = manifest_by_relpath.get(rel_dir) if rel_dir is not None else None
         expected_name = manifest_entry["name"] if manifest_entry is not None else None
 
-        errors = validate_skill_dir(skill_dir, repo_root, expected_name)
+        errors = validate_skill_dir(skill_dir, repo_root, expected_name, reference_roots)
         warning_lines = [line for line in errors if "WARNING:" in line]
         error_lines = [line for line in errors if "WARNING:" not in line]
 

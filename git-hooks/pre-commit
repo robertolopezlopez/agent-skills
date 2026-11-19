@@ -18,12 +18,12 @@ fi
 changed_skill_paths=()
 changed_files="$(git -C "$repo_root" diff --cached --name-only)"
 
-while IFS=$'\t' read -r skill_name skill_path; do
-  [[ -n "$skill_name" && -n "$skill_path" ]] || continue
+while IFS=$'\t' read -r skill_name skill_path skill_root; do
+  [[ -n "$skill_name" && -n "$skill_path" && -n "$skill_root" ]] || continue
   while IFS= read -r path; do
     [[ -z "$path" ]] && continue
     if [[ "$path" == "$skill_path" || "$path" == "$skill_path/"* ]]; then
-      changed_skill_paths+=("$repo_root/$skill_path")
+      changed_skill_paths+=("$skill_root/$skill_path")
       break
     fi
   done <<< "$changed_files"

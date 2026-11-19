@@ -3,7 +3,12 @@ set -euo pipefail
 
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd -- "$script_dir/.." && pwd)"
-rules_src="$repo_root/templates/codex/rules"
+rules_dirs=()
+IFS=':' read -r -a rules_dir_list <<< "${AGENT_SKILLS_RULES_DIR:-$repo_root/templates/codex/rules}"
+for rules_dir in "${rules_dir_list[@]}"; do
+  [[ -n "$rules_dir" ]] && rules_dirs+=("$rules_dir")
+done
+rules_src="${rules_dirs[0]}"
 codex_home="${CODEX_HOME:-$HOME/.codex}"
 codex_agents_file="${CODEX_AGENTS_FILE:-$codex_home/AGENTS.md}"
 overwrite=0
@@ -17,6 +22,12 @@ Usage: sync_codex_rules.sh [options]
 Merge Codex always-on rules from templates/codex/rules/*.md into the global
 Codex AGENTS.md (default: ~/.codex/AGENTS.md). Each rule is stored in a managed
 block so personal guidance outside those blocks is preserved.
+
+Environment:
+  CODEX_HOME               Base for Codex config (default: ~/.codex)
+  CODEX_AGENTS_FILE        Target AGENTS.md file (default: $CODEX_HOME/AGENTS.md)
+  AGENT_SKILLS_RULES_DIR   Colon-separated rule directories (default: this
+                           repository's templates/codex/rules)
 
 Options:
   --overwrite       Refresh managed rule blocks when templates differ (default: skip existing)
@@ -133,7 +144,8 @@ skipped=0
 matched=0
 
 shopt -s nullglob
-for src in "$rules_src"/*.md; do
+for rules_dir in "${rules_dirs[@]}"; do
+for src in "$rules_dir"/*.md; do
   base=$(basename "$src")
   should_sync "$base" || continue
   matched=$((matched + 1))
@@ -170,9 +182,10 @@ for src in "$rules_src"/*.md; do
     installed=$((installed + 1))
   fi
 done
+done
 
 if [[ "$matched" -eq 0 ]]; then
-  echo "sync_codex_rules: no matching templates in $rules_src" >&2
+  echo "sync_codex_rules: no matching templates in ${rules_dirs[*]}" >&2
   exit 1
 fi
 

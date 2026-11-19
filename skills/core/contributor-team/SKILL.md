@@ -22,11 +22,11 @@ For one implementation scope with low risk, approve the lead design directly; sk
 ## Inputs
 
 - Task statement (required).
-- Optional: repo contributor skill to hand developers (`private-contributor`, `python-fastapi-contributor`, …), max fix rounds (default 2).
+- Optional: repo contributor skill to hand developers (`<project>-contributor`, `python-fastapi-contributor`, …), max fix rounds (default 2).
 
 ## First Read
 
-Repo `AGENTS.md`; `references/roles.md` (role prompts). Resolve the skills root once (`python3 <skills-root>/scripts/agent_config.py --skills-root`) and pick repo overlays when present: contributor (`private-contributor`, …), reviewer (`private-branch-change-reviewer`, …), tests (`private-parallel-tests`, …); otherwise use the core skills named below. If `ponytail-review` is absent, tell the user how to install the ponytail plugin for the active runtime, do not install, run the reviewer on `branch-change-reviewer` alone, and report the gap.
+Repo `AGENTS.md`; `references/roles.md` (role prompts). Resolve the skills root once (`python3 <skills-root>/scripts/agent_config.py --skills-root`) and pick repo overlays when present: contributor (`<project>-contributor`, …), reviewer (`<project>-branch-change-reviewer`, …), tests (`<project>-parallel-tests`, …); otherwise use the core skills named below. If `ponytail-review` is absent, tell the user how to install the ponytail plugin for the active runtime, do not install, run the reviewer on `branch-change-reviewer` alone, and report the gap.
 
 ## Runtime Mapping
 

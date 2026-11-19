@@ -106,7 +106,7 @@ Responsible for:
 - project-specific defaults
 
 Examples:
-- `private-service-*`
+- `<project>-*`
 
 ### GitHub access (`GITHUB-ACCESS.md`)
 
@@ -115,7 +115,7 @@ GitHub issue and PR fetch is portable policy in synced **`GITHUB-ACCESS.md`** at
 | Skill type | Wire GitHub transport? | How |
 |------------|------------------------|-----|
 | **Transport** (`jira`, `confluence`, `gitlab`, `circleci`) | No | Use **`GITHUB-ACCESS.md`** for GitHub fetch; **`JIRA-ACCESS.md`** for Jira; identity via **`GIT-ACCESS.md`**; do not duplicate **`gh`** / **`acli`** logic. |
-| **GitHub workflow** (`github-pr-comment-analysis`, `github-issue-triage`, `private-pr-comment-analysis`) | Yes — consumer | Read **`GITHUB-ACCESS.md`**; refresh via **`gh`**. |
+| **GitHub workflow** (`github-pr-comment-analysis`, `github-issue-triage`) | Yes — consumer | Read **`GITHUB-ACCESS.md`**; refresh via **`gh`**. |
 | **Investigation / contributor / planning** | Pointer only | One line to **`GITHUB-ACCESS.md`** when task starts from a GitHub URL or issue. |
 
 **Manifest rule:** do **not** add **`github`** under `companion_skills` for new or updated skills. Policy lives in synced **`GITHUB-ACCESS.md`**; helpers in **`agent_config.py --github-scripts-dir`**.
@@ -151,12 +151,12 @@ Literal search for the **current directory tree** is portable policy in synced *
 |------------|----------------------|-----|
 | **Transport** (`jira`, `confluence`, `gitlab`, `circleci`) | No | Remote fetch only; GitHub via **`GITHUB-ACCESS.md`**; identity via **`GIT-ACCESS.md`**; code search via investigation companions. |
 | **Investigation hub** (`repository-technical-analysis`) | Yes — owner | Workflow step 3 holds the full procedure. No manifest `companion_skills` entry for search. |
-| **Investigation overlay** (`private-technical-analysis`, `private-service-technical-analysis`, …) | Inherit | Load `repository-technical-analysis`; one line in **First Read** pointing to RTA step 3 / **`LITERAL-CODE-SEARCH.md`**. Do not duplicate the full search workflow. |
+| **Investigation overlay** (`<project>-technical-analysis`, …) | Inherit | Load `repository-technical-analysis`; one line in **First Read** pointing to RTA step 3 / **`LITERAL-CODE-SEARCH.md`**. Do not duplicate the full search workflow. |
 | **Debugging** (`diagnose`) | Inherit + pointer | **First Read** one-liner to **`LITERAL-CODE-SEARCH.md`**; manifest pairs **`repository-technical-analysis`**. |
-| **Implementation / contributor** (`python-fastapi-contributor`, `private-contributor`, …) | Pointer only | **First Read** one-liner to **`LITERAL-CODE-SEARCH.md`**. Repo overlays inherit via parent contributor or RTA — no extra search prose. |
+| **Implementation / contributor** (`python-fastapi-contributor`, `<project>-contributor`, …) | Pointer only | **First Read** one-liner to **`LITERAL-CODE-SEARCH.md`**. Repo overlays inherit via parent contributor or RTA — no extra search prose. |
 | **TDD** (`tdd`) | Pointer only | **First Read** one-liner; manifest chains through `python-fastapi-contributor` or `repository-technical-analysis`. |
 | **Branch review / rebase** (`branch-change-reviewer`, `git-rebase-conflict-resolver`) | Pointer only | When diff alone is insufficient (call sites, rename fallout, conflict intent). |
-| **Comment-analysis workflow** (`github-pr-comment-analysis`, `gitlab-mr-comment-analysis`, `private-pr-comment-analysis`, …) | Inherit | Transport + grouping here; fixes use contributor / RTA chains that already carry literal search policy. |
+| **Comment-analysis workflow** (`github-pr-comment-analysis`, `gitlab-mr-comment-analysis`, …) | Inherit | Transport + grouping here; fixes use contributor / RTA chains that already carry literal search policy. |
 | **Planning / meta** (`plan-issues`, `learn-daily`, `multi-spawn-agent`) | No | No routine codebase literal search. |
 
 **Manifest rule:** do **not** add a literal-search skill under `companion_skills`. Policy lives in synced **`LITERAL-CODE-SEARCH.md`** + **`agent_config.py --literal-search-dir`** helpers.

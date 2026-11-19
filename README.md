@@ -23,29 +23,13 @@ Custom agent skills tracked in git. They install to **Codex** (`~/.codex/skills`
 - `skills/core/git-rebase-conflict-resolver/`: rebase and conflict-resolution workflow
 - `skills/core/branch-change-reviewer/`: branch review workflow against a target branch
 
-### Guided Experience Service skills
+### Project overlays
 
-- `skills/private-service/contributor/`: repo workflow skill for private-service
-- `skills/private-service/technical-analysis/`: investigation and analysis skill for private-service
-- `skills/private-service/parallel-tests/`: run private-service unit and integration tests with 10 workers
-- `skills/private-service/mr-comment-analysis/`: private-service overlay that uses `gitlab-mr-comment-analysis` plus repo-specific technical analysis and proposed changes
-
-### CLI product skills
-
-Overlays for the **CLI product** source repository (agent- and IDE-agnostic: works with any assistant using these skills). Layer on generic skills the same way guided-experience overlays do.
-
-- `skills/cli/contributor/`: implementation and validation conventions; pnpm, Turbo, and `package.json` script discovery
-- `skills/cli/private-support-triage/`: daily CLI Ask and support-triage workflow
-- `skills/cli/branch-change-reviewer/`: read-only branch review overlay combining CLI technical analysis with terse Caveman findings
-- `skills/cli/technical-analysis/`: investigation and repro commands for the CLI tree
-- `skills/cli/parallel-tests/`: broad suite runs aligned with CI scripts
-- `skills/cli/pr-comment-analysis/`: GitHub PR grouped-comment analysis with repo-specific verdicts and proposed changes (`private-pr-comment-analysis`)
+Repository-specific overlays (for example a private CLI pack or a service pack) live in separate private repositories. Install them alongside these skills with `AGENT_SKILLS_EXTRA_MANIFESTS` (see Install filters below), and use them with the matching generic skills.
 
 ### Other tracked assets
 
 - `git-hooks/post-commit`: copies committed skills into the configured install roots, refreshes Cursor rules under `~/.cursor/rules/`, and refreshes managed Codex rule blocks in `~/.codex/AGENTS.md`
-
-The private-service and **CLI product** (`skills/cli/`) skills are overlays. Use them with the matching generic skills when working in those repositories.
 Use **`JIRA-ACCESS.md`** + **`acli`** for Jira Cloud issue access (resolve policy with **`scripts/agent_config.py --jira-access-policy`**).
 Use `confluence` for Confluence Cloud wiki access; prefer `twg confluence`, then ACLI, Basic-auth REST helpers, and MCP.
 Likewise, `gitlab-mr-comment-analysis` is an overlay on `gitlab`: use `gitlab` for generic MR fetch and discussion inspection, and `gitlab-mr-comment-analysis` for grouped unresolved-comment analysis and reporting.
@@ -124,13 +108,13 @@ Environment overrides: `CODEX_HOME` (Codex base), `CURSOR_AGENT_SKILLS_HOME` (pa
 
 Optional **install filters** (skip copying whole manifest groups or named skills—excluded directories are removed from each sync target if they were installed earlier):
 
-- `AGENT_SKILLS_EXCLUDE_RELEASE_GROUPS` — comma-separated `release_group` values from `skills_manifest.yaml`. Each value drops **every** skill with that `release_group`. Current manifest values:
+- `AGENT_SKILLS_EXCLUDE_RELEASE_GROUPS` — comma-separated `release_group` values from `skills_manifest.yaml`. Each value drops **every** skill with that `release_group`. Current manifest value:
   - **`core`** — generic cross-repo skills (e.g. **`GITHUB-ACCESS.md`**, **`JIRA-ACCESS.md`**, `gitlab`, `repository-technical-analysis`, `tdd`, …).
-  - **`cli`** — CLI product overlays (`private-contributor`, `private-technical-analysis`, `private-parallel-tests`, `private-pr-comment-analysis`).
-  - **`private-service`** — private-service overlays (`private-service-*`).
-  
-  Examples: `private-service` only; `private-service,cli` omits both packs. To list groups and member skills after manifest changes, run: `python3 scripts/skill_manifest.py summary-by-group --group-by release_group`.
+
+  Example: `python-fastapi-contributor` as a single-skill name filter. To list groups and member skills after manifest changes, run: `python3 scripts/skill_manifest.py summary-by-group --group-by release_group`.
 - `AGENT_SKILLS_EXCLUDE_SKILL_NAMES` — comma-separated exact manifest `name` entries.
+
+Extra manifests install alongside this repository. Set `AGENT_SKILLS_EXTRA_MANIFESTS` to one or more comma-separated manifest files; each manifest's skill paths resolve relative to its own directory. Pass the same value to `--delete-missing`, otherwise skills owned by the other manifest are removed.
 
 The `post-commit` hook does not set these; export them in your environment or wrap `sync_skills.sh` if you want narrower installs by default. See `scripts/sync_skills.sh` usage for details.
 
@@ -201,20 +185,12 @@ Confluence uses **`twg confluence`**, then authenticated **`acli confluence`**, 
 
 Configure preference in **`~/.cursor/fast-grep.env`** or **`~/.codex/fast-grep.env`** (`agent_config.py --fast-grep-env`). Policy: **`agent_config.py --literal-search-policy`**.
 
-### Parallel test skills
-
-| Tool | Required | Used by |
-|------|----------|---------|
-| **parallel** (GNU parallel) | optional | `private-parallel-tests`, `private-service-parallel-tests` — speeds disjoint suite splits; sequential fallback when absent |
-
 ### Target-repository tools (not checked by `--all`)
 
 Install and run these **in the repository under investigation**. Use overlay skills for exact commands.
 
 | Stack | Typical CLIs | Overlay skills |
 |-------|----------------|----------------|
-| **CLI product** | **pnpm**, **node**, repo `package.json` scripts | `private-contributor`, `private-technical-analysis`, `private-parallel-tests` |
-| **private-service** | **uv**, **make**, **pytest** (via `uv run`) | `private-service-contributor`, `private-service-technical-analysis` |
 | **Python / FastAPI** (generic) | **pytest**, repo lint/format targets | `python-fastapi-contributor` + `repository-technical-analysis` |
 
 Contributor and **tdd** skills have no transport auth — run **`check_skill_prereqs.sh`** in the target repo for project-specific test runners.
@@ -275,10 +251,6 @@ See the relevant skill reference or policy doc for supported variables and prece
 
 - **`JIRA-ACCESS.md`** + `templates/atlassian.env.example` (Jira)
 - `skills/core/confluence/references/commands.md`
-- `skills/private-service/contributor/README.md`
-- `skills/private-service/technical-analysis/README.md`
-- `skills/private-service/parallel-tests/README.md`
-- `skills/private-service/mr-comment-analysis/README.md`
 
 Do not store secrets such as `ATLASSIAN_API_TOKEN` or `IAC_TOKEN` in these files.
 

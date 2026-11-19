@@ -16,6 +16,19 @@ if [[ -n "${AGENT_SKILLS_EXCLUDE_SKILL_NAMES:-}" ]]; then
   manifest_filter_args+=(--exclude-skill-names "$AGENT_SKILLS_EXCLUDE_SKILL_NAMES")
 fi
 
+# Extra manifests (for example a private repository) install alongside this one.
+# Their skill paths resolve relative to each manifest's own directory.
+manifest_args=(--manifest "$repo_root/skills_manifest.yaml")
+if [[ -n "${AGENT_SKILLS_EXTRA_MANIFESTS:-}" ]]; then
+  IFS=',' read -r -a extra_manifests <<< "$AGENT_SKILLS_EXTRA_MANIFESTS"
+  for extra_manifest in "${extra_manifests[@]}"; do
+    extra_manifest="${extra_manifest#"${extra_manifest%%[![:space:]]*}"}"
+    extra_manifest="${extra_manifest%"${extra_manifest##*[![:space:]]}"}"
+    [[ -n "$extra_manifest" ]] || continue
+    manifest_args+=(--manifest "$extra_manifest")
+  done
+fi
+
 usage() {
   cat <<'EOH'
 Usage: sync_skills.sh [--all] [--changed] [--dry-run] [--verify] [--delete-missing]
@@ -37,8 +50,12 @@ Environment:
                               (default: codex,cursor)
   AGENT_SKILLS_EXCLUDE_RELEASE_GROUPS   Comma-separated manifest release_group values
                               to skip installing (and remove from targets if present).
-                              Example: private-service
+                              Example: core
   AGENT_SKILLS_EXCLUDE_SKILL_NAMES      Comma-separated exact skill names to skip.
+  AGENT_SKILLS_EXTRA_MANIFESTS         Comma-separated manifest files synced alongside
+                              this repository's manifest. Skill paths resolve relative
+                              to each manifest's directory. Pass the same value to
+                              --delete-missing so foreign skills are not removed.
 
 Options:
   --all             Sync all manifest-declared skills and shared helper files (default).
@@ -168,14 +185,14 @@ run_or_print() {
 
 collect_skill_entries() {
   if [[ ${#manifest_filter_args[@]} -eq 0 ]]; then
-    "$manifest_reader" list-skill-name-paths
+    "$manifest_reader" list-skill-name-paths "${manifest_args[@]}"
   else
-    "$manifest_reader" list-skill-name-paths "${manifest_filter_args[@]}"
+    "$manifest_reader" list-skill-name-paths "${manifest_args[@]}" "${manifest_filter_args[@]}"
   fi
 }
 
 collect_shared_files() {
-  "$manifest_reader" list-shared-files
+  "$manifest_reader" list-shared-files "${manifest_args[@]}"
 }
 
 copy_shared_file() {
@@ -229,9 +246,9 @@ sync_to_destination() {
       changed_paths="$(git -C "$repo_root" status --short | sed 's/^...//' | sed '/^$/d')"
     fi
 
-    while IFS=$'\t' read -r skill_name skill_path; do
-      [[ -n "$skill_name" && -n "$skill_path" ]] || continue
-      skill_dir="$repo_root/$skill_path"
+    while IFS=$'\t' read -r skill_name skill_path skill_root; do
+      [[ -n "$skill_name" && -n "$skill_path" && -n "$skill_root" ]] || continue
+      skill_dir="$skill_root/$skill_path"
       [[ -d "$skill_dir" && -f "$skill_dir/SKILL.md" ]] || continue
 
       if [[ "$changed_only" == true ]]; then
@@ -259,9 +276,9 @@ sync_to_destination() {
 
   if [[ "$delete_missing" == true ]]; then
     if [[ ${#manifest_filter_args[@]} -eq 0 ]]; then
-      manifest_names="$("$manifest_reader" list-skill-names)"
+      manifest_names="$("$manifest_reader" list-skill-names "${manifest_args[@]}")"
     else
-      manifest_names="$("$manifest_reader" list-skill-names "${manifest_filter_args[@]}")"
+      manifest_names="$("$manifest_reader" list-skill-names "${manifest_args[@]}" "${manifest_filter_args[@]}")"
     fi
     shopt -s nullglob
     for installed in "$dest_root"/*; do
@@ -297,9 +314,9 @@ if [[ "$sync_all" == true || "$changed_only" == true ]]; then
     changed_paths="$(git -C "$repo_root" status --short | sed 's/^...//' | sed '/^$/d')"
   fi
 
-  while IFS=$'\t' read -r skill_name skill_path; do
-    [[ -n "$skill_name" && -n "$skill_path" ]] || continue
-    skill_dir="$repo_root/$skill_path"
+  while IFS=$'\t' read -r skill_name skill_path skill_root; do
+    [[ -n "$skill_name" && -n "$skill_path" && -n "$skill_root" ]] || continue
+    skill_dir="$skill_root/$skill_path"
     [[ -d "$skill_dir" && -f "$skill_dir/SKILL.md" ]] || continue
 
     if [[ "$changed_only" == true ]]; then

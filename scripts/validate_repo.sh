@@ -43,6 +43,7 @@ bash "$repo_root/tests/test_sync_codex_rules.sh"
 
 echo "==> Validating skill synchronization"
 bash "$repo_root/tests/test_sync_skills.sh"
+bash "$repo_root/tests/test_sync_extra_manifest.sh"
 
 artifact_paths=()
 while IFS= read -r path; do

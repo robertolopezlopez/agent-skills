@@ -46,6 +46,22 @@ def load_manifest(path: Path) -> dict[str, object]:
     return {"shared_files": shared_files, "skills": skills}
 
 
+def merge_manifests(paths: list[Path]) -> dict[str, object]:
+    skills: list[dict[str, str]] = []
+    shared_files: list[str] = []
+    for path in paths:
+        manifest = load_manifest(path)
+        root = path.parent
+        for skill in manifest["skills"]:
+            entry = dict(skill)
+            entry["root"] = str(root)
+            skills.append(entry)
+        for shared_file in manifest["shared_files"]:
+            if shared_file not in shared_files:
+                shared_files.append(shared_file)
+    return {"shared_files": shared_files, "skills": skills}
+
+
 def parse_csv_set(raw: str) -> set[str]:
     parts = [p.strip() for p in raw.replace("\n", ",").split(",")]
     return {p for p in parts if p}
@@ -79,6 +95,7 @@ def filter_installable_skills(
 
 
 def main() -> None:
+    default_manifest = Path(__file__).resolve().parents[1] / "skills_manifest.yaml"
     parser = argparse.ArgumentParser(description="Read the repo skills manifest.")
     parser.add_argument(
         "command",
@@ -99,7 +116,12 @@ def main() -> None:
     )
     parser.add_argument(
         "--manifest",
-        default=str(Path(__file__).resolve().parents[1] / "skills_manifest.yaml"),
+        action="append",
+        default=None,
+        help=(
+            "Manifest file to read (repeatable). Skill paths resolve relative to each "
+            "manifest's directory. Defaults to this repository's skills_manifest.yaml."
+        ),
     )
     parser.add_argument(
         "--exclude-release-groups",
@@ -119,7 +141,9 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    manifest = load_manifest(Path(args.manifest))
+    manifest = merge_manifests(
+        [Path(p).expanduser().resolve() for p in (args.manifest or [default_manifest])]
+    )
     exclude_groups = parse_csv_set(args.exclude_release_groups)
     exclude_names = parse_csv_set(args.exclude_skill_names)
     installable = filter_installable_skills(manifest, exclude_groups, exclude_names)
@@ -132,7 +156,7 @@ def main() -> None:
             print(skill["name"])
     elif args.command == "list-skill-name-paths":
         for skill in installable:
-            print(f"{skill['name']}\t{skill['path']}")
+            print(f"{skill['name']}\t{skill['path']}\t{skill['root']}")
     elif args.command == "list-excluded-skill-names":
         skills = manifest["skills"]
         assert isinstance(skills, list)

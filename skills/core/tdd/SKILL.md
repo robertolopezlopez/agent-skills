@@ -114,7 +114,6 @@ Common pairings:
 - `diagnose` to isolate a bug before driving the fix through tests
 - `repository-technical-analysis` when broader investigation is still needed
 - `python-fastapi-contributor` for Python or FastAPI structure, commands, and validation
-- `private-contributor` for CLI product monorepo structure, commands, and validation
 - repository-specific contributor overlays for local conventions layered on the generic contributors above
 
 ## Safety Notes

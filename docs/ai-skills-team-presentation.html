@@ -264,7 +264,7 @@
     <section class="slide" data-slide="3">
       <span class="pill">Self-improving skills</span>
       <h2>Local Markdown artifacts carry lessons forward</h2>
-      <p><strong style="color: var(--text)">Skills can be designed</strong> to be <strong style="color: var(--text)">self-improving</strong> over repeat runs: they read and update <strong style="color: var(--text)">workspace Markdown files</strong> (not the installed <code style="color: var(--success)">SKILL.md</code> itself) so context compounds in the repo you are working in. The same pattern applies to <strong style="color: var(--text)">overlays</strong>—for example <code style="color: var(--success)">private-technical-analysis</code> sits on <code style="color: var(--success)">repository-technical-analysis</code> for the CLI project tree (pnpm/Turbo, package scripts, CI parity) and keeps analysis artifacts consistent with the shared schema (e.g. <code style="color: var(--success)">ARTIFACTS.md</code>).</p>
+      <p><strong style="color: var(--text)">Skills can be designed</strong> to be <strong style="color: var(--text)">self-improving</strong> over repeat runs: they read and update <strong style="color: var(--text)">workspace Markdown files</strong> (not the installed <code style="color: var(--success)">SKILL.md</code> itself) so context compounds in the repo you are working in. The same pattern applies to <strong style="color: var(--text)">overlays</strong>—for example a repo-specific <code style="color: var(--success)">&lt;project&gt;-technical-analysis</code> overlay sits on <code style="color: var(--success)">repository-technical-analysis</code> and adds local build commands and CI parity and keeps analysis artifacts consistent with the shared schema (e.g. <code style="color: var(--success)">ARTIFACTS.md</code>).</p>
       <div class="card">
         <h3 style="margin-top: 0">What gets preserved</h3>
         <ul style="margin-bottom: 0">
@@ -376,7 +376,7 @@
       <div class="card">
         <p style="margin: 0 0 0.75rem"><strong style="color: var(--text)">plan-issues</strong> decomposes the work into <strong style="color: var(--text)">ordered, dependency-aware vertical slices</strong> that are ready to execute—without treating “start coding” as the only handoff.</p>
         <p style="margin: 0 0 0.75rem"><strong style="color: var(--text)">What you get:</strong> a concise summary of the scoped change, numbered slices with purpose and separation, explicit <strong style="color: var(--text)">dependencies and blockers</strong>, which slices need a <strong style="color: var(--text)">human decision</strong> vs which suit an agent, a recommended execution order, pointers to sensible next skills, and (when useful) a file such as <code style="color: var(--success)">work_plan_&lt;relevant_name&gt;.md</code>.</p>
-        <p style="margin: 0; font-size: 0.95rem"><strong style="color: var(--text)">Typical follow-ups:</strong> <code style="color: var(--success)">private-contributor</code> to implement against the CLI overlay conventions, and <code style="color: var(--success)">tdd</code> when each slice should ship through a test-first red-green loop. <code style="color: var(--success)">multi-spawn-agent</code> fits when multiple workers can own disjoint slices.</p>
+        <p style="margin: 0; font-size: 0.95rem"><strong style="color: var(--text)">Typical follow-ups:</strong> <code style="color: var(--success)">&lt;project&gt;-contributor</code> to implement against the repo overlay conventions, and <code style="color: var(--success)">tdd</code> when each slice should ship through a test-first red-green loop. <code style="color: var(--success)">multi-spawn-agent</code> fits when multiple workers can own disjoint slices.</p>
       </div>
     </section>
 
@@ -388,19 +388,19 @@
       <div class="card">
         <h3 style="margin-top: 0">How layers stack (examples)</h3>
         <ul style="margin-bottom: 0; font-size: 0.95rem">
-          <li><code style="color: var(--success)">repository-technical-analysis</code> + <code style="color: var(--success)">private-technical-analysis</code> — investigation with CLI monorepo repro commands and artifact shape.</li>
-          <li><code style="color: var(--success)">github</code> + <code style="color: var(--success)">github-pr-comment-analysis</code> + <code style="color: var(--success)">private-pr-comment-analysis</code> — grouped GitHub PR review issues with CLI-specific verdicts and proposed fixes.</li>
-          <li><code style="color: var(--success)">tdd</code> or <code style="color: var(--success)">plan-issues</code> + <code style="color: var(--success)">private-contributor</code> — delivery and validation using the CLI project’s real scripts and conventions.</li>
+          <li><code style="color: var(--success)">repository-technical-analysis</code> + <code style="color: var(--success)">&lt;project&gt;-technical-analysis</code> — investigation with repo-specific repro commands and artifact shape.</li>
+          <li><code style="color: var(--success)">github</code> + <code style="color: var(--success)">github-pr-comment-analysis</code> + <code style="color: var(--success)">&lt;project&gt;-pr-comment-analysis</code> — grouped GitHub PR review issues with repo-specific verdicts and proposed fixes.</li>
+          <li><code style="color: var(--success)">tdd</code> or <code style="color: var(--success)">plan-issues</code> + <code style="color: var(--success)">&lt;project&gt;-contributor</code> — delivery and validation using the repo’s real scripts and conventions.</li>
         </ul>
       </div>
       <div class="card" style="margin-top: 1rem">
         <h3 style="margin-top: 0">Example pack: CLI project (TypeScript monorepo)</h3>
         <p style="margin: 0 0 0.65rem; font-size: 0.95rem"><strong style="color: var(--text)">Example:</strong> understand the project structure and glue (Makefile, <code style="color: var(--success)">package.json</code>), test execution, and use the checkout itself when responding to PR review feedback—so judgments and proposed fixes reference real files and commands, not generic boilerplate.</p>
         <ul style="margin: 0; font-size: 0.92rem; line-height: 1.55">
-          <li><code style="color: var(--success)">private-contributor</code> — implement and validate using local script conventions (not generic guesses).</li>
-          <li><code style="color: var(--success)">private-technical-analysis</code> — narrow reproduction and analysis paths for the CLI tree; align artifacts with shared schema.</li>
-          <li><code style="color: var(--success)">private-parallel-tests</code> — broad suites using the same shapes CI uses.</li>
-          <li><code style="color: var(--success)">private-pr-comment-analysis</code> — GitHub PR comment grouping plus CLI-specific technical judgment and suggested responses.</li>
+          <li><code style="color: var(--success)">&lt;project&gt;-contributor</code> — implement and validate using local script conventions (not generic guesses).</li>
+          <li><code style="color: var(--success)">&lt;project&gt;-technical-analysis</code> — narrow reproduction and analysis paths for the repo; align artifacts with shared schema.</li>
+          <li><code style="color: var(--success)">&lt;project&gt;-parallel-tests</code> — broad suites using the same shapes CI uses.</li>
+          <li><code style="color: var(--success)">&lt;project&gt;-pr-comment-analysis</code> — GitHub PR comment grouping plus repo-specific technical judgment and suggested responses.</li>
         </ul>
       </div>
       <p class="tagline" style="margin-bottom: 0">The catalog also includes overlays for <strong style="color: var(--text)">other repositories</strong> (same idea: core transport/workflow skill + repo pack). Prefer adding <strong style="color: var(--text)">thin overlays</strong> over forking huge generic skills—shared rules stay in core or <code style="color: var(--success)">AGENTS.md</code>.</p>
@@ -495,7 +495,7 @@ repository-technical-analysis — in this repo, tie findings to CLI-1234 and wri
           <li>They improve speed, consistency, and safety for real engineering tasks.</li>
           <li><a href="https://github.com/robertolopezlopez/agent-skills" rel="noopener noreferrer" target="_blank"><strong style="color: var(--text)">My personal skills</strong> <span style="color: var(--muted); font-weight: 400">(github.com/robertolopezlopez/agent-skills)</span></a> are organized as <strong style="color: var(--text)">core + overlays</strong>, synced to agents, validated like any other source.</li>
           <li>The set is <strong style="color: var(--text)">actively maintained</strong>: new core skills, new overlays, and refinements to existing skills as tools and team practice evolve.</li>
-          <li>A typical depth path: <code style="color: var(--success)">repository-technical-analysis</code> → <code style="color: var(--success)">plan-issues</code> → <code style="color: var(--success)">private-contributor</code> / <code style="color: var(--success)">tdd</code>, with local Markdown artifacts holding follow-ups and lessons.</li>
+          <li>A typical depth path: <code style="color: var(--success)">repository-technical-analysis</code> → <code style="color: var(--success)">plan-issues</code> → <code style="color: var(--success)">&lt;project&gt;-contributor</code> / <code style="color: var(--success)">tdd</code>, with local Markdown artifacts holding follow-ups and lessons.</li>
           <li>You can chain several named skills in <strong style="color: var(--text)">one prompt</strong> when steps, IDs, and output files are explicit.</li>
         </ul>
       </div>

@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Breaking
+
+- **Private skill split** — Project-specific overlay skills and personal transport skills moved to a separate private repository with full history. The public repository keeps generic skills and tooling. Install the private pack with `AGENT_SKILLS_EXTRA_MANIFESTS`; project-specific policy documents and routing rules moved with it.
+
 - Added **`scripts/sync_codex_rules.sh`** and `templates/codex/rules/*.md` to maintain always-on Codex guidance as managed blocks in the global `AGENTS.md`, with selective sync, dry-run, personal-content preservation, bootstrap integration, tests, and post-commit refresh parity with Cursor rules.
 
 This repository uses a lightweight changelog.
@@ -34,32 +40,32 @@ Use commit history for routine wording, cleanup, and implementation-only changes
   Basic-auth REST helper path is needed.
 - **Race-free skill sync** — update installed skill directories in place so
   `SKILL.md` remains readable while Codex or Cursor scans during synchronization.
-- **PR conflict rebasing** — `private-ci-monitor` calls `gh-pr-rebase` every five
-  minutes; confirmed conflicts rebase onto the PR target while preserving both sides.
-- **`private-ci-monitor` diagnosis** — analyze final non-transient failures directly,
+- **PR conflict rebasing** — a repo CI-monitor overlay calls `gh-pr-rebase` every
+  five minutes; confirmed conflicts rebase onto the PR target while preserving both sides.
+- **Repo CI-monitor diagnosis** — analyze final non-transient failures directly,
   present the diagnosis, then stop.
-- **CircleCI CLI-first monitoring** — route `private-ci-monitor` workflow, job,
+- **CircleCI CLI-first monitoring** — route repo CI-monitor workflow, job,
   output, cancel, and rerun operations through the local CLI while retaining an
   explicit API-helper fallback.
-- **`private-ci-monitor` PR conflicts** — resolve branches with local `gh`, check every
+- **Repo CI-monitor PR conflicts** — resolve branches with local `gh`, check every
   five minutes alongside CI, then rebase and follow replacement CI within the deadline.
 - **Transport skill disclosure** — keep CircleCI and Confluence routing/safety in
   `SKILL.md` while loading exact helper commands and config details only on demand.
 - **GitLab transport** — add a normalized `gl-fetch` wrapper over `glab api` and
   shrink MR access/comment skills around its paginated discussion contract.
-- **`private-ci-monitor` runner** — move polling, failure classification, retry lineage,
+- **Repo CI-monitor runner** — move polling, failure classification, retry lineage,
   PR checks, and exact post-rebase workflow resumption into a tested local command.
-- **`private-ci-monitor` transient retries** — inspect failed action output and retry
+- **Repo CI-monitor transient retries** — inspect failed action output and retry
   narrow, high-confidence test-timeout and temporary-network signatures without
   treating ordinary assertion failures as infrastructure.
 - **Cross-agent skill portability** — remove a Cursor-only GitLab artifact path,
   make `multi-spawn-agent` runtime-neutral, and route optional CLI Slack
   enrichment through whichever connected Slack capability is available.
-- **`private-support-triage`** — include read-only questions mentioning Slack user group
-  `@ask-private-support-triage` (`private-group-id`) in caretaker research and reports.
+- **Support-triage overlay** — include read-only questions mentioning a Slack user group
+  in caretaker research and reports.
 - **`branch-change-reviewer`** — require output under the resolved external
   `$ARTIFACTS` store by default.
-- **`private-branch-change-reviewer`** — add a separate `ponytail-review` pass for
+- **Repo branch-review overlay** — add a separate `ponytail-review` pass for
   unnecessary complexity.
 - **Artifact store default** — use **`~/Documents/agent-artifacts`** for both
   Codex and Cursor unless `AGENT_ARTIFACTS_HOME` overrides it.
@@ -85,13 +91,13 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 ### Added
 
-- **`private-support-monitor`**: continuously claim support Asks, parallel-review PR requests, conditionally approve clean reviews, log outcomes, update daily status, and emit terminal `BEL` notifications.
-- **`private-ci-monitor`**: monitor CLI CircleCI workflow lineages for up to two
+- **Support-triage monitor overlay**: continuously claim support Asks, parallel-review PR requests, conditionally approve clean reviews, log outcomes, update daily status, and emit terminal `BEL` notifications.
+- **Repo CI-monitor overlay**: monitor CircleCI workflow lineages for up to two
   hours, conservatively classify environment failures, cancel active workflows,
   and rerun from failed jobs until success.
 - **`latex-to-pdf`**: local LaTeX compilation using project commands or
   XeLaTeX/`latexmk`.
-- **`private-support-triage`**: CLI Ask Caretaker workflow for asks, initial support triage, alerts, `main` CI failures, PR asks, and shift handoff.
+- **Support-triage overlay**: Ask Caretaker workflow for asks, initial support triage, alerts, `main` CI failures, PR asks, and shift handoff.
 - **`JIRA-ACCESS.md`**: synced portable Jira Cloud access policy (`shared_files`; resolve with **`agent_config.py --jira-access-policy`**)
 - **`docs/jira-access-migration.md`**: Jira transport migration checklist
 - **`scripts/git/`**: **`git-repo-identity`**, **`resolve_repo_identity.py`** (synced; **`agent_config.py --git-scripts-dir`**)
@@ -115,7 +121,7 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 
 - core **`learn-daily`** skill (`skills/core/learn-daily/`, renamed from `daily-agent-rhythm`) for a short start → work → end loop using **`$ARTIFACTS/`** (external store) and optional **`$ARTIFACTS/NEXT_TIME_CHECKS.md`**
 - core `github-pr-comment-analysis` skill (`skills/core/github-pr-comment-analysis/`) mirroring `gitlab-mr-comment-analysis` for GitHub PRs (grouped threads inside `review_pr_<number>.md` / `analysis_pr_<number>.md`)
-- CLI product overlay skills under `skills/cli/` (`private-contributor`, `private-technical-analysis`, `private-parallel-tests`, `private-pr-comment-analysis`), agent- and IDE-agnostic, declared in `skills_manifest.yaml`
+- Repository overlay skills installed from a separate private manifest, agent- and IDE-agnostic
 - shared skill schema guidance in `docs/skill-schema.md`
 - release/change guidance in `docs/release-change-guidance.md`
 - reusable work-plan template in `templates/work_plan.md`
@@ -129,11 +135,11 @@ Use commit history for routine wording, cleanup, and implementation-only changes
 - **`learn-daily`**: bootstrap checklist for **`$ARTIFACTS/NEXT_TIME_CHECKS.md`** (steps 1–2) plus post-bootstrap checklist; **`AGENTS.md`** documents the external playbook pointer
 - **Artifact placement (prior):** shipped `ARTIFACTS.md` and updated skills prefer new local Markdown under in-repo `_artifacts_/<meaningful_id>/` — superseded by external store default above
 - **`gitlab-mr-comment-analysis`** and **`github-pr-comment-analysis`** write grouped threads **inside** the main MR/PR Markdown artifact (`review_mr_*` / `review_pr_*`, or `analysis_mr_*` / `analysis_pr_*`) under `## Grouped unresolved comments`; standalone `work_plan_*`, per-issue splits, and `*_comment_report.md` outputs are legacy-only for migration
-- **`private-pr-comment-analysis`** targets **GitHub** pull requests (`github` transport, **`github-pr-comment-analysis`** grouping); manifest **companion_skills** no longer lists `gitlab` / `gitlab-mr-comment-analysis`
-- Renamed **`cli-mr-comment-analysis`** → **`private-pr-comment-analysis`** (directory `skills/cli/mr-comment-analysis/` → `skills/cli/pr-comment-analysis/`). Remove stale installs with `./scripts/sync_skills.sh --all --verify --delete-missing`.
+- Repo PR-comment overlay targets **GitHub** pull requests (`github` transport, **`github-pr-comment-analysis`** grouping)
+- Renamed the repo MR-comment overlay to a PR-comment overlay (`mr-comment-analysis` → `pr-comment-analysis`).
 - Atlassian auth is a single manifest **shared_files** script (`scripts/atlassian-auth.sh`); `jira` and `confluence` helpers source it from the skills install root `scripts/` directory next to `validate_artifact.py` instead of copying to `$HOME/.local/share/jira/`
 - `scripts/sync_skills.sh --delete-missing` skips the non-skill `scripts/` directory under each install root (it carries shared helpers such as `validate_artifact.py`)
-- CLI overlay skills: `private-prefix-*` → `cli-*`, directory `skills/private-prefix/` → `skills/cli/`, manifest `repo_scope` / `release_group` → `cli`; prose is agent- and IDE-agnostic
+- Repo overlay skills: renamed from a tool-specific prefix to a neutral prefix; prose is agent- and IDE-agnostic
 - `git-hooks/post-commit` forces `AGENT_SKILLS_SYNC_TARGETS=codex,cursor`, runs **`scripts/sync_cursor_rules.sh --overwrite`** after skill sync, and resolves the repo with `git rev-parse`; `git-hooks/pre-commit` uses the same repo resolution for symlink-safe paths
 - **`jira`** / **`confluence`** helpers and Jira artifact bootstrap read `ATLASSIAN_API_BASE_URL` from **`~/.cursor/atlassian.env`** before **`~/.codex/atlassian.env`**; **`~/.cursor/jira.env`** / **`~/.codex/jira.env`** are no longer read (rename existing files if needed).
 - top-level skills normalized to the shared schema

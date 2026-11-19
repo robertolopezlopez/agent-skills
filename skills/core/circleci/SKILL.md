@@ -13,7 +13,7 @@ Use for pipeline/workflow/job lookup, project pipeline lists, metadata pointers,
 
 ## When Not to Use
 
-Use `private-ci-monitor` for long-running CLI workflow monitoring and repository analysis skills for code-level failures.
+Use a repository CI-monitor overlay for long-running workflow monitoring and repository analysis skills for code-level failures.
 
 ## Inputs
 
@@ -46,7 +46,7 @@ Return normalized identifiers, states, VCS metadata, URLs, and concise auth erro
 
 ## Companion Skills
 
-Use `private-ci-monitor` for CLI workflow lineages and `repository-technical-analysis` or `diagnose` for failures.
+Use a repository CI-monitor overlay for workflow lineages and `repository-technical-analysis` or `diagnose` for failures.
 
 ## Safety Notes
 

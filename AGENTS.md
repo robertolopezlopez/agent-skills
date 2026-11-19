@@ -20,7 +20,7 @@ Whenever a manifest-declared skill directory is deleted or removed from `skills_
 
 To sync only one stack, use `./scripts/sync_skills.sh --codex-only` or `./scripts/sync_skills.sh --cursor-only`, or set `AGENT_SKILLS_SYNC_TARGETS` to `codex` or `cursor`.
 
-To **omit** manifest skills when installing (e.g. skip all `private-service` overlays), set `AGENT_SKILLS_EXCLUDE_RELEASE_GROUPS` and/or `AGENT_SKILLS_EXCLUDE_SKILL_NAMES` when running `scripts/sync_skills.sh` (see script usage). The hook does not set these by default.
+To **omit** manifest skills when installing (e.g. skip a private overlay pack), set `AGENT_SKILLS_EXCLUDE_RELEASE_GROUPS` and/or `AGENT_SKILLS_EXCLUDE_SKILL_NAMES` when running `scripts/sync_skills.sh` (see script usage). The hook does not set these by default.
 
 The `git-hooks/post-commit` hook runs `scripts/sync_skills.sh --all` with `AGENT_SKILLS_SYNC_TARGETS=codex,cursor`, `scripts/sync_cursor_rules.sh --overwrite`, and `scripts/sync_codex_rules.sh --overwrite` so each commit refreshes **both** default install roots, **Cursor always-on rules** from `templates/cursor/rules/`, and managed **Codex global `AGENTS.md` rules** from `templates/codex/rules/` (update the hook if you need different behavior).
 
@@ -185,7 +185,6 @@ When config is **missing or incomplete**:
 | `circleci` | **`CIRCLE_TOKEN`** export and/or **`circleci.env`** |
 | GitHub (`GITHUB-ACCESS.md`) | **`gh auth login`** — see **`GITHUB-ACCESS.md`** |
 | `gitlab`, `git --fetch-id` | **`glab auth login`** |
-| `private-transport` | **`private-transport.env`** via bundled **`private-transport-api client create`** / **`auth code`** (OAuth2 authorization_code) |
 
 ## Git repository identity
 
@@ -205,11 +204,11 @@ Prereqs: check_skill_prereqs.sh git-access  |  GitLab ID: check_skill_prereqs.sh
 
 The installable **`git`** skill was removed in Phase C. **`gitlab`**, **`circleci`**, and **`GITHUB-ACCESS.md`** consume identity from this policy.
 
-Templates: **`templates/atlassian.env.example`**, **`templates/circleci.env.example`**, **`templates/private-transport.env.example`**.
+Templates: **`templates/atlassian.env.example`**, **`templates/circleci.env.example`**.
 
 ## Contributor design principles
 
-Contributor skills (`python-fastapi-contributor`, `private-contributor`, repo overlays, …) treat **testability** as a primary objective:
+Contributor skills (`python-fastapi-contributor`, `<project>-contributor`, repo overlays, …) treat **testability** as a primary objective:
 
 - **Dependency injection** — pass collaborators (HTTP clients, clocks, stores, config) via constructors, parameters, or framework hooks (`Depends`, factory args). Avoid reaching for module singletons inside business logic.
 - **No hidden globals** — avoid module-level mutable state, import-time side effects, and ambient `process.env` / `os.environ` reads deep in logic. Centralize config at the composition root and inject it.

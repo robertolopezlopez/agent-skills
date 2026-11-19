@@ -186,7 +186,7 @@ Enrich **`### issue_*`** blocks per **`github-pr-comment-analysis`**. Omit **`--
 | Repo investigation after fetch | **`repository-technical-analysis`** |
 | Concrete bug repro | **`diagnose`** |
 | Test-first fix | **`tdd`** |
-| Repo-specific PR overlay | e.g. **`private-pr-comment-analysis`** |
+| Repo-specific PR overlay | e.g. **`<project>-pr-comment-analysis`** |
 
 Transport stays in **this policy**; triage, grouping, and code analysis stay in workflow skills.
 
