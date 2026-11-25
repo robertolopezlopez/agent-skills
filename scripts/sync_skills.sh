@@ -147,6 +147,9 @@ else
     cursor)
       target_mode=cursor
       ;;
+    opencode)
+      target_mode=opencode
+      ;;
     codex,cursor | all | both)
       target_mode=all
       ;;
